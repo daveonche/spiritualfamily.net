@@ -1,72 +1,50 @@
 # ignore files and folders
-/api/cache
-# /api/settings.php
+/src/cache
+# /src/settings.php
 
-/api/mod/*
-/api/composer.phar
-/api/cache
-/api/caches/
-/api/phpunit.xml
+/src/composer.phar
+/src/cache
+/src/caches/
+/src/phpunit.xml
 # /src
 
 # ignore IDE/hidden/testing/OS cache files
 .log
 .env
 *.code-workspace
-/api/.*
-/api/*~
-/api/nbproject
-/api/nb-configuration.xml
-/api/Session.vim
-/api/*.tmproj
-/api/*.tmproject
-/api/tmtags
-/api/Thumbs.db
-/api/Desktop.ini
-/api/npm-debug.log
-/api/phpcbf-fixed.diff
-/api/node_modules
-/api/vendor
+/src/.*
+/src/*~
+/src/nbproject
+/src/nb-configuration.xml
+/src/Session.vim
+/src/*.tmproj
+/src/*.tmproject
+/src/tmtags
+/src/Thumbs.db
+/src/Desktop.ini
+/src/npm-debug.log
+/src/phpcbf-fixed.diff
+/src/node_modules
+/src/vendor
 
 # Codio.com
-/api/startup.sh
+/src/startup.sh
 
 # don't ignore important files
 !.env.example
 
-!/api/mod/ckeditor/
-!/api/mod/developers/
-!/api/mod/embed/
-!/api/mod/externalpages/
-!/api/mod/garbagecollector/
-!/api/mod/messages/
-!/api/mod/notifications/
-!/api/mod/profile/
-!/api/mod/search/
-!/api/mod/site_notifications/
-!/api/mod/system_log/
-!/api/mod/web_services/
-
 # custom plugins
-!/api/mod/ui_theme
-!/api/mod/franchise/
-!/api/mod/partnership/
-!/api/mod/program_manager/
-!/api/mod/configuration_tools/
 
 # thirdparty plugins
-!/api/mod/verification/
-!/api/mod/pwa/
-!/api/mod/wizard/
-# !/api/mod/tour_guide/
 
 # don't ignore special configs
-!/api/.htaccess
-!/api/.mailmap
-!/api/.travis.yml
-!/api/.readthedocs.yml
-!/api/.scrutinizer.yml
-!/api/.github
-!/api/.gitignore
-!/api/.scripts
-!/api/.tx
+!/src/.htaccess
+!/src/.mailmap
+!/src/.travis.yml
+!/src/.readthedocs.yml
+!/src/.scrutinizer.yml
+!/src/.github
+!/src/.gitignore
+!/src/.scripts
+!/src/.tx
+.aider*

@@ -1,0 +1,20 @@
+# Version control
+.git/
+.gitignore
+
+# AI assistant configurations
+.aiderignore
+.aider-conventions/
+
+# IDE and editor configurations
+.idea/
+.vscode/
+
+# Node dependencies (if not needed at runtime)
+node_modules/
+
+# Documentation and tests
+*.md
+docs/
+tests/
+phpunit.xml*

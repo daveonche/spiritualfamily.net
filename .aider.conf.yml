@@ -97,9 +97,9 @@ show-release-notes: false
 # Other settings:
 
 ## Specify multiple values like this:
-# read:
-# - .aider-conventions/AIDER.md
-# - .aider-conventions/xxx-conventions.md
-# - .aider-conventions/xxx-conventions.md
-# - .aider-conventions/xxx-conventions.md
-# - project_notes.md
+read:
+  - .aider-conventions/AIDER.md
+  - .aider-conventions/elgg-conventions.md
+  - .aider-conventions/php-conventions.md
+  - .aider-conventions/phpunit-conventions.md
+  - project_notes.md
