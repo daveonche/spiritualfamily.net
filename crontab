@@ -1,0 +1,19 @@
+# ┌───────────── minute (0-59)
+# │ ┌───────────── hour (0-23)
+# │ │ ┌───────────── day of month (1-31)
+# │ │ │ ┌───────────── month (1-12)
+# │ │ │ │ ┌───────────── day of week (0-6) (Sunday to Saturday)
+# │ │ │ │ │
+# * * * * * command
+# Elgg cron jobs
+* * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/minute?__elgg_mac={{MINUTE_PLACEHOLDER}}
+*/5 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/fiveminute?__elgg_mac={{FIVEMINUTE_PLACEHOLDER}}
+*/15 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/fifteenmin?__elgg_mac={{FIFTEENMIN_PLACEHOLDER}}
+*/30 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/halfhour?__elgg_mac={{HALFHOUR_PLACEHOLDER}}
+0 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/hourly?__elgg_mac={{HOURLY_PLACEHOLDER}}
+0 0 * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/daily?__elgg_mac={{DAILY_PLACEHOLDER}}
+0 0 * * 0 wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/weekly?__elgg_mac={{WEEKLY_PLACEHOLDER}}
+0 0 1 * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/monthly?__elgg_mac={{MONTHLY_PLACEHOLDER}}
+0 0 1 1 * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/yearly?__elgg_mac={{YEARLY_PLACEHOLDER}}
+
+# An empty line is required at the end

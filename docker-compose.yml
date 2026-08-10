@@ -1,0 +1,105 @@
+services:
+  app:
+    # The app server
+    image: coldtrick/elgg_webserver:7.4                    
+    env_file:
+      # This passes variables from .env to the container
+      - .env                                                  
+    volumes:
+      - ./php/:/usr/local/etc/php/conf.d/
+      # Mount source code files
+      - ./src:${WWW_ROOT}
+      # Persist dataroot   
+      - fs-dataroot:/var/www/dataroot          
+      # Persist cacheroot               
+      - fs-cacheroot:/var/www/cacheroot  
+      # Persist assetroot                     
+      - fs-assetroot:/var/www/assetroot           
+    extra_hosts:
+      # Map custom host to host-gateway 
+      - "${APP_HOST}:host-gateway"
+    ports:
+      # Map host port to container port
+      - "${APP_HOST_PORT}:80"
+    depends_on:
+      - dbm
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  dbm:
+    image: mysql:9
+    env_file:
+      # This passes variables from .env to the container
+      - .env
+    volumes:
+      # Persist database data
+      - fs-dbmdata:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "${PMA_HOST_PORT}:80"
+    env_file:
+      # This passes variables from .env to the container
+      - .env
+    depends_on:
+      - dbm
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  cron:
+    image: alpine:latest
+    environment:
+      - HOST=${APP_HOST}
+      - MINUTE_TOKEN=${APP_CRON_MINUTE}
+      - FIVEMINUTE_TOKEN=${APP_CRON_FIVEMINUTE}
+      - FIFTEENMIN_TOKEN=${APP_CRON_FIFTEENMIN}
+      - HALFHOUR_TOKEN=${APP_CRON_HALFHOUR}
+      - HOURLY_TOKEN=${APP_CRON_HOURLY}
+      - DAILY_TOKEN=${APP_CRON_DAILY}
+      - WEEKLY_TOKEN=${APP_CRON_WEEKLY}
+      - MONTHLY_TOKEN=${APP_CRON_MONTHLY}
+      - YEARLY_TOKEN=${APP_CRON_YEARLY}
+    volumes:
+      - ./crontab:/tmp/app-cron:ro
+    # 1. Replace tokens and write to the active BusyBox spool location
+    # 2. Set strict permissions (required by BusyBox cron)
+    # 3. Create 'cron.update' to force the daemon to reload the new file immediately
+    # 4. Start crond in foreground with log level 8 (debug)
+    entrypoint:
+      - sh
+      - -c
+      - |
+        sed -e "s|{{HOST_PLACEHOLDER}}|$$HOST|g"\
+          -e "s|{{MINUTE_PLACEHOLDER}}|$$MINUTE_TOKEN|g"\
+          -e "s|{{FIVEMINUTE_PLACEHOLDER}}|$$FIVEMINUTE_TOKEN|g"\
+          -e "s|{{FIFTEENMIN_PLACEHOLDER}}|$$FIFTEENMIN_TOKEN|g"\
+          -e "s|{{HALFHOUR_PLACEHOLDER}}|$$HALFHOUR_TOKEN|g"\
+          -e "s|{{HOURLY_PLACEHOLDER}}|$$HOURLY_TOKEN|g"\
+          -e "s|{{DAILY_PLACEHOLDER}}|$$DAILY_TOKEN|g"\
+          -e "s|{{WEEKLY_PLACEHOLDER}}|$$WEEKLY_TOKEN|g"\
+          -e "s|{{MONTHLY_PLACEHOLDER}}|$$MONTHLY_TOKEN|g"\
+          -e "s|{{YEARLY_PLACEHOLDER}}|$$YEARLY_TOKEN|g"\
+          /tmp/app-cron | tr -d '\r' > /var/spool/cron/crontabs/root
+        chmod 600 /var/spool/cron/crontabs/root
+        touch /var/spool/cron/crontabs/cron.update
+        crond -f -l 8
+    networks:
+      - appnet
+    depends_on:
+      - app
+    restart: unless-stopped
+
+networks:
+  appnet:
+    driver: bridge
+volumes:
+  fs-dataroot:
+  fs-cacheroot:
+  fs-assetroot:
+  fs-dbmdata:
