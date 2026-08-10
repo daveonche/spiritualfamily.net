@@ -9,12 +9,40 @@
 # IDE and editor configurations
 .idea/
 .vscode/
+*.code-workspace
 
 # Node dependencies (if not needed at runtime)
 node_modules/
+npm-debug.log
 
 # Documentation and tests
 *.md
 docs/
 tests/
 phpunit.xml*
+
+# Composer specific
+vendor/
+composer.phar
+
+# Elgg specific
+cache/
+caches/
+engine/settings.php
+
+# Environment variables and secrets
+.env
+
+# CI/CD configs (not needed in the image)
+.travis.yml
+.scrutinizer.yml
+.readthedocs.yml
+.github/
+
+# OS specific files
+Thumbs.db
+Desktop.ini
+
+# Misc
+phpcbf-fixed.diff
+startup.sh
