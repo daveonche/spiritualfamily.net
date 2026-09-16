@@ -28,7 +28,7 @@
     `cd src && composer install --ignore-platform-reqs && cd ..`
 
   - Startup the containers for development:
-    `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
+    `docker compose -f compose.yml -f compose.dev.yml up -d --build`
 
   - Customize localhost  for docker development
 
@@ -43,27 +43,27 @@
 ## Shutting down and Running Web App
 
 - To shutdown the app in development, cd to install directory in bash and run:
-  `docker-compose -f docker-compose.yml -f docker-compose.dev.yml down`
+  `docker compose -f compose.yml -f compose.dev.yml down`
 
 - To check running app, run:
-  `docker-compose ps`
+  `docker compose ps`
 
 - If the containers are not up in development, run:
-  `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
+  `docker compose -f compose.yml -f compose.dev.yml up -d --build`
 
 - Open the app container service in interactive mode:
-  `docker-compose exec -it app bash`
+  `docker compose exec -it app bash`
 
 - Create the **.log/app.log:** directory
   `mkdir .log && touch .log/app.log`
 
 - Log app errors in realtime with timestamp to **.log/app.log:**
-  `docker-compose logs -f -t app >> .log/app.log`
+  `docker compose logs -f -t app >> .log/app.log`
 
 - Log database errors in realtime with timestamp to **.log/dbm.log:**
-  `docker-compose logs -f -t dbm >> .log/dbm.log`
+  `docker compose logs -f -t dbm >> .log/dbm.log`
 
-- To release back the terminal after running docker-compose logs, press 'CTRL + C'
+- To release back the terminal after running docker compose logs, press 'CTRL + C'
 
 ## Using composer / elgg-cli and dataroot (change directory to src directory)
 
@@ -71,7 +71,7 @@
   `composer show`
 
 - List all plugins:
-  `docker-compose exec -w /var/www/html app php elgg-cli plugins:list`
+  `docker compose exec -w /var/www/html app php elgg-cli plugins:list`
 
 - Install composer package
   `composer require vendor/package-name`
@@ -84,7 +84,7 @@
 
 ## Clear cache
 
-  `docker-compose exec -w /var/www/dataroot app rm -rf caches/*`
+  `docker compose exec -w /var/www/dataroot app rm -rf caches/*`
 
 ## Upgrading Minor, patch-level upgrade
 
@@ -136,7 +136,7 @@
   - Copy the app configuration file to the nested directory
     `sudo cp app.conf.example /etc/nginx/conf.d/users/tlebravado/the-leadership-experience.com/app.conf`
 
-    - Open and edit the port number (for the app service in docker-compose) with vi or nano
+    - Open and edit the port number (for the app service in docker compose) with vi or nano
       `sudo nano /etc/nginx/conf.d/users/tlebravado/the-leadership-experience.com/app.conf`
 
     - Check for nginx syntax error and restart nginx
@@ -159,7 +159,7 @@
 
   - Change to install directory and startup the containers:
     `cd ..`
-    `docker-compose up -d --build`
+    `docker compose up -d --build`
 
   - Go to <https://the-leadership-experience.com/install.php?step=requirements> and follow the installation steps. If your domain DNS was properly configured, the app will be served.
 
@@ -168,7 +168,7 @@
   `git pull origin prod`
   `cd api && composer install --no-dev`
 
-- Default plugins are symlinked in docker-compose file, to refresh the symlinks, stop and start docker-compose
+- Default plugins are symlinked in docker compose file, to refresh the symlinks, stop and start docker compose
   `docker compose down`
   `docker compose up -d --build`
 

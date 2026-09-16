@@ -1,8 +1,10 @@
 services:
   mailhog:
     image: mailhog/mailhog
+    container_name: ${MAILHOG_CONTAINER_NAME}
+    # This passes variables from .env to the container
     env_file:
-      - .env                                            # This passes variables from .env to the container
+      - .env                                            
     ports:
       - "${MAILHOG_HOST_PORT}:8025"
       - "${MAILHOG_SMTP_PORT}:1025"

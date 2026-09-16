@@ -1,7 +1,8 @@
 services:
   app:
     # The app server
-    image: coldtrick/elgg_webserver:7.4                    
+    image: coldtrick/elgg_webserver:7.4
+    container_name: ${APP_CONTAINER_NAME}
     env_file:
       # This passes variables from .env to the container
       - .env                                                  
@@ -29,6 +30,7 @@ services:
 
   dbm:
     image: mysql:9
+    container_name: ${MYSQL_CONTAINER_NAME}
     env_file:
       # This passes variables from .env to the container
       - .env
@@ -41,6 +43,7 @@ services:
 
   pma:
     image: phpmyadmin/phpmyadmin
+    container_name: ${PMA_CONTAINER_NAME}
     ports:
       - "${PMA_HOST_PORT}:80"
     env_file:
@@ -54,6 +57,7 @@ services:
 
   cron:
     image: alpine:latest
+    container_name: ${CRON_CONTAINER_NAME}
     environment:
       - HOST=${APP_HOST}
       - MINUTE_TOKEN=${APP_CRON_MINUTE}

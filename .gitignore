@@ -61,6 +61,7 @@ Desktop.ini
 # plugins (tracked intentionally — add exclusions here if needed)
 # ------------------------------------------------------------------
 # custom plugins
+/src/mod
 
 # thirdparty plugins
 
