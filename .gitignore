@@ -58,6 +58,10 @@ Desktop.ini
 .aider*
 !.aiderignore
 
+# agent workflow / orchestration context (dev-only, install from source repo)
+.agent/
+agent.sh
+
 # ------------------------------------------------------------------
 # plugins (tracked intentionally — add exclusions here if needed)
 # ------------------------------------------------------------------
