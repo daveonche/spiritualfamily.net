@@ -33,6 +33,10 @@
 Thumbs.db
 Desktop.ini
 
+# Windows NTFS zone streams (downloaded-file metadata) & shortcuts
+*:Zone.Identifier
+*.lnk
+
 # ------------------------------------------------------------------
 # project-local dev cruft under /src
 # ------------------------------------------------------------------
