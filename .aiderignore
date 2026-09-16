@@ -1,0 +1,18 @@
+# .aiderignore — gitignore-style exclusions applied by aider on top of
+# .gitignore. Unlike .gitignore, these patterns also apply to files that
+# are already tracked in git, keeping vendored third-party code out of
+# aider's repo map and edit scope.
+
+# Composer vendor trees (includes Elgg core at src/vendor/elgg/elgg)
+src/vendor/
+src/mod/*/vendor/
+
+# Bundled vendor assets (e.g. src/mod/ckeditor/vendors/ckeditor)
+src/mod/*/vendors/
+
+# Node dependencies
+src/mod/*/node_modules/
+src/node_modules/
+
+# To expose Elgg core APIs to aider, uncomment:
+# !src/vendor/elgg/elgg/engine/

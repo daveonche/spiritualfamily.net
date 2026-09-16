@@ -2,9 +2,10 @@
 .git/
 .gitignore
 
-# AI assistant configurations
-.aiderignore
-.aider-conventions/
+# AI assistant files (dev-only, reinstall from source repo)
+.aider*
+.agent/
+agent.sh
 
 # IDE and editor configurations
 .idea/
