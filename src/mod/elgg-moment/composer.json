@@ -1,0 +1,29 @@
+{
+	"name": "hypejunction/elgg-moment",
+	"type": "elgg-plugin",
+	"description": "Moment.js AMD module for Elgg",
+	"homepage": "http://hypejunction.com",
+	"keywords": [
+		"elgg",
+		"plugin",
+		"moment",
+		"time"
+	],
+	"license": "GPL-2.0",
+	"authors": [
+		{
+			"name": "Ismayil Khayredinov",
+			"email": "info@hypejunction.com"
+		}
+	],
+	"require": {
+		"php": ">=5.5",
+		"composer/installers": "~1.0",
+		"bower-asset/moment": "^2.18"
+	},
+	"autoload": {
+		"psr-0": {
+			"": "classes/"
+		}
+	}
+}
