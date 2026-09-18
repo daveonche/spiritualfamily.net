@@ -1,16 +1,14 @@
 # Workflow State
 
-Last updated: 2026-09-16
+Last updated: 2026-09-18
 
 ## Active Workflow
 
 - Workflow: ad-hoc git hygiene session (no SKILL.md workflow active)
-- Current step: Commit the staged repository restructure
-- Last completed: Rewrote .gitignore (removed duplicates, broad /src/.* pattern, added IDE/OS ignores) and purged Windows Zone.Identifier and .lnk junk from the index; commits 064f46c and e8cf910 on branch chore/gitignore-cleanup; verification returned clean
-- Next action: Commit staged restructure with "chore: move agent tooling to .agent, rename compose files, vendor elgg plugins under src/mod"; then follow-ups: fix .dockerignore drift and decide src/mod tracking policy
+- Current step: Track remaining untracked plugin dirs under src/mod
+- Last completed: Removed /src/mod ignore from .gitignore and anchored .dockerignore patterns with **/ (commit 03a43ab); src/mod tracking policy decided as tracked-intentional; 1884 plugin files confirmed tracked, leftover plugin dirs still untracked
+- Next action: Probe for nested .git dirs and ckeditor vendors tracking; if clean, git add src/mod, sanity-check the staged stat, commit "chore: track remaining vendored elgg plugins under src/mod", then verify git status is clean
 
 - Reload to resume:
 
   - `.gitignore`
-
-  - `.dockerignore`
