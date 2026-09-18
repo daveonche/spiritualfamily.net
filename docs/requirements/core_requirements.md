@@ -6,12 +6,14 @@
 
 - REQ-FR-PU-1: The platform shall be upgraded from Elgg 2.3 to Elgg 7 (latest stable Elgg version).
 - REQ-FR-PU-2: All third-party plugins shall be dropped from the codebase as part of the upgrade.
-- REQ-FR-PU-3: A list of all dropped third-party plugins shall be produced so their upgraded versions can be installed via Composer after the upgrade.
-- REQ-FR-PU-4: Features delivered by dropped third-party plugins shall be restored on Elgg 7 via their upgraded, Composer-installed versions.
+- REQ-FR-PU-3: A list of all dropped third-party plugins shall be produced, recording for each plugin whether an upgraded Composer replacement is available or it must be installed manually.
+- REQ-FR-PU-4: Features delivered by dropped third-party plugins shall be restored on Elgg 7 via upgraded Composer-installed versions where available, and via manually installed plugin versions where no Packagist package exists.
+- REQ-FR-PU-5: The upgrade shall follow Elgg's supported major-version upgrade sequence (Elgg 2.3 to Elgg 3, Elgg 3 to Elgg 4, and so on through Elgg 7), one major version at a time.
+- REQ-FR-PU-6: Dropped third-party plugins without an available replacement shall remain on the dropped-plugins list, with individual plugin upgrades planned in a later sprint.
 
 ### Theme Replacement
 
-- REQ-FR-TR-1: The current theme stack (Aalborg theme, Aalborg Extras, L1, custom_index, paul_override) shall be replaced with a new theme.
+- REQ-FR-TR-1: The current theme stack (Aalborg theme, Aalborg Extras, L1, custom_index, paul_override) shall be replaced with a new theme, with custom index functionality delivered by the Elgg 7.1.0 bundled custom_index plugin.
 
 ### Content Features
 
@@ -68,3 +70,4 @@
 - REQ-DEPL-1: The application shall be set up using Docker.
 - REQ-DEPL-2: The application shall be orchestrated using Docker Compose.
 - REQ-DEPL-3: The application shall be deployed to Coolify.
+- REQ-DEPL-4: The application shall be deployed to production at every upgrade point of the Elgg upgrade sequence so the production database remains in sync with each upgrade step.
