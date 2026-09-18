@@ -5,9 +5,9 @@ Last updated: 2026-09-18
 ## Active Workflow
 
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 7A `$code-implementation S1.1` — Steps 1–3 complete; Step 3 validated but uncommitted
-- Last completed: S1.1 Step 3 — `src/composer.json` restored to pinned baseline (elgg/elgg 2.3.17 exact, platform php 7.4.27, allow-plugins composer/installers) and `src/composer.lock` refreshed via Composer 1 `update --lock` preserving the legacy package set; validate passed on Composer 1 and 2
-- Next action: commit lock + allow-plugins manifest change, then run `#implement-step S1.1 4` and reply "ready" at the /ask gate
+- Current step: Phase 7A `$code-implementation S1.1` — Steps 1–4 complete; Step 5 pending
+- Last completed: S1.1 Step 4 — production inventory captured read-only (phpMyAdmin queries + one-time deleted webroot probe) into docs/baseline/inventory.md: DB 1121.1 MB, 77 active plugins, settings, dataroot 47.9 GB/102,690 files; committed 7fd5c5f (+e8979cc vendor autoloaders, a4276ca docs/pkgs)
+- Next action: run `#implement-step S1.1 5` and reply "ready" at the /ask gate
 - Reload to resume:
   - `.agent/.aider.prompt/workflows/project-scaffolding-chain/SKILL.md`
   - `.agent/.aider.prompt/code/implementation/SKILL.md`
@@ -16,4 +16,4 @@ Last updated: 2026-09-18
   - `docs/baseline/baseline.md`
   - `docs/requirements/core_requirements.md`
   - `src/composer.json`
-  - `src/composer.lock`
+  - `compose.yml`
