@@ -10,6 +10,7 @@
 - REQ-FR-PU-4: Features delivered by dropped third-party plugins shall be restored on Elgg 7 via upgraded Composer-installed versions where available, and via manually installed plugin versions where no Packagist package exists.
 - REQ-FR-PU-5: The upgrade shall follow Elgg's supported major-version upgrade sequence (Elgg 2.3 to Elgg 3, Elgg 3 to Elgg 4, and so on through Elgg 7), one major version at a time.
 - REQ-FR-PU-6: Dropped third-party plugins without an available replacement shall remain on the dropped-plugins list, with individual plugin upgrades planned in a later sprint.
+- REQ-FR-PU-7: Elgg 2.3 core plugins that are not bundled in Elgg 7.1.0 (Embed, Captcha, Legacy URL Support, Diagnostics, Log Browser, Log Rotate, Login As) shall be dropped.
 
 ### Theme Replacement
 
@@ -23,7 +24,6 @@
 - REQ-FR-CF-4: Site Pages functionality shall be preserved.
 - REQ-FR-CF-5: The Wire functionality shall be preserved.
 - REQ-FR-CF-6: CKEditor (rich text editing) functionality shall be preserved.
-- REQ-FR-CF-7: Embed functionality shall be preserved.
 - REQ-FR-CF-8: Photos functionality shall be preserved.
 - REQ-FR-CF-9: Tag Cloud functionality shall be preserved.
 - REQ-FR-CF-10: Search functionality shall be preserved.
@@ -48,8 +48,6 @@
 - REQ-FR-PS-1: Notifications functionality shall be preserved.
 - REQ-FR-PS-2: Site Notifications functionality shall be preserved.
 - REQ-FR-PS-3: User Validation by Email functionality shall be preserved.
-- REQ-FR-PS-4: Captcha functionality shall be preserved.
-- REQ-FR-PS-5: Legacy URL Support shall be preserved.
 - REQ-FR-PS-6: Reported Content functionality shall be preserved.
 - REQ-FR-PS-7: Web services functionality shall be preserved.
 - REQ-FR-PS-8: Data views for web services shall be preserved.
@@ -58,10 +56,6 @@
 ### Development and Administration Tools
 
 - REQ-FR-DAT-1: Elgg Developer Tools functionality shall be preserved.
-- REQ-FR-DAT-2: Diagnostics functionality shall be preserved.
-- REQ-FR-DAT-3: Log Browser functionality shall be preserved.
-- REQ-FR-DAT-4: Log Rotate functionality shall be preserved.
-- REQ-FR-DAT-5: Login As functionality shall be preserved.
 
 ## Additional Requirements
 
