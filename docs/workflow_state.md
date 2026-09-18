@@ -5,14 +5,15 @@ Last updated: 2026-09-18
 ## Active Workflow
 
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 6 `$planning-story-analysis S1.1` — activated; awaiting `/read-only .agent/.aider.prompt/planning/story-analysis/SKILL.md`, then reply "continue"
-- Last completed: Phase 5 `$planning-scaffolding-sprint-story` — stories S1.1–S1.17 approved and saved to `docs/sprints/sprint_1_stories.md` (git 09c977a)
-- Next action: load story-analysis SKILL.md, reply "continue", then run `#analyze-story S1.1`
+- Current step: Phase 7A `$code-implementation S1.1` — Steps 1–3 complete; Step 3 validated but uncommitted
+- Last completed: S1.1 Step 3 — `src/composer.json` restored to pinned baseline (elgg/elgg 2.3.17 exact, platform php 7.4.27, allow-plugins composer/installers) and `src/composer.lock` refreshed via Composer 1 `update --lock` preserving the legacy package set; validate passed on Composer 1 and 2
+- Next action: commit lock + allow-plugins manifest change, then run `#implement-step S1.1 4` and reply "ready" at the /ask gate
 - Reload to resume:
   - `.agent/.aider.prompt/workflows/project-scaffolding-chain/SKILL.md`
-  - `.agent/.aider.prompt/planning/story-analysis/SKILL.md`
+  - `.agent/.aider.prompt/code/implementation/SKILL.md`
   - `docs/sprints/sprint_1_stories.md`
+  - `docs/analysis/S1.1-story-steps.md`
+  - `docs/baseline/baseline.md`
   - `docs/requirements/core_requirements.md`
-  - `docs/vision/project_vision.md`
-  - `docs/tech_stack.md`
-  - `docs/architecture/architecture.md`
+  - `src/composer.json`
+  - `src/composer.lock`
