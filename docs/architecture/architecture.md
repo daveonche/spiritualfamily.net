@@ -13,6 +13,28 @@ delivered through Elgg's plugin architecture: bundled Elgg 7.1.0 plugins,
 Composer-installed vendor plugins, and manually installed plugins (see
 `docs/tech_stack.md`).
 
+## Upgrade Path Constraints
+
+The current codebase runs Elgg 2.3; reaching the Elgg 7.1.0 target is the
+driving task of this project. The architecture is constrained by the
+supported upgrade sequence:
+
+- Sequential major-version upgrades only: Elgg 2.3 → 3 → 4 → 5 → 6 → 7,
+  one major version at a time (REQ-FR-PU-5).
+- Production deployment at every upgrade point so the production database
+  stays in sync with each step (REQ-DEPL-4).
+- All third-party plugins are dropped before upgrading (REQ-FR-PU-2) and
+  restored on Elgg 7 via Composer or manual installs (REQ-FR-PU-4); features
+  without replacements stay on the dropped-plugins list for a later sprint
+  (REQ-FR-PU-6).
+- Elgg 2.3 core plugins not bundled in Elgg 7.1.0 are dropped (REQ-FR-PU-7).
+- The Docker Compose / Coolify setup must support repeatable, version-pinned
+  deployments so each intermediate upgrade step is reproducible.
+
+A detailed step-by-step upgrade plan (per-version data migration and plugin
+compatibility checks) is implementation work and will be covered by the
+scaffolding sprint stories, not this document.
+
 ## Core Layers
 
 1. HTTP/Entry Layer: web server plus PHP 8.3 serving Elgg's public entry
