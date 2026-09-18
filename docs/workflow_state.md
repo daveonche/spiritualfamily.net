@@ -5,10 +5,12 @@ Last updated: 2026-09-18
 ## Active Workflow
 
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 1 `$planning-vision-statement` — `#generate-vision` STEP 2 (Purpose and Goals)
-- Last completed: Phase 3 `$architecture-tech-stack` STEP 9 — saved `docs/tech_stack.md` and `src/composer.json` (git be5586e); tech-stack workflow complete
-- Next action: resume `#generate-vision` at STEP 2 (requirements now available), finish Phase 1, then proceed to Phase 4 `$architecture-design`
+- Current step: Phase 4 `$architecture-design` — not started (awaiting `$architecture-design`)
+- Last completed: Phase 1 `$planning-vision-statement` — `#generate-vision` complete; saved `docs/vision/project_vision.md` (git a470f79)
+- Next action: run `$architecture-design` to start Phase 4, grounded in vision, requirements, and tech stack
 - Reload to resume:
   - `.agent/.aider.prompt/workflows/project-scaffolding-chain/SKILL.md`
-  - `.agent/.aider.prompt/planning/vision-statement/SKILL.md`
+  - `.agent/.aider.prompt/architecture/design/SKILL.md`
   - `docs/requirements/core_requirements.md`
+  - `docs/vision/project_vision.md`
+  - `docs/tech_stack.md`
