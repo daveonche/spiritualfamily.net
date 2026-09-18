@@ -13,7 +13,7 @@
 
 ### Theme Replacement
 
-- REQ-FR-TR-1: The current theme stack (Aalborg theme, Aalborg Extras, L1, custom_index, paul_override) shall be replaced with a new theme, with custom index functionality delivered by the Elgg 7.1.0 bundled custom_index plugin.
+- REQ-FR-TR-1: The current theme stack (Aalborg theme, Aalborg Extras, L1, custom_index, paul_override) shall be replaced with a new theme, and the Elgg 7.1.0 bundled custom_index plugin shall either be deactivated or overridden by the new theme.
 
 ### Content Features
 
