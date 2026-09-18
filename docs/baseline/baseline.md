@@ -28,3 +28,22 @@ that constraint.
   `src/vendor/elgg/elgg/version.php` (the vendored Elgg 2.3.17 core root)
   reads `2.3.17`, and cross-check against the version reported by the running
   legacy site's administration area.
+
+## Fresh-Checkout Verification
+
+Story S1.1 Step 5 executed `docs/baseline/fresh_checkout.md` from a clean
+checkout and confirmed the baseline builds and runs (acceptance criterion:
+baseline builds and runs from a fresh checkout).
+
+| Item | Result |
+| :--- | :--- |
+| Verification date | 2026-09-18 |
+| Commit verified | `951ef51` (the commit adding `docs/baseline/fresh_checkout.md`) |
+| Site front page | Loaded at the site URL |
+| Admin login and `/admin` | Logged in; administration area reachable and functional |
+| `php -v` | PHP 7.4.27 (cli), built Jan 26 2022 — matches the pinned PHP runtime |
+| Deviations / findings | None |
+
+Remaining manual steps are listed at the bottom of
+`docs/baseline/fresh_checkout.md` (web installer, OS hosts entry, optional
+host-side Composer check, admin credential recording).
