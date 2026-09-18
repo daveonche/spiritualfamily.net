@@ -1,0 +1,32 @@
+flowchart TB
+    Browser["Browser (member)"]
+    Ext["External consumers (web services, future mobile apps)"]
+
+    subgraph compose["Docker Compose / Coolify"]
+        subgraph web["Web container (PHP 8.3)"]
+            entry["HTTP/Entry Layer - Elgg entry points"]
+            theme["Presentation Layer - new theme plugin + views"]
+            plugins["Application/Plugin Layer - bundled + Composer + manual plugins"]
+            core["Framework Core - elgg/elgg 7.1.0 engine"]
+        end
+        cron["Cron container - scheduled tasks"]
+        db[("MySQL - entities, metadata, relationships")]
+        data[("Data directory volume - file store")]
+    end
+
+    analytics["Analytics services (Google Analytics / Piwik)"]
+    email["Email delivery"]
+    payments["Payment gateways (PayPal / Stripe)"]
+
+    Browser -->|HTTPS| entry
+    entry --> theme
+    entry --> plugins
+    theme --> core
+    plugins --> core
+    core --> db
+    core --> data
+    cron --> core
+    Ext -->|REST API| entry
+    plugins --> analytics
+    core --> email
+    plugins --> payments
