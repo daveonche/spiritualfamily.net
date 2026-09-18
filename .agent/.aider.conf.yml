@@ -1,0 +1,138 @@
+##########################################################
+# yaml-language-server: $schema=none
+# Sample .aider.conf.yml
+# This file lists *all* the valid configuration entries.
+# Place in your home dir, or at the root of your git repo.
+##########################################################
+
+# Note: You can only put OpenAI and Anthropic API keys in the YAML
+# config file. Keys for all APIs can be stored in a .env file
+# https://aider.chat/docs/config/dotenv.html
+
+#############
+# Main model:
+
+## Specify the model to use for the main chat
+model: openrouter/z-ai/glm-5.3-flash
+
+#################
+# Model settings:
+
+## Specify a file with aider model settings for unknown models
+model-settings-file: .aider.model.settings.yml
+
+## Add a model alias (can be used multiple times)
+#alias: "architect:openrouter/z-ai/glm-5.3-flash"
+
+## Specify multiple values like this:
+alias:
+ - "Genius:openrouter/qwen/qwen3.8-max-0902"
+ - "Specialist:openrouter/z-ai/glm-5.3"
+ - "Architect:openrouter/z-ai/glm-5.3-flash"
+ - "Editor:openrouter/deepseek/deepseek-v4-flash-0731"
+ - "Helper:openrouter/inclusionai/ling-3.0-flash"
+
+## Specify a file with context window and costs for unknown models
+#model-metadata-file: .aider.model.metadata.json
+
+## Specify what edit format the LLM should use (default depends on model)
+edit-format: diff
+
+## Use architect edit format for the main chat
+architect: false
+
+## Enable/disable automatic acceptance of architect changes (default: True)
+auto-accept-architect: false
+
+## Specify the model to use for commit messages and chat history summarization (default depends on --model)
+weak-model: openrouter/inclusionai/ling-3.0-flash
+
+## Specify the model to use for editor tasks (default depends on --model)
+editor-model: openrouter/deepseek/deepseek-v4-flash-0731
+
+## Soft limit on tokens for chat history, after which summarization begins. If unspecified, defaults to the model's max_chat_history_tokens.
+max-chat-history-tokens: '4000'
+
+#################
+# Cache settings:
+
+## Enable caching of prompts (default: False)
+cache-prompts: true
+
+###################
+# Repomap settings:
+
+## Suggested number of tokens to use for repo map, use 0 to disable
+map-tokens: 2048
+
+## Control how often the repo map is refreshed. Options: auto, always, files, manual (default: auto)
+#map-refresh: auto
+
+##################
+# Output settings:
+
+## Use colors suitable for a dark terminal background (default: False)
+dark-mode: true
+
+## Enable/disable streaming responses (default: True)
+#stream: true
+
+###############
+# Git settings:
+
+## Enable/disable auto commit of LLM changes (default: True)
+auto-commits: true
+
+## Attribute aider code changes in the git author name (default: True). If explicitly set to True, overrides --attribute-co-authored-by precedence.
+attribute-author: false
+
+## Attribute aider commits in the git committer name (default: True). If explicitly set to True, overrides --attribute-co-authored-by precedence for aider edits.
+attribute-committer: false
+
+## Prefix commit messages with 'aider: ' if aider authored the changes (default: False)
+attribute-commit-message-author: false
+
+## Prefix all commit messages with 'aider: ' (default: False)
+attribute-commit-message-committer: false
+
+## Attribute aider edits using the Co-authored-by trailer in the commit message (default: True). If True, this takes precedence over default --attribute-author and --attribute-committer behavior unless they are explicitly set to True.
+attribute-co-authored-by: false
+
+## Specify a custom prompt for generating commit messages
+commit-prompt: Write a concise commit message using the Conventional Commits specification. Do not include markdown formatting or quotes around the message. Suggest a matching kebab-case branch name format.
+
+########################
+# Fixing and committing:
+
+## Specify command to run tests
+test-cmd: python3 -m pytest
+
+## Specify multiple values like this:
+# lint-cmd:
+  # - "php: phpcs --standard=Elgg"
+  # - "python: pylint --load-plugins=pylint_odoo"
+  # - "ruby: rubocop --require rubocop-rails"
+
+############
+# Upgrading:
+
+## Show release notes on first run of new version (default: None, ask user)
+show-release-notes: false
+
+#################
+# Other settings:
+
+## Specify multiple values like this:
+read:
+- .agent/AGENTS.md
+- docs/workflow_state.md
+# If your project uses one of the supported frameworks, uncomment the matching
+# line below so its conventions are read from .agent/.aider.conventions/ on
+# launch. Convention files stay in .agent/.aider.conventions/; never copy
+# them to the project root.
+# - .agent/.aider.conventions/ELGG.md
+# - .agent/.aider.conventions/RAILS.md
+# TODO: Uncomment the following lines if you want to use the conventions for Odoo, Flask, or Django.
+# - .agent/.aider.conventions/ODOO.md
+# - .agent/.aider.conventions/FLASK.md
+# - .agent/.aider.conventions/DJANGO.md
