@@ -13,23 +13,23 @@ agent.sh
 *.code-workspace
 
 # Node dependencies (if not needed at runtime)
-node_modules/
-npm-debug.log
+**/node_modules/
+**/npm-debug.log
 
 # Documentation and tests
-*.md
+**/*.md
 docs/
-tests/
+**/tests/
 phpunit.xml*
 
 # Composer specific
-vendor/
+**/vendor/
 composer.phar
 
 # Elgg specific
-cache/
-caches/
-engine/settings.php
+**/cache/
+**/caches/
+**/engine/settings.php
 
 # Environment variables and secrets
 .env

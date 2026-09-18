@@ -65,12 +65,7 @@ agent.sh
 # ------------------------------------------------------------------
 # plugins (tracked intentionally — add exclusions here if needed)
 # ------------------------------------------------------------------
-# custom plugins
-/src/mod
-
-# thirdparty plugins
-
-# nested dependency trees inside plugins (effective once untracked)
+# nested dependency trees inside plugins
 /src/mod/*/vendor/
 /src/mod/*/vendors/
 /src/mod/*/node_modules/
