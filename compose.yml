@@ -44,10 +44,11 @@ services:
       # Persist database data
       - fs-dbmdata:/var/lib/mysql
     healthcheck:
-      # Official MySQL image healthcheck (ships in mysql:9): passes once
-      # the server accepts connections AND InnoDB recovery has finished —
-      # the readiness gate the app and pma services depend on
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      # mysqladmin ping answers only once mysqld reports "ready for
+      # connections" (i.e. after InnoDB recovery), and exits 0 when the
+      # server responds even without credentials. Used instead of
+      # healthcheck.sh, which is not present in the mysql:9 image.
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost --silent"]
       start_period: 1m
       interval: 10s
       timeout: 5s
