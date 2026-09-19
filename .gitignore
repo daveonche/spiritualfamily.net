@@ -3,7 +3,6 @@
 # ------------------------------------------------------------------
 /src/cache/
 /src/caches/
-/src/phpunit.xml
 /src/phpcbf-fixed.diff
 /src/composer.phar
 *.phar
