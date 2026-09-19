@@ -1,7 +1,13 @@
 services:
   app:
-    # The app server
-    image: coldtrick/elgg_webserver:7.4
+    # The app server — locally built: upstream PHP 7.4 webserver + Composer 2
+    # (docker/app/Dockerfile) so composer.json/composer.lock work runs in the
+    # orchestration.
+    build:
+      context: ./docker/app
+    # Tag for the locally built image (Compose allows build + image together);
+    # adjust the name to taste
+    image: sfn/elgg_webserver:7.4-composer2
     container_name: ${APP_CONTAINER_NAME}
     env_file:
       # This passes variables from .env to the container
