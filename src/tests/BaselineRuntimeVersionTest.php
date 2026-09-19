@@ -19,6 +19,12 @@ class BaselineRuntimeVersionTest extends \PHPUnit_Framework_TestCase
 		return dirname(__DIR__);
 	}
 
+	/** Repository-root docs/baseline/baseline.md, resolved from this file's location. */
+	private function docsBaselineFile()
+	{
+		return dirname($this->srcDir()) . '/docs/baseline/baseline.md';
+	}
+
 	/**
 	 * Must Support: "Determination of the runtime language version required
 	 * by the pinned core version"
@@ -58,6 +64,31 @@ class BaselineRuntimeVersionTest extends \PHPUnit_Framework_TestCase
 		$this->assertTrue(
 			version_compare(self::PINNED_RUNTIME_VERSION, self::MIN_PHP_REQUIRED_BY_CORE, '>='),
 			'Pinned runtime version does not satisfy the constraint declared by the pinned core'
+		);
+	}
+
+	/**
+	 * Must Support: "A single recorded, pinned runtime version value
+	 * documented alongside the core version"
+	 */
+	public function testSinglePinnedRuntimeVersionInDocumentation()
+	{
+		$docFile = $this->docsBaselineFile();
+		$this->assertFileExists($docFile);
+
+		$doc = file_get_contents($docFile);
+
+		// Exactly one pinned PHP runtime row in the Pinned Versions table.
+		$this->assertSame(
+			1,
+			preg_match_all('/^\|\s*PHP runtime\s*\|\s*([^|]+?)\s*\|/m', $doc, $matches),
+			'Expected exactly one "PHP runtime" row in the Pinned Versions table'
+		);
+
+		$this->assertSame(
+			self::PINNED_RUNTIME_VERSION,
+			trim($matches[1][0]),
+			'Recorded pinned runtime version does not match the pinned value'
 		);
 	}
 }
