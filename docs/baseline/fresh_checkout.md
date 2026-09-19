@@ -72,9 +72,10 @@ docker compose up -d
 docker compose ps
 ```
 
-Expected: `app` (`coldtrick/elgg_webserver:7.4`), `dbm` (`mysql:9`), `pma`, and
-`cron` all `Up`. The first start pulls images and initializes the empty
-`fs-dbmdata` volume; wait for MySQL to settle before the install step.
+Expected: `app` (`sfn/elgg_webserver:7.4-composer2`), `dbm` (`mysql:9`),
+`pma`, and `cron` all `Up`. The first start builds the app image locally from
+`docker/app/Dockerfile` and initializes the empty `fs-dbmdata` volume; wait
+for MySQL to settle before the install step.
 
 ### 4. Confirm the pinned runtime pair
 
