@@ -89,4 +89,38 @@ class BaselineVersionTest extends \PHPUnit_Framework_TestCase
 			'Recorded pinned core version does not match the pinned value'
 		);
 	}
+
+	/**
+	 * Must Support: "The pinned version recorded in project documentation"
+	 */
+	public function testPinnedVersionRecordedInProjectDocumentation()
+	{
+		$docFile = $this->docsBaselineFile();
+		$this->assertFileExists($docFile);
+
+		$doc = file_get_contents($docFile);
+
+		// The exact pinned value is recorded in the documentation.
+		$this->assertContains(
+			self::PINNED_CORE_VERSION,
+			$doc,
+			'The pinned core version is not recorded in the baseline documentation'
+		);
+
+		// Recorded in a dedicated "Pinned Versions" section (Developer
+		// Notes: a dedicated documentation location agreed by the team).
+		$this->assertContains(
+			'## Pinned Versions',
+			$doc,
+			'Baseline documentation lacks a dedicated "Pinned Versions" section'
+		);
+
+		// The recording cites its codebase source, keeping the pinned
+		// value re-verifiable against the vendor tree in later steps.
+		$this->assertContains(
+			'src/vendor/elgg/elgg/composer.json',
+			$doc,
+			'Documentation does not cite the source of the pinned core version'
+		);
+	}
 }
