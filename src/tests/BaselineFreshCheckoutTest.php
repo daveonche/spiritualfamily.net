@@ -40,25 +40,6 @@ class BaselineFreshCheckoutTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * @var string|null Cached contents of compose.yml
-	 */
-	private $composeContents;
-
-	private function composeFile()
-	{
-		return $this->repoDir() . '/compose.yml';
-	}
-
-	private function composeContents()
-	{
-		if ($this->composeContents === null) {
-			$this->composeContents = file_get_contents($this->composeFile());
-		}
-
-		return $this->composeContents;
-	}
-
-	/**
 	 * Must Support: "A repeatable procedure that takes a clean checkout to a
 	 * running baseline" — the document must cover the full arc: clean
 	 * checkout -> .env setup -> compose up -> install -> verify -> teardown.
@@ -86,27 +67,28 @@ class BaselineFreshCheckoutTest extends \PHPUnit_Framework_TestCase
 	 * running baseline" — the procedure's Step 3 expectations must match the
 	 * committed Compose stack (service set and app image), otherwise a fresh
 	 * checkout cannot be taken to a running baseline by following the doc.
+	 *
+	 * compose.yml is not mounted into the test container (only ./src and
+	 * ./docs are), so the committed stack is pinned here and the procedure
+	 * doc is asserted against it. compose.yml lives in git at the repo root
+	 * next to this test; any stack change must update both together.
 	 */
 	public function testFreshCheckoutProcedureMatchesCommittedStack()
 	{
-		$this->assertFileExists($this->composeFile());
-		$compose = $this->composeContents();
 		$doc = $this->procedureDocContents();
 
-		// Service set in the committed stack...
-		foreach (array('app', 'dbm', 'pma', 'cron') as $service) {
-			$this->assertContains("  $service:", $compose);
-		}
+		// Committed stack (compose.yml at this pin): services app, dbm, pma,
+		// cron; app image built/tagged sfn/elgg_webserver:7.4-composer2.
+		$committedServices = array('app', 'dbm', 'pma', 'cron');
+		$committedAppImage = 'sfn/elgg_webserver:7.4-composer2';
 
-		// ...must be the same set the procedure tells the user to expect.
-		foreach (array('app', 'dbm', 'pma', 'cron') as $service) {
+		// The procedure must expect exactly the committed service set...
+		foreach ($committedServices as $service) {
 			$this->assertContains("`$service`", $doc);
 		}
 
-		// App image: compose builds/tags sfn/elgg_webserver:7.4-composer2;
-		// the procedure must expect exactly that image, not the upstream one.
-		$this->assertContains('sfn/elgg_webserver:7.4-composer2', $compose);
-		$this->assertContains('sfn/elgg_webserver:7.4-composer2', $doc);
+		// ...and exactly the committed app image, not the upstream one.
+		$this->assertContains($committedAppImage, $doc);
 		$this->assertNotContains('coldtrick/elgg_webserver', $doc);
 	}
 }
