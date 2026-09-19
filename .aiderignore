@@ -13,12 +13,15 @@ src/vendor/elgg/*
 src/vendor/elgg/elgg/*
 !src/vendor/elgg/elgg/composer.json
 !src/vendor/elgg/elgg/version.php
+# Personal plugins: only src/mod/ directories with the "sfn_" prefix are
+# visible to aider; all other (third-party) plugins are excluded from the
+# repo map and edit scope. New sfn_* plugins are picked up automatically.
+src/mod/*
+!src/mod/sfn_*/
+
+# Dependency/asset dirs inside the visible personal plugins
 src/mod/*/vendor/
-
-# Bundled vendor assets (e.g. src/mod/ckeditor/vendors/ckeditor)
 src/mod/*/vendors/
-
-# Node dependencies
 src/mod/*/node_modules/
 src/node_modules/
 
