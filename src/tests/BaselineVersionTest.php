@@ -26,6 +26,12 @@ class BaselineVersionTest extends \PHPUnit_Framework_TestCase
 		return $this->srcDir() . '/vendor/elgg/elgg';
 	}
 
+	/** Repository-root docs/baseline/baseline.md, resolved from this file's location. */
+	private function docsBaselineFile()
+	{
+		return dirname($this->srcDir()) . '/docs/baseline/baseline.md';
+	}
+
 	/**
 	 * Must Support: "Determination of the exact core version currently in
 	 * use, taken from the existing codebase"
@@ -56,6 +62,31 @@ class BaselineVersionTest extends \PHPUnit_Framework_TestCase
 			self::PINNED_CORE_VERSION,
 			$composer['version'],
 			"composer.json 'version' does not match the pinned core version"
+		);
+	}
+
+	/**
+	 * Must Support: "A single recorded, pinned version value that all
+	 * later steps reference"
+	 */
+	public function testSinglePinnedCoreVersionInDocumentation()
+	{
+		$docFile = $this->docsBaselineFile();
+		$this->assertFileExists($docFile);
+
+		$doc = file_get_contents($docFile);
+
+		// Exactly one pinned Elgg core row in the Pinned Versions table.
+		$this->assertSame(
+			1,
+			preg_match_all('/^\|\s*Elgg core\s*\|\s*([^|]+?)\s*\|/m', $doc, $matches),
+			'Expected exactly one "Elgg core" row in the Pinned Versions table'
+		);
+
+		$this->assertSame(
+			self::PINNED_CORE_VERSION,
+			trim($matches[1][0]),
+			'Recorded pinned core version does not match the pinned value'
 		);
 	}
 }
