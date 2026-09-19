@@ -27,3 +27,8 @@ src/node_modules/
 
 # To expose more Elgg core files/dirs to aider, add negation lines, e.g.:
 # !src/vendor/elgg/elgg/engine/
+
+# Aider launcher tooling — never edited in this project; excluded from the
+# repo map (their function defs were the largest .agent/ token source).
+.agent/ai_assistant.py
+.agent/ai-assistant.sh
