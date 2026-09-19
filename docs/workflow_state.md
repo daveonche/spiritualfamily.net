@@ -5,20 +5,17 @@ Last updated: 2026-09-19
 ## Active Workflow
 
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 7B `$testing-unit-test S1.1` active; Steps 1–3 tested; environment detour closed; Step 4 scenarios approved (5 tests mapped), implementing src/tests/BaselineInventoryTest.php
-- Last completed: Environment detour finished — app image now builds locally (docker/app/Dockerfile: upstream PHP 7.4 webserver + Composer 2 phar + open_basedir CLI wrapper; compose.yml app service switched to build); verified in-container php -v 7.4.27 and composer 2.10.3; baseline.md environment note applied
-- Next action: run the full suite in-container (expect OK, 16 tests) to verify the new src/tests/BaselineInventoryTest.php; on pass, present the Step 5 post-test menu and Step 6 summary
+- Current step: Phase 7B `$testing-unit-test S1.1` active; Steps 1–4 tested and complete; Step 5 (fresh-checkout verification) is the only remaining step in the story
+- Last completed: S1.1 Step 4 — 5 passing tests in src/tests/BaselineInventoryTest.php cover DB size, plugin set, key settings, data directory summary, starting-point metadata; suite OK 16 tests 240 assertions; baseline.md env-note deduped
+- Next action: run `$testing-unit-test S1.1 5` — applicability check first (Step 5 is largely manual; implementation already recorded in docs/baseline/fresh_checkout.md and baseline.md's Fresh-Checkout Verification section); reconcile fresh_checkout.md Step 3 with the locally built app image sfn/elgg_webserver:7.4-composer2
 - Reload to resume:
   - `.agent/.aider.prompt/workflows/project-scaffolding-chain/SKILL.md`
   - `.agent/.aider.prompt/testing/unit-test/SKILL.md`
   - `.agent/.aider.prompt/testing/unit-test/references/gotchas.md`
   - `.agent/.aider.prompt/testing/unit-test/references/templates.md`
   - `docs/analysis/S1.1-story-steps.md`
-  - `docs/baseline/inventory.md`
   - `docs/baseline/baseline.md`
+  - `docs/baseline/fresh_checkout.md`
   - `src/composer.json`
   - `src/phpunit.xml`
-  - `src/tests/BaselineVersionTest.php`
-  - `src/tests/BaselineRuntimeVersionTest.php`
-  - `src/tests/BaselineDependencyPinTest.php`
   - `compose.yml`
