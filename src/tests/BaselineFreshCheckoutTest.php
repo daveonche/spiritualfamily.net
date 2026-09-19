@@ -15,6 +15,11 @@ class BaselineFreshCheckoutTest extends \PHPUnit_Framework_TestCase
 	 */
 	private $procedureDocContents;
 
+	/**
+	 * @var string|null Cached contents of the baseline document
+	 */
+	private $baselineDocContents;
+
 	private function srcDir()
 	{
 		return dirname(__DIR__);
@@ -37,6 +42,20 @@ class BaselineFreshCheckoutTest extends \PHPUnit_Framework_TestCase
 		}
 
 		return $this->procedureDocContents;
+	}
+
+	private function baselineDoc()
+	{
+		return $this->repoDir() . '/docs/baseline/baseline.md';
+	}
+
+	private function baselineDocContents()
+	{
+		if ($this->baselineDocContents === null) {
+			$this->baselineDocContents = file_get_contents($this->baselineDoc());
+		}
+
+		return $this->baselineDocContents;
 	}
 
 	/**
@@ -90,5 +109,35 @@ class BaselineFreshCheckoutTest extends \PHPUnit_Framework_TestCase
 		// ...and exactly the committed app image, not the upstream one.
 		$this->assertContains($committedAppImage, $doc);
 		$this->assertNotContains('coldtrick/elgg_webserver', $doc);
+	}
+
+	/**
+	 * Must Support: "Confirmation that the site loads and an administrator
+	 * can log in from that fresh checkout" — the executed verification must
+	 * be recorded as successful in the baseline documentation, dated and
+	 * tied to the commit it verified.
+	 */
+	public function testFreshCheckoutVerificationRecordedInBaselineDoc()
+	{
+		$this->assertFileExists($this->baselineDoc());
+		$doc = $this->baselineDocContents();
+
+		// The verification section must exist and state success for the
+		// front page load...
+		$this->assertContains('## Fresh-Checkout Verification', $doc);
+		$this->assertContains('Loaded at the site URL', $doc);
+
+		// ...and for the admin login / administration area.
+		$this->assertContains(
+			'Logged in; administration area reachable and functional',
+			$doc
+		);
+
+		// The run must be dated and tied to a commit for repeatability.
+		$this->assertContains('Verification date', $doc);
+		$this->assertContains('Commit verified', $doc);
+
+		// Deviations must be explicitly recorded (None is a valid value).
+		$this->assertContains('Deviations / findings', $doc);
 	}
 }
