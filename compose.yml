@@ -10,6 +10,9 @@ services:
       - ./php/:/usr/local/etc/php/conf.d/
       # Mount source code files
       - ./src:${WWW_ROOT}
+      # Mount repo-root docs read-only so unit tests can verify baseline
+      # documentation (target must remain the parent of ${WWW_ROOT})
+      - ./docs:/var/www/docs:ro
       # Persist dataroot   
       - fs-dataroot:/var/www/dataroot          
       # Persist cacheroot               
