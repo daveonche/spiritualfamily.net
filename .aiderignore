@@ -3,8 +3,16 @@
 # are already tracked in git, keeping vendored third-party code out of
 # aider's repo map and edit scope.
 
-# Composer vendor trees (includes Elgg core at src/vendor/elgg/elgg)
-src/vendor/
+# Composer vendor trees (includes Elgg core at src/vendor/elgg/elgg).
+# Ignore directory contents, then negate specific paths so they can
+# still be added to the chat via /read-only.
+src/vendor/*
+!src/vendor/elgg/
+src/vendor/elgg/*
+!src/vendor/elgg/elgg/
+src/vendor/elgg/elgg/*
+!src/vendor/elgg/elgg/composer.json
+!src/vendor/elgg/elgg/version.php
 src/mod/*/vendor/
 
 # Bundled vendor assets (e.g. src/mod/ckeditor/vendors/ckeditor)
@@ -14,5 +22,5 @@ src/mod/*/vendors/
 src/mod/*/node_modules/
 src/node_modules/
 
-# To expose Elgg core APIs to aider, uncomment:
+# To expose more Elgg core files/dirs to aider, add negation lines, e.g.:
 # !src/vendor/elgg/elgg/engine/
