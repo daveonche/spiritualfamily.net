@@ -91,4 +91,38 @@ class BaselineRuntimeVersionTest extends \PHPUnit_Framework_TestCase
 			'Recorded pinned runtime version does not match the pinned value'
 		);
 	}
+
+	/**
+	 * Must Support: "A single recorded, pinned runtime version value
+	 * documented alongside the core version"
+	 *
+	 * Developer Notes: keep both pinned values visible together so future
+	 * steps can cite them as a pair.
+	 */
+	public function testRuntimeVersionDocumentedAlongsideCoreVersion()
+	{
+		$docFile = $this->docsBaselineFile();
+		$this->assertFileExists($docFile);
+
+		$lines = file($docFile, FILE_IGNORE_NEW_LINES);
+
+		$coreRowIndex = null;
+		$runtimeRowIndex = null;
+		foreach ($lines as $index => $line) {
+			if ($coreRowIndex === null && preg_match('/^\|\s*Elgg core\s*\|/', $line)) {
+				$coreRowIndex = $index;
+			}
+			if ($runtimeRowIndex === null && preg_match('/^\|\s*PHP runtime\s*\|/', $line)) {
+				$runtimeRowIndex = $index;
+			}
+		}
+
+		$this->assertNotNull($coreRowIndex, 'No "Elgg core" row found in the Pinned Versions table');
+		$this->assertNotNull($runtimeRowIndex, 'No "PHP runtime" row found in the Pinned Versions table');
+		$this->assertSame(
+			$coreRowIndex + 1,
+			$runtimeRowIndex,
+			'The PHP runtime row is not documented directly next to the Elgg core row'
+		);
+	}
 }
