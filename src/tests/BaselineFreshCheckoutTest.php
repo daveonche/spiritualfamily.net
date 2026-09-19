@@ -40,6 +40,25 @@ class BaselineFreshCheckoutTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * @var string|null Cached contents of compose.yml
+	 */
+	private $composeContents;
+
+	private function composeFile()
+	{
+		return $this->repoDir() . '/compose.yml';
+	}
+
+	private function composeContents()
+	{
+		if ($this->composeContents === null) {
+			$this->composeContents = file_get_contents($this->composeFile());
+		}
+
+		return $this->composeContents;
+	}
+
+	/**
 	 * Must Support: "A repeatable procedure that takes a clean checkout to a
 	 * running baseline" — the document must cover the full arc: clean
 	 * checkout -> .env setup -> compose up -> install -> verify -> teardown.
@@ -60,5 +79,34 @@ class BaselineFreshCheckoutTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains('### 7. Verify the baseline', $doc);
 		$this->assertContains('### 8. Tear down', $doc);
 		$this->assertContains('docker compose down', $doc);
+	}
+
+	/**
+	 * Must Support: "A repeatable procedure that takes a clean checkout to a
+	 * running baseline" — the procedure's Step 3 expectations must match the
+	 * committed Compose stack (service set and app image), otherwise a fresh
+	 * checkout cannot be taken to a running baseline by following the doc.
+	 */
+	public function testFreshCheckoutProcedureMatchesCommittedStack()
+	{
+		$this->assertFileExists($this->composeFile());
+		$compose = $this->composeContents();
+		$doc = $this->procedureDocContents();
+
+		// Service set in the committed stack...
+		foreach (array('app', 'dbm', 'pma', 'cron') as $service) {
+			$this->assertContains("  $service:", $compose);
+		}
+
+		// ...must be the same set the procedure tells the user to expect.
+		foreach (array('app', 'dbm', 'pma', 'cron') as $service) {
+			$this->assertContains("`$service`", $doc);
+		}
+
+		// App image: compose builds/tags sfn/elgg_webserver:7.4-composer2;
+		// the procedure must expect exactly that image, not the upstream one.
+		$this->assertContains('sfn/elgg_webserver:7.4-composer2', $compose);
+		$this->assertContains('sfn/elgg_webserver:7.4-composer2', $doc);
+		$this->assertNotContains('coldtrick/elgg_webserver', $doc);
 	}
 }
