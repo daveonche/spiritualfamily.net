@@ -25,6 +25,13 @@ so manifest and lock-file work runs inside the orchestration. The web SAPI's
 `open_basedir` restriction is unchanged; the Composer CLI wrapper disables it
 for the CLI only.
 
+Environment note (2026-09-19): the app image layers Composer 2.x (2.10.3 at
+time of recording) onto the upstream PHP 7.4 webserver image via
+`docker/app/Dockerfile`, confirmed via `docker compose exec app composer --version`,
+so manifest and lock-file work runs inside the orchestration. The web SAPI's
+`open_basedir` restriction is unchanged; the Composer CLI wrapper disables it
+for the CLI only.
+
 ## Cross-Check Notes
 
 - The repository-root `composer.json` was overwritten in a previous session and
