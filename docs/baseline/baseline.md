@@ -8,7 +8,7 @@ Ground-zero version reference for the Spiritual Family Network upgrade journey
 | Component | Pinned version | Source |
 | --- | --- | --- |
 | Elgg core | 2.3.17 | `src/vendor/elgg/elgg/composer.json` (`"version": "2.3.17"`) |
-| PHP runtime | 7.4.27 | Legacy environment Compose stack, app image `coldtrick/elgg_webserver:7.4`, confirmed via `docker compose exec app php -v` |
+| PHP runtime | 7.4.27 | Compose stack app image `sfn/elgg_webserver:7.4-composer2`, built locally from upstream `coldtrick/elgg_webserver:7.4` (see `docker/app/Dockerfile`); confirmed via `docker compose exec app php -v` |
 
 This is the single pinned Elgg 2.3 core version; it is the reference value for
 all subsequent steps in the upgrade sequence (REQ-FR-PU-5).
@@ -17,6 +17,13 @@ The pinned PHP runtime sits directly beneath the core version so future steps
 can cite them as a pair. Constraint note: the pinned Elgg 2.3.17 core declares
 `"php": ">=5.6"` (see `src/vendor/elgg/elgg/composer.json`); 7.4.27 satisfies
 that constraint.
+
+Environment note (2026-09-19): the app image layers Composer 2.x (2.10.3 at
+time of recording) onto the upstream PHP 7.4 webserver image via
+`docker/app/Dockerfile`, confirmed via `docker compose exec app composer --version`,
+so manifest and lock-file work runs inside the orchestration. The web SAPI's
+`open_basedir` restriction is unchanged; the Composer CLI wrapper disables it
+for the CLI only.
 
 ## Cross-Check Notes
 
