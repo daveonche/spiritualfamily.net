@@ -1,13 +1,13 @@
 # Workflow State
 
-Last updated: 2026-09-19
+Last updated: 2026-09-20
 
 ## Active Workflow
 
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 7A `$code-implementation S1.2` Step 1 — code changes committed (`8c66bd8`); build validation pending, blocked by WSL Docker credential-helper failure (`docker-credential-desktop.exe` missing from PATH; `~` resolves to read-only `/home`)
-- Last completed: S1.2 Step 1 — `PHP_VERSION` build arg parameterized `docker/app/Dockerfile` (ARG default 7.4, FROM `coldtrick/elgg_webserver:${PHP_VERSION}`) and wired via `compose.yml` build.args (commit `8c66bd8`); `docs/baseline/baseline.md` cross-checked, no edit needed
-- Next action: fix the WSL Docker credential lookup (locate the real `~/.docker/config.json` — verify with `echo $HOME`; remove `credsStore` or install the helper), rerun `docker compose config --quiet` and `docker compose build app`, confirm tag `sfn/elgg_webserver:7.4-composer2` plus front-page serving to close Step 1; then `#implement-step S1.2 2`
+- Current step: Phase 7A `$code-implementation S1.2` Step 1 — build validation in progress: retry `docker compose build app` with `BUILDX_CONFIG=/tmp/docker-buildx` (buildx activity-state write failed on read-only `/home`); then verify tag `sfn/elgg_webserver:7.4-composer2` and front-page serving to close Step 1
+- Last completed: S1.2 Step 1 — `PHP_VERSION` build arg parameterized `docker/app/Dockerfile`/`compose.yml` (commit `8c66bd8`); WSL Docker credential lookup fixed; build retry blocked by buildx state write on read-only `/home` — `BUILDX_CONFIG=/tmp/docker-buildx` retry pending
+- Next action: run `BUILDX_CONFIG=/tmp/docker-buildx docker compose build app`; on success verify `docker compose exec app php -v` and the site front page from the built image to close Step 1; make the fix durable (export `BUILDX_CONFIG=/tmp/docker-buildx` where docker runs, e.g. `agent.sh`/WSL profile); then `#implement-step S1.2 2`
 - Reload to resume:
   - `.agent/.aider.prompt/code/implementation/SKILL.md`
   - `docs/analysis/S1.2-story-steps.md`
