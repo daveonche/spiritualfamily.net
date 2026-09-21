@@ -3,6 +3,8 @@
   edit_format: diff
   extra_params:
     extra_body:
+      # Forces maximum brilliant thinking when invoked
+      reasoning_effort: "max"
       provider:
         sort: "price"
         allow_fallbacks: false
@@ -13,9 +15,8 @@
   edit_format: diff
   extra_params:
     extra_body:
-      reasoning:
-        # Forces maximum brilliant thinking when invoked
-        effort: "max"
+      # Forces maximum brilliant thinking when invoked
+      reasoning_effort: "max"
       provider:
         sort: "price"
         # only: ["Reka AI"]
@@ -42,9 +43,8 @@
   edit_format: diff
   extra_params:
     extra_body:
-      reasoning:
-        # Cuts down the thinking delay
-        effort: "low"
+      # Cuts down the thinking delay
+      reasoning_effort: "low"
       provider:
         sort: "price"
         # only: ["OpenInference"]

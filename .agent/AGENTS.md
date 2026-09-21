@@ -35,7 +35,9 @@ them to the `$` syntax used by top-level orchestrator commands.
 
 To optimize token usage and maintain focus, load prompt files on demand: when
 you need a specific prompt to answer the user's request, or when the user uses
-a shorthand command, output the corresponding command.
+a shorthand command, output the corresponding command. Before requesting any
+file that is not already in context, run the Context Hygiene sweep (see below)
+first to free space before spending new tokens.
 
 ## Command Syntax and Mappings
 
@@ -51,6 +53,13 @@ are internal to a mapped workflow (see Workflow Chain Execution).
 `$<category>-<promptname>` activates the specified prompt workflow.
 `$agent-orchestrator`, `$workflow-orchestrator` (alias), `$code-review <file>`,
 and `$session-checkpoint` map to the canonical descriptions under Commands.
+
+File request format: when one or more files must be added to the chat for
+reading only, request them under a single `/read-only` command on one line,
+space-separated (e.g., `/read-only <path1> <path2>`); when one or more files
+must be added for editing, request them under a single `/add` command on one
+line, space-separated (e.g., `/add <path1> <path2>`). This mirrors the
+one-line droppables format under Context Hygiene.
 
 ## Placeholder Convention
 
@@ -149,11 +158,18 @@ switch, and `$session-checkpoint`:
 1. Identify files in context that are no longer required by the active
    work — outside the workflow's required context set and not targets
    of upcoming steps.
-2. Announce each with a one-line reason it is droppable and output its `/drop`
-   command inline (per Critical Rules). Never drop silently; never execute
-   `/drop` yourself.
+2. Announce each file with a one-line reason it is droppable, then output all
+   droppable paths together under a single `/drop` command on one line,
+   space-separated (e.g., `/drop <path1> <path2>`), inline (per Critical
+   Rules). Never drop silently; never execute `/drop` yourself.
 3. Note that dropped files remain recoverable from git via
    `/read-only <path>` at any time.
+
+Before outputting any `/read-only` command for a file whose contents are not
+already in the transcript (per Critical Rule 3), run this sweep first and
+announce any droppables with the single `/drop` line, so context is freed
+before new files are loaded. If nothing is droppable, say so in one line and
+proceed with the request.
 
 ## Workflow Orchestration Mode
 
@@ -227,3 +243,7 @@ do not ask them to paste output manually.
 2. Always wait for explicit user input at [STOP] points; if the input is invalid or unexpected, re-prompt with the original question.
 3. A file counts as in context when its contents appear anywhere in the conversation — including the initial read-only reference set — not only via a recent `/read-only` confirmation. Scan the full transcript before asking the user to run `/read-only`; request it only when the contents are absent from the transcript or the on-disk copy may have changed since it was added.
 4. Never construct a file path that is not stated verbatim in a SKILL.md, a routing table, or the transcript. When a required file's location is unknown, ask the user for its actual path instead of inferring it from sibling directories or similar file names.
+5. Request files in the one-line format: a single space-separated
+   `/read-only <path1> <path2>` command for files needed for reading only, and
+   a single space-separated `/add <path1> <path2>` command for files that need
+   editing. Never output one command per file.

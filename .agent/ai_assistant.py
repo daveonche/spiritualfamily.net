@@ -23,6 +23,7 @@ from this design:
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
@@ -69,6 +70,50 @@ CREDENTIAL_ENV_VARS = (
     "COHERE_API_KEY",
     "TOGETHER_API_KEY",
     "HF_TOKEN",
+)
+
+# LLM endpoint variables. Repo-supplied values (.env files) are never
+# allowed to set these: a hostile checkout could repoint a forwarded
+# provider credential at an attacker-controlled server (see
+# run_container). Host-exported values are forwarded after --env-file
+# (host wins); repo-only values are neutralized to empty. Names follow
+# the litellm/provider conventions for the CREDENTIAL_ENV_VARS providers.
+ENDPOINT_ENV_VARS = (
+    "OPENAI_API_BASE",
+    "OPENAI_BASE_URL",
+    "ANTHROPIC_API_BASE",
+    "ANTHROPIC_BASE_URL",
+    "AZURE_API_BASE",
+    "AZURE_OPENAI_ENDPOINT",
+    "DEEPSEEK_API_BASE",
+    "GROQ_API_BASE",
+    "MISTRAL_API_BASE",
+    "COHERE_API_BASE",
+    "TOGETHER_API_BASE",
+    "GOOGLE_GEMINI_BASE_URL",
+    "HF_ENDPOINT",
+)
+
+# GitHub's published SSH host keys and their officially published SHA256
+# fingerprints. The rsa key is not pinned (too long to embed safely);
+# modern clients negotiate GitHub's ed25519 host key first. A key is
+# appended to the host known_hosts only when its computed fingerprint
+# matches the published one, so a tampered source can never inject a
+# host key (see _ensure_github_known_hosts).
+GITHUB_ED25519_KEY = (
+    "AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabg"
+    "H5C9okWi0dh2l9GKJl"
+)
+GITHUB_ECDSA_KEY = (
+    "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAA"
+    "BBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRg"
+    "g6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg="
+)
+GITHUB_ED25519_FINGERPRINT = (
+    "SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
+)
+GITHUB_ECDSA_FINGERPRINT = (
+    "SHA256:p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM"
 )
 
 ANSI_RED = "\033[31m"
@@ -145,7 +190,19 @@ def _trace_command(command: list[str], debug: bool) -> None:
     if COMMAND_LOG_PATH is not None:
         try:
             COMMAND_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-            with COMMAND_LOG_PATH.open("a", encoding="utf-8") as log_file:
+            # 0600 on creation and afterwards: the log holds the session's
+            # engine commands and must stay private to the launching user
+            # (fchmod also tightens files created by older versions).
+            # O_NOFOLLOW keeps the append on the real log file: a symlink
+            # planted at the predictable path is never followed, and the
+            # mode change lands on the opened file, not on a link target.
+            fd = os.open(
+                COMMAND_LOG_PATH,
+                os.O_WRONLY | os.O_CREAT | os.O_APPEND | os.O_NOFOLLOW,
+                0o600,
+            )
+            os.fchmod(fd, 0o600)
+            with os.fdopen(fd, "a", encoding="utf-8") as log_file:
                 log_file.write(line + "\n")
         except OSError:
             pass
@@ -153,17 +210,42 @@ def _trace_command(command: list[str], debug: bool) -> None:
         print(line, file=sys.stderr)
 
 
-def _configure_command_log(workspace_hash: str, session_id: str) -> Path:
-    """Point the command log at a predictable per-session file.
+# Launcher-private cache directory name. Deliberately OUTSIDE the
+# container-visible ~/.cache/aider mount (see run_container): the command
+# log, the approved-Dockerfile hash, and the container-home cache must
+# stay unwritable by the container they relate to.
+LAUNCHER_CACHE_DIR_NAME = "aider-agent"
 
-    The file name is derived from the workspace hash and session ID, so the
-    location is stable for a given session. The file is created on first
-    write and appended to afterwards, never truncated.
+# File recording the Dockerfile hash at the last user-approved build.
+APPROVED_DOCKERFILE_NAME = ".approved-dockerfile"
+
+
+def _launcher_cache_dir() -> Path:
+    """Return the launcher-private cache directory."""
+    return Path.home() / ".cache" / LAUNCHER_CACHE_DIR_NAME
+
+
+def _configure_command_log(workspace_hash: str, session_id: str) -> Path:
+    """Point the command log at a per-session file in the user's cache.
+
+    The log lives under the user-private ~/.cache/aider-agent directory
+    (created 0700) instead of a shared temp directory, so another local
+    user cannot plant a symlink at the guessable path in the first place.
+    The directory is also outside the container-visible ~/.cache/aider
+    mount (see run_container), so an in-container session cannot rewrite
+    the audit log of the launch that ran it. The file name is derived
+    from the workspace hash and session ID, so the location is stable
+    for a given session. The file is created on first write and appended
+    to afterwards, never truncated.
     """
     global COMMAND_LOG_PATH
+    cache_dir = _launcher_cache_dir()
+    try:
+        cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    except OSError:
+        pass
     COMMAND_LOG_PATH = (
-        Path(tempfile.gettempdir())
-        / f"ai-assistant-{workspace_hash[:8]}-{session_id}.log"
+        cache_dir / f"ai-assistant-{workspace_hash[:8]}-{session_id}.log"
     )
     return COMMAND_LOG_PATH
 
@@ -287,6 +369,40 @@ VALUE_CONFIG_FLAGS = {
 }
 
 
+# Configuration keys that control whether the assistant auto-approves and
+# executes commands. A project-root counterpart must never override them:
+# the human-confirmation control is load-bearing because the container
+# mounts the host docker.sock (see run_container).
+PROTECTED_CONFIG_KEYS = (
+    "yes",
+    "auto-test",
+    "test-cmd",
+    "lint-cmd",
+    "auto-commits",
+    # LLM endpoint settings: a repo counterpart must never repoint a
+    # forwarded provider credential at an attacker-controlled server
+    # (see ENDPOINT_ENV_VARS and run_container).
+    "openai-api-base",
+)
+
+
+def _strip_protected_keys(doc):
+    """Return doc without the protected confirmation keys.
+
+    Applied to the project-root document before merging so untrusted repo
+    configuration can only add settings, never weaken the launcher's
+    built-in human-confirmation controls (see PROTECTED_CONFIG_KEYS).
+    Non-mapping documents are returned unchanged.
+    """
+    if not isinstance(doc, dict):
+        return doc
+    return {
+        key: value
+        for key, value in doc.items()
+        if key not in PROTECTED_CONFIG_KEYS
+    }
+
+
 def _deep_merge(base, override):
     """Combine nested structures level by level; override wins conflicts.
 
@@ -329,19 +445,30 @@ def _merge_model_settings(base, override):
 
 
 def _merge_value_documents(name: str, agent_doc, root_doc):
-    """Dispatch the merge strategy for one value-based config file."""
+    """Dispatch the merge strategy for one value-based config file.
+
+    The project-root document is filtered through _strip_protected_keys
+    first, so a repo counterpart cannot override the confirmation controls
+    regardless of which merge strategy applies.
+    """
+    root_doc = _strip_protected_keys(root_doc)
     if name == ".aider.model.settings.yml":
         return _merge_model_settings(agent_doc, root_doc)
     return _deep_merge(agent_doc, root_doc)
 
 
 def _merge_json_documents(agent_file: Path, root_file: Path):
-    """Load and deep-merge two JSON documents; the root document wins."""
+    """Load and deep-merge two JSON documents; the root document wins.
+
+    The root document is filtered through _strip_protected_keys first, so
+    the JSON path is guarded exactly like the YAML paths (see
+    _merge_value_documents).
+    """
     with agent_file.open(encoding="utf-8") as handle:
         agent_doc = json.load(handle)
     with root_file.open(encoding="utf-8") as handle:
         root_doc = json.load(handle)
-    return _deep_merge(agent_doc, root_doc)
+    return _deep_merge(agent_doc, _strip_protected_keys(root_doc))
 
 
 def _yaml_entries(text: str) -> list[list]:
@@ -582,6 +709,60 @@ def _yaml_dump(value) -> str:
     return "\n".join(_yaml_dump_lines(value, 0)) + "\n"
 
 
+def _atomic_write_text(path: Path, text: str) -> None:
+    """Write text to path without following a symlink planted there.
+
+    Writes a temporary file in the destination directory and renames it
+    over the destination: os.replace() swaps the directory entry itself,
+    so a symlink at path is replaced rather than followed and the bytes
+    never reach the link target. The temporary file is created 0600 by
+    mkstemp and removed again if the write or rename fails.
+    """
+    fd, temp_name = tempfile.mkstemp(
+        dir=str(path.parent), prefix=f".{path.name}.", suffix=".tmp"
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        os.replace(temp_name, path)
+    finally:
+        if os.path.exists(temp_name):
+            try:
+                os.unlink(temp_name)
+            except OSError:
+                pass
+
+
+def _write_serialized_intermediate(
+    agent_dir: Path,
+    name: str,
+    serialized: str,
+    debug: bool,
+    warning: str,
+) -> Optional[Path]:
+    """Write serialized config content to the deterministic intermediate.
+
+    Writes only when the content differs from what is already on disk, and
+    always through _atomic_write_text so a planted symlink at the
+    intermediate path is replaced rather than followed. Returns the
+    intermediate path, or None when the write fails (warning printed in
+    debug mode); the caller then applies its own fallback.
+    """
+    merged_path = agent_dir / MERGED_DIR_NAME / name
+    try:
+        merged_path.parent.mkdir(parents=True, exist_ok=True)
+        existing = (
+            merged_path.read_text(encoding="utf-8") if merged_path.exists() else None
+        )
+        if existing != serialized:
+            _atomic_write_text(merged_path, serialized)
+    except (OSError, ValueError):
+        if debug:
+            print(warning, file=sys.stderr)
+        return None
+    return merged_path
+
+
 def _write_merged_value_file(
     agent_dir: Path,
     name: str,
@@ -605,7 +786,7 @@ def _write_merged_value_file(
             root_doc = _yaml_load(root_file.read_text(encoding="utf-8"))
             merged_doc = _merge_value_documents(name, agent_doc, root_doc)
             serialized = _yaml_dump(merged_doc)
-    except (OSError, ValueError):
+    except (OSError, ValueError, RecursionError):
         if debug:
             print(
                 f"Warning: could not merge {name}; using the assistant default.",
@@ -613,23 +794,59 @@ def _write_merged_value_file(
             )
         return None
 
-    merged_path = agent_dir / MERGED_DIR_NAME / name
+    return _write_serialized_intermediate(
+        agent_dir,
+        name,
+        serialized,
+        debug,
+        f"Warning: could not write the merged {name}; using the assistant "
+        "default.",
+    )
+
+
+def _write_root_only_value_file(
+    agent_dir: Path,
+    name: str,
+    root_file: Path,
+    debug: bool,
+) -> Optional[Path]:
+    """Write a root-only value config as a filtered intermediate.
+
+    A project-root counterpart without an agent-side copy is still
+    untrusted repo content: the protected confirmation keys are stripped
+    exactly as in the both-present merge (see _merge_value_documents), and
+    the filtered document is written to the deterministic intermediate.
+    Returns None when the document cannot be parsed or written; the caller
+    then omits the config flag entirely rather than passing the unfiltered
+    root file through, so aider's built-in confirmation defaults stay in
+    force.
+    """
     try:
-        merged_path.parent.mkdir(parents=True, exist_ok=True)
-        existing = (
-            merged_path.read_text(encoding="utf-8") if merged_path.exists() else None
-        )
-        if existing != serialized:
-            merged_path.write_text(serialized, encoding="utf-8")
-    except (OSError, ValueError):
+        if name == ".aider.model.metadata.json":
+            with root_file.open(encoding="utf-8") as handle:
+                merged_doc = _strip_protected_keys(json.load(handle))
+            serialized = json.dumps(merged_doc, indent=2) + "\n"
+        else:
+            root_doc = _yaml_load(root_file.read_text(encoding="utf-8"))
+            merged_doc = _strip_protected_keys(root_doc)
+            serialized = _yaml_dump(merged_doc)
+    except (OSError, ValueError, RecursionError):
         if debug:
             print(
-                f"Warning: could not write the merged {name}; using the "
-                "assistant default.",
+                f"Warning: could not filter {name}; ignoring the project-root "
+                "copy.",
                 file=sys.stderr,
             )
         return None
-    return merged_path
+
+    return _write_serialized_intermediate(
+        agent_dir,
+        name,
+        serialized,
+        debug,
+        f"Warning: could not write the filtered {name}; ignoring the "
+        "project-root copy.",
+    )
 
 
 def _merge_aiderignore(agent_file: Path, root_file: Path) -> list[str]:
@@ -639,20 +856,24 @@ def _merge_aiderignore(agent_file: Path, root_file: Path) -> list[str]:
     original order first, then root-only patterns in their original order,
     so the result is deterministic for identical inputs; duplicates are
     counted once. Trailing whitespace is dropped (not significant in
-    gitignore syntax); everything else is preserved as-is, including
-    negation patterns.
+    gitignore syntax). Agent negation patterns are preserved; root-supplied
+    negations are dropped so the union can only add ignoring, never remove
+    it: gitignore semantics are last-match-wins, and a trailing root
+    negation would otherwise unignore paths the agent policy protects.
 
     Raises OSError when either file cannot be read, so the caller can fall
     back to single-file pass-through instead of losing one side's patterns.
     """
     patterns: list[str] = []
     seen: set[str] = set()
-    for file in (agent_file, root_file):
+    for file, allow_negations in ((agent_file, True), (root_file, False)):
         for line in file.read_text(encoding="utf-8").splitlines():
             stripped = line.strip()
             if not stripped or stripped.startswith("#"):
                 continue
             pattern = line.rstrip()
+            if not allow_negations and pattern.startswith("!"):
+                continue
             if pattern not in seen:
                 seen.add(pattern)
                 patterns.append(pattern)
@@ -675,13 +896,6 @@ def _write_merged_ignore_file(
     try:
         patterns = _merge_aiderignore(agent_file, root_file)
         serialized = "\n".join(patterns) + "\n"
-        merged_path = agent_dir / MERGED_DIR_NAME / ".aiderignore"
-        merged_path.parent.mkdir(parents=True, exist_ok=True)
-        existing = (
-            merged_path.read_text(encoding="utf-8") if merged_path.exists() else None
-        )
-        if existing != serialized:
-            merged_path.write_text(serialized, encoding="utf-8")
     except OSError:
         if debug:
             print(
@@ -690,7 +904,14 @@ def _write_merged_ignore_file(
                 file=sys.stderr,
             )
         return None
-    return merged_path
+    return _write_serialized_intermediate(
+        agent_dir,
+        ".aiderignore",
+        serialized,
+        debug,
+        "Warning: could not merge .aiderignore; using the assistant "
+        "default.",
+    )
 
 
 def _merged_config_args(
@@ -703,8 +924,11 @@ def _merged_config_args(
     For each value-based config file:
     - both copies present -> the flag points at the merged intermediate
     - only the agent copy -> unchanged pass-through to the agent copy
-    - only the root counterpart -> the flag points at the root file directly,
-      which is already a complete, deliberately placed configuration
+    - only the root counterpart -> the flag points at a filtered
+      intermediate holding the root document with the protected
+      confirmation keys removed (see _write_root_only_value_file); when the
+      document cannot be filtered, the flag is omitted so the unfiltered
+      file is never passed through
     - unmergeable pair -> fall back to the agent copy (reported in debug)
 
     .aiderignore follows the same rules with a union merge: both copies
@@ -748,7 +972,14 @@ def _merged_config_args(
         elif agent_exists:
             args.extend([flag, str(agent_file)])
         elif root_file is not None:
-            args.extend([flag, str(root_file)])
+            filtered = _write_root_only_value_file(
+                agent_dir, name, root_file, debug
+            )
+            if filtered is not None:
+                args.extend([flag, str(filtered)])
+            # Unfilterable root copy: omit the flag instead of passing the
+            # unfiltered file through, so the protected confirmation keys
+            # can never reach aider from repo content.
     return args
 
 
@@ -853,6 +1084,80 @@ def _image_cache_tag(dockerfile_path: Path, debug: bool = False) -> str:
     return f"aider-agent:c-{hasher.hexdigest()[:16]}"
 
 
+def _dockerfile_hash(dockerfile_path: Path) -> str:
+    """Return the sha256 of the Dockerfile bytes ("" when unreadable)."""
+    try:
+        return hashlib.sha256(dockerfile_path.read_bytes()).hexdigest()
+    except OSError:
+        return ""
+
+
+def _approved_dockerfile_hash() -> str:
+    """Return the Dockerfile hash recorded at the last approved build."""
+    try:
+        approved = _launcher_cache_dir() / APPROVED_DOCKERFILE_NAME
+        return approved.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def _record_approved_dockerfile(dockerfile_path: Path) -> None:
+    """Record the Dockerfile hash as approved after a successful build."""
+    try:
+        cache_dir = _launcher_cache_dir()
+        cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        approved = cache_dir / APPROVED_DOCKERFILE_NAME
+        approved.write_text(
+            _dockerfile_hash(dockerfile_path) + "\n", encoding="utf-8"
+        )
+    except OSError:
+        pass
+
+
+def _rebuild_approved(dockerfile_path: Path, debug: bool = False) -> bool:
+    """Return True when building the repo-provided Dockerfile is allowed.
+
+    The build executes instructions from the repo-writable Dockerfile, so
+    a changed definition is rebuilt only with fresh user confirmation:
+    the current Dockerfile hash is compared against the hash recorded at
+    the last approved build, and a differing hash prompts on an
+    interactive session. A first-time build (nothing approved yet) is
+    not gated: prompting there would hang unattended launch chains whose
+    stdin is never written (pty drivers, editor integrations); the hash
+    is recorded on success, so every later change is gated. Non-
+    interactive sessions (tests, CI) cannot prompt: the build proceeds
+    after the visible warning, preserving automation behavior (documented
+    residual risk).
+    """
+    approved = _approved_dockerfile_hash()
+    if _dockerfile_hash(dockerfile_path) == approved:
+        return True
+    if not approved:
+        print(
+            f"Warning: {dockerfile_path} executes repo-provided build "
+            "instructions; the build is recorded as approved on success.",
+            file=sys.stderr,
+        )
+        return True
+    print(
+        f"Warning: {dockerfile_path} executes repo-provided build "
+        "instructions and differs from the last approved build.",
+        file=sys.stderr,
+    )
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        if debug:
+            print(
+                "Note: non-interactive session; rebuild proceeding.",
+                file=sys.stderr,
+            )
+        return True
+    try:
+        answer = input("Approve rebuild? [y/N] ")
+    except (EOFError, KeyboardInterrupt):
+        return False
+    return answer.strip().lower() in ("y", "yes")
+
+
 def _image_exists(tag: str, debug: bool = False) -> bool:
     """Return True when a local Docker image exists for the given tag."""
     command = ["docker", "image", "inspect", tag]
@@ -895,6 +1200,151 @@ def _warn_agent_dir_location(project_root: Path) -> None:
             "container.",
             file=sys.stderr,
         )
+
+
+def _ssh_fingerprint(key_blob: str) -> Optional[str]:
+    """Return the OpenSSH SHA256 fingerprint of a base64 key blob.
+
+    Mirrors `ssh-keygen -lf` output: "SHA256:" plus unpadded base64 of
+    the SHA256 digest over the decoded wire-format key blob.
+    """
+    try:
+        decoded = base64.b64decode(key_blob, validate=True)
+    except ValueError:
+        return None
+    digest = hashlib.sha256(decoded).digest()
+    return "SHA256:" + base64.b64encode(digest).decode("ascii").rstrip("=")
+
+
+def _ensure_github_known_hosts(debug: bool) -> None:
+    """Pin GitHub's published SSH host keys in the host known_hosts file.
+
+    Appends a key only when its computed SHA256 fingerprint matches the
+    published fingerprint and the blob is not already present, so the
+    file is never rewritten and a tampered source cannot inject a host
+    key. Best-effort and non-fatal: failure only means ssh may prompt on
+    the next push.
+    """
+    candidates = [
+        ("ssh-ed25519", GITHUB_ED25519_KEY, GITHUB_ED25519_FINGERPRINT),
+        ("ecdsa-sha2-nistp256", GITHUB_ECDSA_KEY, GITHUB_ECDSA_FINGERPRINT),
+    ]
+    ssh_dir = Path.home() / ".ssh"
+    known_hosts = ssh_dir / "known_hosts"
+    try:
+        ssh_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        existing = (
+            known_hosts.read_text(encoding="utf-8", errors="replace")
+            if known_hosts.exists()
+            else ""
+        )
+    except OSError as exc:
+        print(f"Warning: cannot update {known_hosts}: {exc}", file=sys.stderr)
+        return
+    additions = [
+        f"github.com {key_type} {blob}\n"
+        for key_type, blob, fingerprint in candidates
+        if _ssh_fingerprint(blob) == fingerprint and blob not in existing
+    ]
+    if not additions:
+        return
+    try:
+        with known_hosts.open("a", encoding="utf-8") as handle:
+            handle.writelines(additions)
+    except OSError as exc:
+        print(f"Warning: cannot update {known_hosts}: {exc}", file=sys.stderr)
+        return
+    if debug:
+        print(
+            f"Pinned {len(additions)} GitHub host key(s) in {known_hosts}.",
+            file=sys.stderr,
+        )
+
+
+def _valid_container_home(home: str) -> bool:
+    """Return True when home is safe to embed in a bind-mount spec.
+
+    The value is embedded as "{home}/.ssh" inside a -v argument, so a
+    colon or whitespace would corrupt the mount spec (or inject extra
+    mount fields); a poisoned cache entry must never reach docker run.
+    """
+    return (
+        home.startswith("/")
+        and home != "/"
+        and ":" not in home
+        and not any(char.isspace() for char in home)
+    )
+
+
+def _container_passwd_home(cache_tag: str, debug: bool) -> Optional[str]:
+    """Return the passwd home directory of the runtime uid in the image.
+
+    OpenSSH resolves default identity and known_hosts paths from the
+    passwd home (pw_dir), not from $HOME, so the host ~/.ssh mount must
+    target pw_dir for key authentication to work without explicit -i
+    flags. The value is discovered with a one-shot container and cached
+    in the host aider cache keyed by the image cache tag. Returns None
+    when the lookup fails; the caller then keeps the legacy /home mount
+    only.
+    """
+    cache_path = _launcher_cache_dir() / ".container-home"
+    prefix = f"{cache_tag} "
+    try:
+        cached = cache_path.read_text(encoding="utf-8").splitlines()
+        if cached and cached[0].startswith(prefix):
+            home = cached[0][len(prefix):]
+            if _valid_container_home(home):
+                return home
+    except OSError:
+        pass
+    uid = os.getuid()
+    # --user mirrors real launches: the image's default USER may not exist in
+    # /etc/passwd, which aborts the lookup ("unable to find user"). awk
+    # matches the uid field (3rd), not the username field, so the passwd home
+    # is found even when the account name differs from the uid string.
+    command = [
+        "docker",
+        "run",
+        "--rm",
+        "--user",
+        str(uid),
+        "--entrypoint",
+        "/bin/sh",
+        AIDER_IMAGE,
+        "-c",
+        f"awk -F: -v u={uid} '$3 == u {{print $6}}' /etc/passwd",
+    ]
+    _trace_command(command, debug)
+    try:
+        result = subprocess.run(
+            command,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        if debug:
+            print(
+                f"Note: could not query the container home: {exc}",
+                file=sys.stderr,
+            )
+        return None
+    home = (result.stdout or "").strip()
+    if result.returncode != 0 or not _valid_container_home(home):
+        if debug:
+            print(
+                f"Note: no passwd home for uid {uid} in {AIDER_IMAGE}; "
+                "SSH keys will be mounted at /home/.ssh only.",
+                file=sys.stderr,
+            )
+        return None
+    try:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(f"{cache_tag} {home}\n", encoding="utf-8")
+    except OSError:
+        pass
+    return home
 
 
 def _resolve_session_id() -> str:
@@ -1224,12 +1674,32 @@ def build_image(
             pass
 
 
+def _repo_env_keys(env_file: Path) -> set[str]:
+    """Return the variable names set by a repo .env file (names only).
+
+    Values are never read; the names drive the endpoint neutralization in
+    run_container (see ENDPOINT_ENV_VARS).
+    """
+    try:
+        text = env_file.read_text(errors="replace")
+    except OSError:
+        return set()
+    keys: set[str] = set()
+    for raw in text.splitlines():
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        keys.add(stripped.split("=", 1)[0].strip())
+    return keys
+
+
 def run_container(
     workspace_hash: str,
     session_id: str,
     container_name: str,
     docker_gid: Optional[int],
     agent_dir: Path,
+    container_home: Optional[str],
     debug: bool,
     assistant_args: list[str],
 ) -> int:
@@ -1241,6 +1711,9 @@ def run_container(
         container_name: Name to assign to the Docker container.
         docker_gid: Host Docker group GID to add to the container, or None.
         agent_dir: Directory containing the AI assistant helper files.
+        container_home: Passwd home of the container user, or None when
+            unknown; the host ~/.ssh directory is additionally mounted
+            under it so ssh finds the forwarded keys by default.
         debug: Whether to print the underlying Docker command to stderr.
         assistant_args: Additional arguments passed to the AI assistant.
 
@@ -1300,10 +1773,6 @@ def run_container(
         )
 
     command.extend([
-        "-e",
-        "HOME=/home",
-        "-e",
-        "PYTHONUNBUFFERED=1",
         # Docker-outside-of-Docker: the CLI and compose plugin inside the
         # container drive the host daemon through this socket, so compose
         # stacks started for debugging are siblings, not nested containers.
@@ -1335,9 +1804,35 @@ def run_container(
         command.extend(["-v", f"{gitconfig}:/home/.gitconfig:ro"])
 
     # Mounted read-only so `docker compose` inside the container can use the
-    # host's registry credentials when pulling or building images.
+    # host's registry credentials when pulling or building images. Buildx's
+    # mutable state is redirected off this mount via BUILDX_CONFIG below.
     if docker_config.exists():
         command.extend(["-v", f"{docker_config}:/home/.docker:ro"])
+
+    # Mounted read-only so git push/pull over SSH remotes works inside the
+    # container: keys, config, and known_hosts travel together, and the
+    # container can never modify the host's SSH state. OpenSSH resolves
+    # default identity and known_hosts paths from the passwd home
+    # (pw_dir), not from $HOME, so when the image user's home differs
+    # from /home the same directory is mounted there as well; otherwise
+    # ssh never sees the keys (observed as "Permission denied
+    # (publickey)" despite HOME=/home).
+    ssh_dir = Path(home) / ".ssh"
+    if ssh_dir.is_dir():
+        command.extend(["-v", f"{ssh_dir}:/home/.ssh:ro"])
+        if container_home and container_home != "/home":
+            command.extend(["-v", f"{ssh_dir}:{container_home}/.ssh:ro"])
+
+    # Agent-forwarded SSH: mount the host agent socket at its identical
+    # path so passphrase-protected keys work without copying them (same
+    # pattern as the pulse socket mount). The variable is forwarded after
+    # --env-file below so a project .env cannot disarm the forwarding.
+    ssh_auth_sock = os.environ.get("SSH_AUTH_SOCK")
+    if ssh_auth_sock and Path(ssh_auth_sock).exists():
+        command.extend([
+            "-v",
+            f"{ssh_auth_sock}:{ssh_auth_sock}",
+        ])
 
     command.extend(["-v", f"{cache_dir}:/home/.cache"])
 
@@ -1362,10 +1857,30 @@ def run_container(
     env_file = project_root / ".env"
     agent_env_file = agent_dir / ".env"
 
+    effective_env_file: Optional[Path] = None
     if env_file.exists():
         command.extend(["--env-file", str(env_file)])
+        effective_env_file = env_file
     elif agent_env_file.exists():
         command.extend(["--env-file", str(agent_env_file)])
+        effective_env_file = agent_env_file
+
+    # Environment forwards placed after --env-file so a project .env file
+    # cannot override them (e.g. redirecting HOME or disarming SSH agent
+    # forwarding). BUILDX_CONFIG: buildx keeps per-builder state under
+    # $HOME/.docker/buildx, but /home/.docker is mounted read-only
+    # (credentials only), which aborts in-container builds; point its
+    # mutable state at the writable cache mount instead.
+    command.extend([
+        "-e",
+        "HOME=/home",
+        "-e",
+        "PYTHONUNBUFFERED=1",
+        "-e",
+        "BUILDX_CONFIG=/home/.cache/buildx",
+    ])
+    if ssh_auth_sock and Path(ssh_auth_sock).exists():
+        command.extend(["-e", "SSH_AUTH_SOCK"])
 
     # Forward host-exported credentials by name only: Docker fills the value
     # from this process's environment, so secrets never appear in the command
@@ -1374,6 +1889,25 @@ def run_container(
     for var in CREDENTIAL_ENV_VARS:
         if var in os.environ:
             command.extend(["-e", var])
+
+    # LLM endpoints are never taken from repo files: a hostile checkout
+    # could repoint a forwarded credential at an attacker-controlled
+    # server. Host-exported endpoint values are forwarded (host wins over
+    # --env-file); repo-only values are neutralized to empty so the
+    # container falls back to the provider's default endpoint.
+    for var in ENDPOINT_ENV_VARS:
+        if var in os.environ:
+            command.extend(["-e", var])
+        elif (
+            effective_env_file is not None
+            and var in _repo_env_keys(effective_env_file)
+        ):
+            command.extend(["-e", f"{var}="])
+            print(
+                f"Warning: {effective_env_file} sets {var}; ignored because "
+                "repo files cannot set LLM endpoints.",
+                file=sys.stderr,
+            )
 
     command.append(AIDER_IMAGE)
     command.extend(["--chat-mode", "ask"])
@@ -1454,6 +1988,13 @@ def main() -> int:
         _dump_recent_log_lines(debug)
         return 1
 
+    # Pin GitHub's published SSH host keys on the host (fingerprint-
+    # verified, append-only) so container git push/pull never stalls on a
+    # host-key prompt; the pinned file travels into the container through
+    # the read-only ~/.ssh mounts.
+    if not _running_in_container():
+        _ensure_github_known_hosts(debug=debug)
+
     container_name = (
         f"{TOOL_NAME}-{dir_name}-{workspace_hash[:8]}-{session_id}-{os.getpid()}"
     )
@@ -1507,8 +2048,19 @@ def main() -> int:
         )
         build_code = 0
     else:
+        # The build executes instructions from the repo-writable
+        # Dockerfile, so a changed definition is rebuilt only with fresh
+        # user confirmation (see _rebuild_approved).
+        if not _rebuild_approved(dockerfile_path, debug=debug):
+            print(
+                "Rebuild declined; launch aborted. Inspect "
+                f"{dockerfile_path}, then re-run to approve the build.",
+                file=sys.stderr,
+            )
+            return 1
         build_code = build_image(dockerfile_path, AGENT_DIR, debug=debug)
         if build_code == 0:
+            _record_approved_dockerfile(dockerfile_path)
             command = ["docker", "tag", AIDER_IMAGE, cache_tag]
             _trace_command(command, debug)
             subprocess.run(
@@ -1534,12 +2086,19 @@ def main() -> int:
     aider_cache_dir = Path.home() / ".cache" / "aider"
     aider_cache_dir.mkdir(parents=True, exist_ok=True)
 
+    # Discover the container user's passwd home (cached per image tag) so
+    # the SSH keys are also mounted where ssh actually looks for them.
+    container_home = None
+    if not _running_in_container() and (Path.home() / ".ssh").is_dir():
+        container_home = _container_passwd_home(cache_tag, debug=debug)
+
     result = run_container(
         workspace_hash,
         session_id,
         container_name,
         docker_gid,
         AGENT_DIR,
+        container_home,
         debug,
         assistant_args,
     )
