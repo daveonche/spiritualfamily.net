@@ -5,13 +5,16 @@ services:
     # orchestration.
     build:
       context: ./docker/app
-      # Pinned PHP runtime version (Story S1.2; recorded in
-      # docs/baseline/baseline.md) — flows into docker/app/Dockerfile
+      # PHP runtime version (Story S1.2; default recorded in
+      # docs/baseline/baseline.md) — flows into docker/app/Dockerfile;
+      # override via environment (shell export or .env) to build any
+      # runtime version from these unedited files
       args:
-        PHP_VERSION: "7.4"
+        PHP_VERSION: "${PHP_VERSION:-7.4}"
     # Tag for the locally built image (Compose allows build + image together);
-    # adjust the name to taste
-    image: sfn/elgg_webserver:7.4-composer2
+    # adjust the name to taste; the runtime version is interpolated so each
+    # PHP version builds under its own tag
+    image: "sfn/elgg_webserver:${PHP_VERSION:-7.4}-composer2"
     container_name: ${APP_CONTAINER_NAME}
     env_file:
       # This passes variables from .env to the container
