@@ -1,18 +1,17 @@
 # Workflow State
 
-Last updated: 2026-09-21
+Last updated: 2026-09-22
 
 ## Active Workflow
 
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 7A `$code-implementation S1.2` Step 3 — single-definition orchestration of web, database, and scheduled-task services; awaiting `#implement-step S1.2 3`
-- Last completed: S1.2 Step 2 — `PHP_VERSION` build arg + image tag environment-parameterized in `compose.yml` (commit `39a794e`); alternate runtime version built from unedited files under its own tag; default 7.4 path verified intact
-- Next action: run `#implement-step S1.2 3` to start Step 3 (one committed Compose definition bringing up web, database, and cron together; cron executing on its configured schedule)
+- Current step: Phase 7A `$code-implementation S1.2` Step 4 — persistent storage for database and application data; awaiting `#implement-step S1.2 4`
+- Last completed: S1.2 Step 3 — single-definition orchestration of web/db/cron in `compose.yml`; crond logging to stderr (`-d 8`), alpine pinned 3.23.3 (commits `3f4374b`, `bc72fc3`); verified bring-up, schedule firing, app 200s, PHPUnit green
+- Next action: run `#implement-step S1.2 4` to start Step 4 (dedicated persistent volumes for database data and the application data directory, surviving restarts and rebuilds)
 - Reload to resume:
   - `.agent/.aider.prompt/code/implementation/SKILL.md`
   - `docs/analysis/S1.2-story-steps.md`
   - `docs/sprints/sprint_1_stories.md`
   - `docs/dependencies/S1.2-dependencies.md`
-  - `docker/app/Dockerfile`
   - `compose.yml`
-  - `docs/baseline/baseline.md`
+  - `.agent/.aider.conventions/references/compose-file-spec.md`
