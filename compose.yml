@@ -87,7 +87,11 @@ services:
       - appnet
 
   pma:
-    image: phpmyadmin/phpmyadmin
+    # Pinned (Story S1.2 Step 6): the floating phpmyadmin/phpmyadmin tag
+    # resolved to 5.2.3 at pin time — confirmed via the image's own
+    # /var/www/html/package.json ("version": "5.2.3"). Bump the tag
+    # deliberately, never float
+    image: phpmyadmin/phpmyadmin:5.2.3
     container_name: ${PMA_CONTAINER_NAME}
     ports:
       - "${PMA_HOST_PORT}:80"
