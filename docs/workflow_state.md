@@ -12,3 +12,4 @@ Last updated: 2026-09-22
   - `docs/dependencies/S1.2-dependencies.md`
   - `compose.yml`
   - `.agent/.aider.conventions/references/compose-file-spec.md`
+  - `docs/baseline/baseline.md`
