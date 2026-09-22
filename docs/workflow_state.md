@@ -2,9 +2,9 @@
 Last updated: 2026-09-22
 ## Active Workflow
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 7A `$code-implementation S1.2` Step 5 — exact database server version pinning; awaiting `#implement-step S1.2 5`
-- Last completed: S1.2 Step 4 — persistent storage verified end to end: named volumes fs-dbmdata + fs-dataroot/cacheroot/assetroot survive restart and --force-recreate; datalists dataroot confirms /var/www/dataroot/; DB row, marker file, site 200 all verified; no file changes (storage committed in Step 3)
-- Next action: run `#implement-step S1.2 5` to start Step 5 (pin the exact MySQL server version, replacing the floating reference, kept compatible across the journey and recorded in project documentation)
+- Current step: Phase 7A `$code-implementation S1.2` Step 5 — mid-implementation: dbm unhealthy after fresh-volume re-provision on mariadb:10.11.18; awaiting log diagnosis
+- Last completed: S1.2 Step 5 in progress — compose pin to mariadb:10.11.18 committed (c52f436) with healthcheck switched to healthcheck.sh --connect --innodb_initialized; fs-dbmdata wiped and recreated fresh; dbm unhealthy on up
+- Next action: run `docker compose logs dbm --tail 30` and paste the output to diagnose the unhealthy dbm container, then continue Step 5 (baseline.md pin recording still pending)
 - Reload to resume:
   - `.agent/.aider.prompt/code/implementation/SKILL.md`
   - `docs/analysis/S1.2-story-steps.md`
