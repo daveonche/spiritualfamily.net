@@ -32,6 +32,14 @@ so manifest and lock-file work runs inside the orchestration. The web SAPI's
 `open_basedir` restriction is unchanged; the Composer CLI wrapper disables it
 for the CLI only.
 
+Environment template (Story S1.2 Step 6): every environment-specific setting
+is injected via environment variables — Compose interpolation and
+`env_file: .env` in `compose.yml`, `getenv()` in
+`src/elgg-config/settings.php`. The committed template `.env.example`
+documents every required variable with placeholder values and no real
+secrets; copy it to `.env` and supply real values locally. `.env` is
+git-ignored, so real secrets never enter the repository.
+
 ## Cross-Check Notes
 
 - The repository-root `composer.json` was overwritten in a previous session and

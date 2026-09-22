@@ -32,3 +32,7 @@ src/node_modules/
 # repo map (their function defs were the largest .agent/ token source).
 .agent/ai_assistant.py
 .agent/ai-assistant.sh
+
+# The committed env template must stay visible to aider (only the real .env
+# is secret, and that is excluded via .gitignore).
+!.env.example
