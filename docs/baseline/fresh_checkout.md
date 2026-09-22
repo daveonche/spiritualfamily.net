@@ -19,9 +19,9 @@ Notes:
 
 - Docker Engine and Docker Compose v2
 - Git and a Web browser
-- Free host ports `3010` (app) and `3011` (phpMyAdmin)
-- An OS hosts entry mapping `v2.sfnapp.local` to `127.0.0.1` (see the note at
-  the bottom of `.env.example`)
+- Free host ports `3000` (app) and `3001` (phpMyAdmin)
+- An OS hosts entry mapping your `APP_HOST` hostname (e.g. `v2.sfnapp.local`)
+  to `127.0.0.1` (see the note at the bottom of `.env.example`)
 - Several GB of free disk for images and named volumes
 
 ## Isolating the Run (recommended when a dev stack already exists)
@@ -31,17 +31,19 @@ Copy `.env.example` to `.env`, then override:
 | Variable | Default | Isolated example |
 | :--- | :--- | :--- |
 | `COMPOSE_PROJECT_NAME` | commented out | `sfnverify` |
-| `APP_CONTAINER_NAME` | `spiritualfamily_app` | `spiritualfamily_app_verify` |
-| `MYSQL_CONTAINER_NAME` | `spiritualfamily_dbm` | `spiritualfamily_dbm_verify` |
-| `PMA_CONTAINER_NAME` | `spiritualfamily_pma` | `spiritualfamily_pma_verify` |
-| `CRON_CONTAINER_NAME` | `spiritualfamily_cron` | `spiritualfamily_cron_verify` |
-| `APP_HOST_PORT` | `3010` | `3020` |
-| `PMA_HOST_PORT` | `3011` | `3021` |
-| `ELGG_WWWROOT` | `http://v2.sfnapp.local:3010/` | `http://v2.sfnapp.local:3020/` |
+| `APP_CONTAINER_NAME` | `changeme_app` | `changeme_app_verify` |
+| `MYSQL_CONTAINER_NAME` | `changeme_dbm` | `changeme_dbm_verify` |
+| `PMA_CONTAINER_NAME` | `changeme_pma` | `changeme_pma_verify` |
+| `CRON_CONTAINER_NAME` | `changeme_cron` | `changeme_cron_verify` |
+| `APP_HOST` | `changeme.example.test` | `v2.sfnapp.local` |
+| `APP_HOST_PORT` | `3000` | `3020` |
+| `PMA_HOST_PORT` | `3001` | `3021` |
 
-`ELGG_WWWROOT` must always match `APP_HOST` plus `APP_HOST_PORT`; it becomes the
-installed site URL. Named volumes are prefixed by `COMPOSE_PROJECT_NAME`, so an
-isolated project automatically gets its own fresh volumes.
+Set `APP_HOST` to a local hostname of your choice and map it to `127.0.0.1` in
+your OS hosts file. The site URL entered during installation (Step 6) must
+match `APP_HOST` plus `APP_HOST_PORT`; it becomes the installed site URL. Named
+volumes are prefixed by `COMPOSE_PROJECT_NAME`, so an isolated project
+automatically gets its own fresh volumes.
 
 ## Procedure
 
@@ -62,8 +64,10 @@ Record the printed commit hash with the verification result (see
 cp .env.example .env
 ```
 
-`.env` is git-ignored; keep the placeholder values, never real secrets. Apply
-the isolation overrides above if a dev stack is already running.
+`.env` is git-ignored. Replace every `changeme` placeholder with local values
+(dev-only credentials are fine; never real secrets), set `APP_HOST` per the
+isolation note above, and apply the isolation overrides if a dev stack is
+already running.
 
 ### 3. Start the stack
 
@@ -72,7 +76,7 @@ docker compose up -d
 docker compose ps
 ```
 
-Expected: `app` (`sfn/elgg_webserver:7.4-composer2`), `dbm` (`mysql:9`),
+Expected: `app` (`sfn/elgg_webserver:7.4-composer2`), `dbm` (`mariadb:10.11.18`),
 `pma`, and `cron` all `Up`. The first start builds the app image locally from
 `docker/app/Dockerfile` and initializes the empty `fs-dbmdata` volume; wait
 for MySQL to settle before the install step.
@@ -103,12 +107,13 @@ Browse the site URL (default `http://v2.sfnapp.local:3010/`); the Elgg 2.3
 installer launches:
 
 1. Requirements check: all green.
-2. Database: host `dbm`, user `user`, password `pass`, database `mysqldb`,
-   table prefix `sfn_` (the `.env` defaults; settings already read them from
-   the environment). Never point a verification install at production.
-3. Site settings: site URL prefilled from `ELGG_WWWROOT`; data directory
-   `/var/www/dataroot`; create the admin account (record credentials locally,
-   never commit them).
+2. Database: host `dbm`, plus the `MYSQL_USER`, `MYSQL_PASSWORD`,
+   `MYSQL_DATABASE`, and `ELGG_DB_PREFIX` values you set in `.env` (settings
+   already read them from the environment). Never point a verification install
+   at production.
+3. Site settings: site URL — enter the URL you are browsing (e.g.
+   `http://v2.sfnapp.local:3000/`); data directory `/var/www/dataroot`; create
+   the admin account (record credentials locally, never commit them).
 
 Troubleshooting:
 
@@ -119,8 +124,8 @@ Troubleshooting:
   ```
 
   Then retry.
-- Database connection or charset errors: record as a finding; the MySQL server
-  version is explicitly flagged for pinning in Story S1.2.
+- Database connection or charset errors: record as a finding; the database
+  server is pinned to MariaDB 10.11.18 (see `docs/baseline/baseline.md`).
 
 ### 7. Verify the baseline
 
@@ -128,8 +133,9 @@ Troubleshooting:
 - Log in as the admin created in step 6.
 - The administration area (`/admin`) is reachable and its dashboard renders
   without errors.
-- Optional: phpMyAdmin on port `3011` (server `dbm`, user `user`, password
-  `pass`) lists the `sfn_` tables.
+- Optional: phpMyAdmin on port `3001` (server `dbm`, user `MYSQL_USER` and
+  password `MYSQL_PASSWORD` from `.env`) lists the site's tables (prefix per
+  `ELGG_DB_PREFIX`).
 
 ### 8. Tear down
 
