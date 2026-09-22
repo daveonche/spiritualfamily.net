@@ -2,9 +2,9 @@
 Last updated: 2026-09-22
 ## Active Workflow
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 7A `$code-implementation S1.2` Step 6 — not started; environment-variable injection of settings and secrets
-- Last completed: S1.2 Step 5 complete — dbm pinned to mariadb:10.11.18 (c52f436); healthcheck fixed via MYSQL_HOST=localhost override (6dcc399) after env_file leak pointed the probe at the container IP; server verified 10.11.18-MariaDB-ubu2204; pin recorded in baseline.md (c664760)
-- Next action: run `#implement-step S1.2 6` to start Step 6 (env-var injection: all settings via environment, no hard-coded credentials, documented template)
+- Current step: Phase 7A `$code-implementation S1.2` Step 6 — validation phase; final checks pending (compose config, git ls-files, credential grep, front page, .env.example review)
+- Last completed: S1.2 Step 6 implementation done — .env.example template committed (0a7efce); phpMyAdmin pinned 5.2.3 via image package.json, recorded in baseline.md, pma recreated on pinned tag (3f064be); template cross-checked against compose.yml/settings.php/.env names
+- Next action: finish Step 6 validation — /read-only .env.example, docker compose config --quiet, git ls-files/status, credential grep, front-page check — then #implement-step S1.2 7
 - Reload to resume:
   - `.agent/.aider.prompt/code/implementation/SKILL.md`
   - `docs/analysis/S1.2-story-steps.md`
