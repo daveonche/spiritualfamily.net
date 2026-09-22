@@ -79,7 +79,7 @@ docker compose ps
 Expected: `app` (`sfn/elgg_webserver:7.4-composer2`), `dbm` (`mariadb:10.11.18`),
 `pma`, and `cron` all `Up`. The first start builds the app image locally from
 `docker/app/Dockerfile` and initializes the empty `fs-dbmdata` volume; wait
-for MySQL to settle before the install step.
+for the database to settle before the install step.
 
 ### 4. Confirm the pinned runtime pair
 
@@ -103,7 +103,7 @@ record, not a blocker for the run verification.
 
 ### 6. Install Elgg (fresh database only)
 
-Browse the site URL (default `http://v2.sfnapp.local:3010/`); the Elgg 2.3
+Browse the site URL (default `http://v2.sfnapp.local:3000/`); the Elgg 2.3
 installer launches:
 
 1. Requirements check: all green.
