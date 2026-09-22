@@ -1,9 +1,6 @@
 # Workflow State
-
 Last updated: 2026-09-22
-
 ## Active Workflow
-
 - Workflow: `$workflows-project-scaffolding-chain`
 - Current step: Phase 7A `$code-implementation S1.2` Step 4 — persistent storage for database and application data; awaiting `#implement-step S1.2 4`
 - Last completed: S1.2 Step 3 — single-definition orchestration of web/db/cron in `compose.yml`; crond logging to stderr (`-d 8`), alpine pinned 3.23.3 (commits `3f4374b`, `bc72fc3`); verified bring-up, schedule firing, app 200s, PHPUnit green
