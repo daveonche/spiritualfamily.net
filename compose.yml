@@ -60,6 +60,15 @@ services:
     env_file:
       # This passes variables from .env to the container
       - .env
+    environment:
+      # The mariadb client honors MYSQL_HOST as its default connection host.
+      # .env sets it for the app's dbhost; leaked into dbm via env_file it
+      # points the healthcheck probe at this container's own IP, where the
+      # entrypoint-created healthcheck account (localhost/127.0.0.1/::1 only)
+      # never matches — so every probe login was denied. Pinning it to
+      # localhost keeps the probe on the unix socket, where the account
+      # exists. (environment beats env_file.)
+      MYSQL_HOST: localhost
     volumes:
       # Persist database data
       - fs-dbmdata:/var/lib/mysql
