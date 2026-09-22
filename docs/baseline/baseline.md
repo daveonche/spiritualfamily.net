@@ -9,6 +9,7 @@ Ground-zero version reference for the Spiritual Family Network upgrade journey
 | --- | --- | --- |
 | Elgg core | 2.3.17 | `src/vendor/elgg/elgg/composer.json` (`"version": "2.3.17"`) |
 | PHP runtime | 7.4.27 | Compose stack app image `sfn/elgg_webserver:7.4-composer2`, built locally from upstream `coldtrick/elgg_webserver:7.4` (see `docker/app/Dockerfile`); confirmed via `docker compose exec app php -v` |
+| Database server | MariaDB 10.11.18 | Compose stack `dbm` image `mariadb:10.11.18` (see `compose.yml`); confirmed via `SELECT VERSION()` → `10.11.18-MariaDB-ubu2204` |
 
 This is the single pinned Elgg 2.3 core version; it is the reference value for
 all subsequent steps in the upgrade sequence (REQ-FR-PU-5).
@@ -17,6 +18,12 @@ The pinned PHP runtime sits directly beneath the core version so future steps
 can cite them as a pair. Constraint note: the pinned Elgg 2.3.17 core declares
 `"php": ">=5.6"` (see `src/vendor/elgg/elgg/composer.json`); 7.4.27 satisfies
 that constraint.
+
+The database server pin (Story S1.2 Step 5) targets production parity:
+production reports `10.11.18-MariaDB-log` via phpMyAdmin server info and the
+containerized server reports `10.11.18-MariaDB-ubu2204` — the `-log` and
+`-ubu2204` suffixes are build variants, not part of the Docker tag. Bump the
+`mariadb:` tag deliberately alongside the upgrade journey, never float.
 
 Environment note (2026-09-19): the app image layers Composer 2.x (2.10.3 at
 time of recording) onto the upstream PHP 7.4 webserver image via
