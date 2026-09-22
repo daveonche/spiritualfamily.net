@@ -51,7 +51,11 @@ services:
       - appnet
 
   dbm:
-    image: mysql:9
+    # Pinned to production parity (Story S1.2 Step 5): production reports
+    # 10.11.18-MariaDB-log via phpMyAdmin server info — the -log suffix is
+    # a build variant, not part of the Docker tag. Bump the tag
+    # deliberately alongside the upgrade journey, never float
+    image: mariadb:10.11.18
     container_name: ${MYSQL_CONTAINER_NAME}
     env_file:
       # This passes variables from .env to the container
@@ -60,11 +64,11 @@ services:
       # Persist database data
       - fs-dbmdata:/var/lib/mysql
     healthcheck:
-      # mysqladmin ping answers only once mysqld reports "ready for
-      # connections" (i.e. after InnoDB recovery), and exits 0 when the
-      # server responds even without credentials. Used instead of
-      # healthcheck.sh, which is not present in the mysql:9 image.
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost --silent"]
+      # healthcheck.sh (shipped with the MariaDB image) exits 0 only once
+      # the server accepts connections AND InnoDB initialization/recovery
+      # has completed — the same readiness semantics mysqladmin ping gave
+      # on the mysql:9 image, via the image's supported mechanism.
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       start_period: 1m
       interval: 10s
       timeout: 5s
