@@ -108,7 +108,8 @@ services:
     # 1. Replace tokens and write to the active BusyBox spool location
     # 2. Set strict permissions (required by BusyBox cron)
     # 3. Create 'cron.update' to force the daemon to reload the new file immediately
-    # 4. Start crond in foreground with log level 8 (debug)
+    # 4. Start crond in foreground with log level 8 (debug) on stderr, so
+    #    scheduled execution is observable via `docker compose logs cron`
     entrypoint:
       - sh
       - -c
@@ -126,7 +127,7 @@ services:
           /tmp/app-cron | tr -d '\r' > /var/spool/cron/crontabs/root
         chmod 600 /var/spool/cron/crontabs/root
         touch /var/spool/cron/crontabs/cron.update
-        crond -f -l 8
+        crond -f -d 8
     networks:
       - appnet
     depends_on:
