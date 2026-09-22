@@ -2,9 +2,9 @@
 Last updated: 2026-09-22
 ## Active Workflow
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 7A `$code-implementation S1.2` Step 4 — persistent storage for database and application data; awaiting `#implement-step S1.2 4`
-- Last completed: S1.2 Step 3 — single-definition orchestration of web/db/cron in `compose.yml`; crond logging to stderr (`-d 8`), alpine pinned 3.23.3 (commits `3f4374b`, `bc72fc3`); verified bring-up, schedule firing, app 200s, PHPUnit green
-- Next action: run `#implement-step S1.2 4` to start Step 4 (dedicated persistent volumes for database data and the application data directory, surviving restarts and rebuilds)
+- Current step: Phase 7A `$code-implementation S1.2` Step 5 — exact database server version pinning; awaiting `#implement-step S1.2 5`
+- Last completed: S1.2 Step 4 — persistent storage verified end to end: named volumes fs-dbmdata + fs-dataroot/cacheroot/assetroot survive restart and --force-recreate; datalists dataroot confirms /var/www/dataroot/; DB row, marker file, site 200 all verified; no file changes (storage committed in Step 3)
+- Next action: run `#implement-step S1.2 5` to start Step 5 (pin the exact MySQL server version, replacing the floating reference, kept compatible across the journey and recorded in project documentation)
 - Reload to resume:
   - `.agent/.aider.prompt/code/implementation/SKILL.md`
   - `docs/analysis/S1.2-story-steps.md`
