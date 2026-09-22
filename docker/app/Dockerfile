@@ -1,4 +1,8 @@
-# syntax=docker/dockerfile:1
+# NOTE: no `# syntax=` directive on purpose. The bundled BuildKit frontend
+# (Engine 23+) supports the heredoc below, and a directive would make every
+# build resolve docker/dockerfile:1 from the registry — which fails behind
+# a Windows-only credential helper when built from inside the AI-assistant
+# container (docker-credential-desktop.exe cannot execute there).  
 
 # App image for the legacy Elgg 2.3.17 baseline (Story S1.1):
 # upstream PHP webserver + Composer 2, so composer.json /
