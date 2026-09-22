@@ -90,7 +90,11 @@ services:
       - appnet
 
   cron:
-    image: alpine:latest
+    # Pinned base image (Story S1.2 Step 3): alpine:latest resolved to
+    # 3.23.3 at pin time — confirmed via
+    # `docker run --rm alpine:latest cat /etc/alpine-release`; bump the
+    # tag deliberately, never float
+    image: alpine:3.23.3
     container_name: ${CRON_CONTAINER_NAME}
     environment:
       - HOST=${APP_HOST}
