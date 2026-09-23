@@ -77,4 +77,61 @@ class ComposeImageBuildTest extends \PHPUnit_Framework_TestCase
 			'compose.yml does not tag the built image with the interpolated PHP version'
 		);
 	}
+
+	/**
+	 * Must Support: "Every base image reference recorded at an exact pinned
+	 * version for the current stage"
+	 */
+	public function testEveryBaseImageReferenceIsPinnedAndRecordedInBaseline()
+	{
+		$dockerfile = $this->dockerfile();
+		$this->assertFileExists($dockerfile);
+		$contents = file_get_contents($dockerfile);
+
+		// Collect every FROM line's image reference
+		preg_match_all('/^FROM\s+(\S+)/m', $contents, $fromMatches);
+		$fromRefs = $fromMatches[1];
+		$this->assertNotEmpty(
+			$fromRefs,
+			'No FROM lines found in the Dockerfile'
+		);
+
+		foreach ($fromRefs as $ref) {
+			// Every reference carries an explicit tag (no bare image name)
+			$this->assertSame(
+				1,
+				preg_match('/:[^\/\s@]+$/', $ref),
+				"Base image reference '$ref' has no explicit tag"
+			);
+			// No floating "latest" reference
+			$this->assertNotRegExp(
+				'/:latest$/',
+				$ref,
+				"Base image reference '$ref' floats the \"latest\" tag"
+			);
+		}
+
+		// The upstream webserver base image is recorded in the baseline doc
+		// at the pinned runtime tag
+		$baselineFile = $this->repoDir() . '/docs/baseline/baseline.md';
+		$this->assertFileExists($baselineFile);
+		$baseline = file_get_contents($baselineFile);
+		$this->assertSame(
+			1,
+			preg_match(
+				'#coldtrick/elgg_webserver:' . preg_quote(self::PINNED_RUNTIME_DOCKER_TAG, '#') . '#',
+				$baseline
+			),
+			'baseline.md does not record the upstream webserver base image at the pinned tag'
+		);
+
+		// The Composer base image's exact resolved version is recorded in
+		// the baseline environment note (composer:2 is a major tag; the
+		// exact version is the recorded pin for the current stage)
+		$this->assertSame(
+			1,
+			preg_match('/Composer 2\.x \(2\.10\.3 at time of recording\)/', $baseline),
+			'baseline.md does not record the exact resolved Composer version'
+		);
+	}
 }
