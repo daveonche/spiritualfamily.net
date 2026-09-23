@@ -1,0 +1,7 @@
+# Dev-only Compose overrides (Story S1.2).
+#
+# This file intentionally defines no services. Use it for development-only
+# services and settings that must never reach production: merge it with
+#   docker compose -f compose.yml -f compose.dev.yml up -d
+# Keep any image tags pinned to exact versions and record the pins in
+# docs/baseline/baseline.md.
