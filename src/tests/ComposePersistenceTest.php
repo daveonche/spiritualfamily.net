@@ -82,4 +82,65 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 			);
 		}
 	}
+
+	/**
+	 * Must Support: "Dedicated persistent storage for the application data
+	 * directory"
+	 */
+	public function testApplicationDataDirectoryUsesDedicatedNamedVolume()
+	{
+		$composeFile = $this->composeFile();
+		$this->assertFileExists($composeFile);
+		$config = $this->composeConfig();
+
+		// The app service block, bounded by the next service definition
+		$this->assertSame(
+			1,
+			preg_match('/^  app:\s*$(.*?)^  dbm:/ms', $config, $m),
+			"compose.yml has no recognizable 'app' service block"
+		);
+		$appBlock = $m[1];
+
+		// The application data directory (Elgg dataroot) is a named-volume
+		// mount at the dataroot target — not a host bind and not an
+		// anonymous volume; the target enters via the WWW_DATA variable
+		// with the dataroot default (documented in .env.example)
+		$this->assertSame(
+			1,
+			preg_match('/^\s+- fs-dataroot:\$\{WWW_DATA:-\/var\/www\/dataroot\}\s*$/m', $appBlock),
+			"compose.yml app service does not mount the fs-dataroot named volume at the dataroot target"
+		);
+
+		// The named volume is declared exactly once in the top-level
+		// volumes block (volumes is the final top-level key)
+		$this->assertSame(
+			1,
+			preg_match('/^volumes:\s*$(.*)$/ms', $config, $m),
+			'compose.yml has no top-level volumes block'
+		);
+		$this->assertSame(
+			1,
+			preg_match_all('/^  fs-dataroot:\s*$/m', $m[1]),
+			'compose.yml must declare the fs-dataroot named volume exactly once in the top-level volumes block'
+		);
+
+		// Dedicated: no service other than app references the dataroot volume
+		$boundaries = array(
+			'dbm' => '^  pma:',
+			'pma' => '^  cron:',
+			'cron' => '^networks:',
+		);
+		foreach ($boundaries as $service => $boundary) {
+			$this->assertSame(
+				1,
+				preg_match('/^  ' . $service . ':\s*$(.*?)' . $boundary . '/ms', $config, $m),
+				"compose.yml has no recognizable '$service' service block"
+			);
+			$this->assertSame(
+				0,
+				preg_match('/fs-dataroot/', $m[1]),
+				"compose.yml '$service' service references the app dataroot volume — application data storage is not dedicated"
+			);
+		}
+	}
 }
