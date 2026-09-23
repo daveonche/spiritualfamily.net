@@ -45,10 +45,11 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 		}
 
 		// Startup ordering: app waits for dbm to be really ready
-		// (long-syntax depends_on with the health condition)
+		// (long-syntax depends_on with the health condition; dbm nests at
+		// 6 spaces under the 4-space depends_on key)
 		$this->assertSame(
 			1,
-			preg_match('/^  app:.*?^    depends_on:.*?^        dbm:.*?condition:\s*service_healthy/ms', $config),
+			preg_match('/^  app:.*?^    depends_on:.*?^      dbm:.*?condition:\s*service_healthy/ms', $config),
 			'compose.yml app service does not depend on dbm with condition service_healthy'
 		);
 
