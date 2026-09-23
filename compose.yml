@@ -24,14 +24,23 @@ services:
       # Mount source code files
       - ./src:${WWW_ROOT}
       # Mount repo-root docs read-only so unit tests can verify baseline
-      # documentation (target must remain the parent of ${WWW_ROOT})
-      - ./docs:/var/www/docs:ro
-      # Persist dataroot   
-      - fs-dataroot:/var/www/dataroot          
-      # Persist cacheroot               
-      - fs-cacheroot:/var/www/cacheroot  
-      # Persist assetroot                     
-      - fs-assetroot:/var/www/assetroot           
+      # documentation (WWW_DOCS must keep docs a sibling of WWW_ROOT under
+      # the same parent — the baseline tests resolve it that way)
+      - ./docs:${WWW_DOCS:-/var/www/docs}:ro
+      # Mount repo-root docker/ read-only so unit tests can verify the
+      # committed Dockerfile (Story S1.2 Step 1 test)
+      - ./docker:/var/www/docker:ro
+      # Mount committed orchestration/config files read-only so unit tests
+      # can verify them (Story S1.2 Steps 2–6 tests)
+      - ./compose.yml:/var/www/compose.yml:ro
+      - ./crontab:/var/www/crontab:ro
+      - ./.env.example:/var/www/.env.example:ro
+      # Persist dataroot
+      - fs-dataroot:${WWW_DATA:-/var/www/dataroot}
+      # Persist cacheroot
+      - fs-cacheroot:${WWW_CACHE:-/var/www/cacheroot}
+      # Persist assetroot
+      - fs-assetroot:${WWW_ASSET:-/var/www/assetroot}
     extra_hosts:
       # Map custom host to host-gateway 
       - "${APP_HOST}:host-gateway"
