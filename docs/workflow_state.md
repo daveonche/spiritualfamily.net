@@ -2,11 +2,11 @@
 Last updated: 2026-09-23
 ## Active Workflow
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: `$testing-unit-test S1.2` — S1.2 implementation complete (Steps 1–6 verified; former Steps 7–8 removed by user decision)
-- Last completed: `$planning-story-analysis S1.2` — steps report regenerated without former Steps 7–8, Step 5 production-parity checks added, saved and committed (7d7ef2b)
-- Next action: `$testing-unit-test S1.2` to run the unit-testing phase for the completed S1.2 implementation
+- Current step: `$testing-unit-test S1.2` — Steps 1–3 tested complete; Step 3 manual verifications remain with the user
+- Last completed: `$testing-unit-test S1.2 3` — Step 3 orchestration tests complete: 3 tests passing in src/tests/ComposeOrchestrationTest.php (commits 9619d36, 3348e3d, 41ceaad, 9bfe068)
+- Next action: `$testing-unit-test S1.2 4` to test Step 4 (persistent storage for database and application data)
 - Reload to resume:
   - `.agent/.aider.prompt/testing/unit-test/SKILL.md`
-  - `docs/sprints/sprint_1_stories.md`
   - `docs/analysis/S1.2-story-steps.md`
-  - `docs/baseline/baseline.md`
+  - `compose.yml`
+  - `.env.example`
