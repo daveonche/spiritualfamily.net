@@ -23,10 +23,20 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 		return dirname(dirname(__DIR__));
 	}
 
+	/**
+	 * Source root: <repo>/src on the host, /var/www/html in the app
+	 * container (the ./src mount target) — same resolution pattern as
+	 * ComposeDatabasePinTest::docsBaselineFile().
+	 */
+	private function srcDir()
+	{
+		return dirname(__DIR__);
+	}
+
 	/** Committed Elgg settings file (src/elgg-config/settings.php). */
 	private function settingsFile()
 	{
-		return $this->repoDir() . '/src/elgg-config/settings.php';
+		return $this->srcDir() . '/elgg-config/settings.php';
 	}
 
 	/**
