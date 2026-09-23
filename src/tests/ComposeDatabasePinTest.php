@@ -134,4 +134,39 @@ class ComposeDatabasePinTest extends \PHPUnit_Framework_TestCase
 			'baseline.md does not record the database upgrade policy (bump deliberately alongside the journey, never float)'
 		);
 	}
+
+	/**
+	 * Must Support: "The pinned version recorded in project documentation"
+	 */
+	public function testSinglePinnedDatabaseVersionInDocumentation()
+	{
+		$baselineFile = $this->docsBaselineFile();
+		$this->assertFileExists($baselineFile);
+		$contents = file_get_contents($baselineFile);
+
+		// Exactly one "Database server" row in the Pinned Versions table
+		// (section delimited by the next "## " heading)
+		$this->assertSame(
+			1,
+			preg_match('/^## Pinned Versions\s*$(.*?)^## /ms', $contents, $m),
+			'baseline.md has no Pinned Versions section'
+		);
+		$this->assertSame(
+			1,
+			preg_match_all('/^\|\s*Database server\s*\|/m', $m[1]),
+			'baseline.md must record the database server pin exactly once in the Pinned Versions table'
+		);
+
+		// The recorded pin matches the pinned version constant
+		$this->assertSame(
+			1,
+			preg_match('/^\|\s*Database server\s*\|\s*MariaDB\s+([0-9]+\.[0-9]+\.[0-9]+)\s*\|/m', $m[1], $m2),
+			'baseline.md does not record an exact MariaDB version in the Database server row'
+		);
+		$this->assertSame(
+			self::PINNED_DB_VERSION,
+			$m2[1],
+			'baseline.md records a different database version than the pinned dbm image tag'
+		);
+	}
 }
