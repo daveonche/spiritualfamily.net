@@ -143,4 +143,100 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 			);
 		}
 	}
+
+	/**
+	 * Must Support: "Both surviving service restarts and rebuilds"
+	 *
+	 * Static proxy: Compose-managed named volumes declared at the top
+	 * level survive `docker compose restart`, container recreation, and
+	 * image rebuilds — only `down -v` or explicit volume removal discards
+	 * them. Runtime survival itself is the manual verification's job.
+	 */
+	public function testDataStorageSurvivesRestartsAndRebuilds()
+	{
+		$composeFile = $this->composeFile();
+		$this->assertFileExists($composeFile);
+		$config = $this->composeConfig();
+
+		// Top-level volumes block: all four data volumes declared exactly
+		// once and Compose-managed (not external), so the committed
+		// definition provisions the persistent storage itself
+		$this->assertSame(
+			1,
+			preg_match('/^volumes:\s*$(.*)$/ms', $config, $m),
+			'compose.yml has no top-level volumes block'
+		);
+		$topVolumes = $m[1];
+		foreach (array('fs-dbmdata', 'fs-dataroot', 'fs-cacheroot', 'fs-assetroot') as $name) {
+			$this->assertSame(
+				1,
+				preg_match_all('/^  ' . $name . ':\s*$/m', $topVolumes),
+				"compose.yml must declare the $name named volume exactly once in the top-level volumes block"
+			);
+		}
+		$this->assertSame(
+			0,
+			preg_match('/external\s*:/', $topVolumes),
+			'compose.yml data volumes must be Compose-managed, not external'
+		);
+
+		// dbm: exactly one mount — the named db data volume. No host bind
+		// and no anonymous volume that would tie db data to the container
+		// lifecycle
+		$this->assertSame(
+			1,
+			preg_match('/^  dbm:\s*$(.*?)^  pma:/ms', $config, $m),
+			"compose.yml has no recognizable 'dbm' service block"
+		);
+		$this->assertSame(
+			1,
+			preg_match('/^    volumes:\s*$(.*?)^    \S/ms', $m[1], $m2),
+			"compose.yml dbm service has no volumes subsection"
+		);
+		$this->assertSame(
+			1,
+			preg_match_all('/^\s+-\s+\S+\s*$/m', $m2[1]),
+			'compose.yml dbm service must mount exactly one volume (the db data volume)'
+		);
+		$this->assertSame(
+			1,
+			preg_match('/^      - fs-dbmdata:\/var\/lib\/mysql\s*$/m', $m2[1]),
+			"compose.yml dbm data must be the fs-dbmdata named volume at /var/lib/mysql"
+		);
+
+		// app: every data-bearing mount (dataroot, cacheroot, assetroot) is
+		// a named-volume mount at its variable-driven target
+		$this->assertSame(
+			1,
+			preg_match('/^  app:\s*$(.*?)^  dbm:/ms', $config, $m),
+			"compose.yml has no recognizable 'app' service block"
+		);
+		$this->assertSame(
+			1,
+			preg_match('/^    volumes:\s*$(.*?)^    \S/ms', $m[1], $m2),
+			"compose.yml app service has no volumes subsection"
+		);
+		$appVolumes = $m2[1];
+		$dataMounts = array(
+			'fs-dataroot'  => '\$\{WWW_DATA:-\/var\/www\/dataroot\}',
+			'fs-cacheroot' => '\$\{WWW_CACHE:-\/var\/www\/cacheroot\}',
+			'fs-assetroot' => '\$\{WWW_ASSET:-\/var\/www\/assetroot\}',
+		);
+		foreach ($dataMounts as $volume => $target) {
+			$this->assertSame(
+				1,
+				preg_match('/^      - ' . $volume . ':' . $target . '\s*$/m', $appVolumes),
+				"compose.yml app service must mount the $volume named volume at its data target"
+			);
+		}
+
+		// No anonymous volumes (target-only entries) — every mount pairs a
+		// source with a target, so no data path depends on container-local
+		// anonymous storage that a rebuild would discard
+		$this->assertSame(
+			0,
+			preg_match('/^\s+-\s+[^:\s]+\s*$/m', $appVolumes),
+			'compose.yml app service must not use anonymous volumes'
+		);
+	}
 }
