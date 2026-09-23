@@ -1,15 +1,12 @@
 # Workflow State
-Last updated: 2026-09-22
+Last updated: 2026-09-23
 ## Active Workflow
 - Workflow: `$workflows-project-scaffolding-chain`
-- Current step: Phase 7A `$code-implementation S1.2` — Step 6 complete; Step 7 (dev-only mail capture) not started
-- Last completed: S1.2 Step 6 done — legacy block stripped from .env.example, placeholder-only template committed (bfba41a); fresh_checkout.md aligned to the template (ports 3000/3001, MariaDB wording, ELGG_WWWROOT removed) (72aea15); validation closed — compose config silent, credential greps clean
-- Next action: #implement-step S1.2 7 — dev-only mail capture service (MailHog in compose.dev.yml, exact pinned tag, excluded from production)
+- Current step: Phase 7A `$code-implementation S1.2` — Steps 1–6 complete; Steps 7–8 stopped by user decision (mail capture via Docker Desktop MailHog extension, not Compose)
+- Last completed: S1.2 Step 7 stopped (option 2) — MailHog baseline pin reverted (0f86227), compose.dev.yml dropped (7e717ee) then restored as empty dev-only override placeholder (cccf5ca); .env.example unchanged; story revision pending
+- Next action: `$planning-scaffolding-sprint-story` to revise Story S1.2 in docs/sprints/sprint_1_stories.md (remove MailHog criteria/DoD/pin flag, note extension-based capture), then `$planning-story-analysis S1.2` to regenerate the steps report without Steps 7–8
 - Reload to resume:
-  - `.agent/.aider.prompt/code/implementation/SKILL.md`
-  - `docs/analysis/S1.2-story-steps.md`
+  - `.agent/.aider.prompt/planning/scaffolding-sprint-story/SKILL.md`
   - `docs/sprints/sprint_1_stories.md`
-  - `docs/dependencies/S1.2-dependencies.md`
-  - `compose.yml`
+  - `docs/baseline/baseline.md`
   - `compose.dev.yml`
-  - `.agent/.aider.conventions/references/compose-file-spec.md`
