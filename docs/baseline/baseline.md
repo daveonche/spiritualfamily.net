@@ -11,6 +11,7 @@ Ground-zero version reference for the Spiritual Family Network upgrade journey
 | PHP runtime | 7.4.27 | Compose stack app image `sfn/elgg_webserver:7.4-composer2`, built locally from upstream `coldtrick/elgg_webserver:7.4` (see `docker/app/Dockerfile`); confirmed via `docker compose exec app php -v` |
 | Database server | MariaDB 10.11.18 | Compose stack `dbm` image `mariadb:10.11.18` (see `compose.yml`); confirmed via `SELECT VERSION()` → `10.11.18-MariaDB-ubu2204` |
 | phpMyAdmin | 5.2.3 | Compose stack `pma` image `phpmyadmin/phpmyadmin:5.2.3` (see `compose.yml`); confirmed via the image's `/var/www/html/package.json` |
+| MailHog (dev-only) | v1.0.1 | Compose stack `mailhog` image `mailhog/mailhog:v1.0.1` (see `compose.dev.yml`); confirmed via the MailHog web UI version display |
 
 This is the single pinned Elgg 2.3 core version; it is the reference value for
 all subsequent steps in the upgrade sequence (REQ-FR-PU-5).
@@ -25,6 +26,12 @@ production reports `10.11.18-MariaDB-log` via phpMyAdmin server info and the
 containerized server reports `10.11.18-MariaDB-ubu2204` — the `-log` and
 `-ubu2204` suffixes are build variants, not part of the Docker tag. Bump the
 `mariadb:` tag deliberately alongside the upgrade journey, never float.
+
+The MailHog pin (Story S1.2 Step 7) is development-only tooling: the
+`mailhog` service is defined in `compose.dev.yml`, the dev-only override, so
+the base `compose.yml` — and any production deployment built from it — never
+includes mail capture. Bump the `mailhog/mailhog:` tag deliberately, never
+float.
 
 Environment note (2026-09-19): the app image layers Composer 2.x (2.10.3 at
 time of recording) onto the upstream PHP 7.4 webserver image via
