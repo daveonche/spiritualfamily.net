@@ -51,6 +51,12 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 		return preg_replace('/^\s*#.*$/m', '', file_get_contents($this->composeFile()));
 	}
 
+	/** Committed environment template (repo-root .env.example). */
+	private function envTemplateFile()
+	{
+		return $this->repoDir() . '/.env.example';
+	}
+
 	/**
 	 * Strip PHP block comments and whole-line # and // comments from any
 	 * text file — prose may say anything; only live code/config lines
@@ -275,5 +281,126 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 				);
 			}
 		}
+	}
+
+	/**
+	 * Must Support: "A documented template listing every required variable
+	 * without real secret values"
+	 *
+	 * .env.example must exist, document the copy procedure, and carry only
+	 * placeholder or documented non-secret default values — never real
+	 * secrets. The four credential variables must be exactly "changeme".
+	 * Developer Note "Real secrets never enter the repository": .gitignore
+	 * must ignore .env while keeping the template itself committed (the
+	 * repo-root .gitignore is mounted read-only into the app container
+	 * alongside the other test-verification mounts).
+	 */
+	public function testEnvTemplateExistsWithPlaceholderValuesOnly()
+	{
+		$templateFile = $this->envTemplateFile();
+		$this->assertFileExists($templateFile);
+		$contents = file_get_contents($templateFile);
+
+		// The header documents the copy procedure
+		$this->assertSame(
+			1,
+			preg_match('/cp\s+\.env\.example\s+\.env/', $contents),
+			'.env.example must document the copy procedure (cp .env.example .env)'
+		);
+
+		// Documented non-secret defaults (key => exact value); any other
+		// non-changeme value must be allowlisted here first
+		$documentedDefaults = array(
+			'PHP_VERSION'   => '7.4',
+			'APP_HOST_PORT' => '3000',
+			'PMA_HOST_PORT' => '3001',
+			'WWW_ROOT'      => '/var/www/html',
+			'WWW_DATA'      => '/var/www/dataroot',
+			'WWW_CACHE'     => '/var/www/cacheroot',
+			'WWW_ASSET'     => '/var/www/assetroot',
+			'WWW_DOCS'      => '/var/www/docs',
+			'MYSQL_HOST'    => 'dbm',
+			'PMA_HOST'      => 'dbm',
+			'ELGG_TIMEZONE' => 'UTC',
+		);
+
+		// Credential variables must be exactly the changeme placeholder
+		$credentialVars = array(
+			'MYSQL_ROOT_PASSWORD',
+			'MYSQL_DATABASE',
+			'MYSQL_USER',
+			'MYSQL_PASSWORD',
+		);
+
+		// Every active (non-comment) line must be KEY=VALUE with a safe
+		// value: a changeme* placeholder or an exact documented default
+		$activeLines = preg_grep('/^[A-Z][A-Z0-9_]*=/', preg_split('/\r?\n/', $contents));
+		$this->assertNotEmpty($activeLines, '.env.example must define variables');
+
+		$seenKeys = array();
+		foreach ($activeLines as $line) {
+			$this->assertSame(
+				1,
+				preg_match('/^([A-Z][A-Z0-9_]*)=(.*)$/', trim($line), $m),
+				".env.example line is not KEY=VALUE: $line"
+			);
+			$key = $m[1];
+			$value = $m[2];
+
+			// No duplicate definitions — each variable is listed once
+			$this->assertArrayNotHasKey(
+				$key,
+				$seenKeys,
+				".env.example defines $key more than once"
+			);
+			$seenKeys[$key] = true;
+
+			if (in_array($key, $credentialVars, true)) {
+				// Real secrets never enter the repository: credentials are
+				// exactly the changeme placeholder
+				$this->assertSame(
+					'changeme',
+					$value,
+					".env.example credential $key must be exactly the changeme placeholder"
+				);
+			} elseif (isset($documentedDefaults[$key])) {
+				$this->assertSame(
+					$documentedDefaults[$key],
+					$value,
+					".env.example default for $key does not match the documented value"
+				);
+			} else {
+				$this->assertSame(
+					1,
+					preg_match('/^changeme/', $value),
+					".env.example value for $key is neither changeme* nor a documented default: $value"
+				);
+			}
+		}
+
+		// All four credential variables are present in the template
+		foreach ($credentialVars as $var) {
+			$this->assertArrayHasKey(
+				$var,
+				$seenKeys,
+				".env.example must define the credential variable $var"
+			);
+		}
+
+		// Developer Note "Real secrets never enter the repository":
+		// .gitignore ignores .env and keeps the template committed
+		$gitignoreFile = $this->repoDir() . '/.gitignore';
+		$this->assertFileExists($gitignoreFile);
+		$gitignore = file_get_contents($gitignoreFile);
+		$this->assertSame(
+			1,
+			preg_match('/^\.env\s*$/m', $gitignore),
+			'.gitignore must ignore .env'
+		);
+		$this->assertSame(
+			1,
+			preg_match('/^!\.env\.example\s*$/m', $gitignore),
+			'.gitignore must keep .env.example committed (!.env.example)'
+		);
 	}
 }

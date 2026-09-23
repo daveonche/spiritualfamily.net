@@ -35,6 +35,8 @@ services:
       - ./compose.yml:/var/www/compose.yml:ro
       - ./crontab:/var/www/crontab:ro
       - ./.env.example:/var/www/.env.example:ro
+      # .gitignore — verifies the .env ignore rule (Story S1.2 Step 6 test)
+      - ./.gitignore:/var/www/.gitignore:ro
       # Persist dataroot
       - fs-dataroot:${WWW_DATA:-/var/www/dataroot}
       # Persist cacheroot
