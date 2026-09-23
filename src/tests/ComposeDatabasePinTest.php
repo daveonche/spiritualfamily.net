@@ -169,4 +169,43 @@ class ComposeDatabasePinTest extends \PHPUnit_Framework_TestCase
 			'baseline.md records a different database version than the pinned dbm image tag'
 		);
 	}
+
+	/**
+	 * Developer Notes: "Record the pin alongside the version pair
+	 * documented in Story S1.1"
+	 *
+	 * Static proxy: the Pinned Versions table in baseline.md carries the
+	 * database server row in the same table as the Elgg core and PHP
+	 * runtime rows (the Story S1.1 pair), and the database-pin paragraph
+	 * explicitly cites the story step.
+	 */
+	public function testDatabasePinRecordedAlongsideCoreRuntimePair()
+	{
+		$baselineFile = $this->docsBaselineFile();
+		$this->assertFileExists($baselineFile);
+		$contents = file_get_contents($baselineFile);
+
+		// Same Pinned Versions table carries all three rows: the Story
+		// S1.1 core/runtime pair plus the database server pin
+		$this->assertSame(
+			1,
+			preg_match('/^## Pinned Versions\s*$(.*?)^## /ms', $contents, $m),
+			'baseline.md has no Pinned Versions section'
+		);
+		foreach (array('Elgg core', 'PHP runtime', 'Database server') as $row) {
+			$this->assertSame(
+				1,
+				preg_match_all('/^\|\s*' . $row . '\s*\|/m', $m[1]),
+				"baseline.md Pinned Versions table must contain exactly one '$row' row alongside the Story S1.1 pair"
+			);
+		}
+
+		// The database-pin paragraph explicitly cites Story S1.2 Step 5
+		// (the story context for the pin)
+		$this->assertSame(
+			1,
+			preg_match('/database server pin \(Story S1\.2 Step 5\)/', $contents),
+			'baseline.md does not cite Story S1.2 Step 5 for the database server pin'
+		);
+	}
 }
