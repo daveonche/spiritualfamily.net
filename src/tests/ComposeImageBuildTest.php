@@ -50,4 +50,31 @@ class ComposeImageBuildTest extends \PHPUnit_Framework_TestCase
 			'The runtime FROM line does not consume the PHP_VERSION build arg'
 		);
 	}
+
+	/**
+	 * Must Support: "Building the web application image with the runtime
+	 * version supplied as a build-time input" (Compose side)
+	 */
+	public function testComposePassesPhpVersionBuildArgAndTagsImageWithIt()
+	{
+		$composeFile = $this->repoDir() . '/compose.yml';
+		$this->assertFileExists($composeFile);
+		$contents = file_get_contents($composeFile);
+
+		// build.args.PHP_VERSION interpolates the environment with the
+		// stage's pinned default
+		$this->assertSame(
+			1,
+			preg_match('/PHP_VERSION:\s*"\$\{PHP_VERSION:-7\.4\}"/', $contents),
+			'compose.yml does not pass PHP_VERSION as a build arg with the pinned default'
+		);
+
+		// The built image is tagged with the same interpolated version so
+		// each PHP version builds under its own tag
+		$this->assertSame(
+			1,
+			preg_match('/image:\s*"sfn\/elgg_webserver:\$\{PHP_VERSION:-7\.4\}-composer2"/', $contents),
+			'compose.yml does not tag the built image with the interpolated PHP version'
+		);
+	}
 }
