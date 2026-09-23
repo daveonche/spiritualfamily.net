@@ -127,10 +127,11 @@ class ComposeImageBuildTest extends \PHPUnit_Framework_TestCase
 
 		// The Composer base image's exact resolved version is recorded in
 		// the baseline environment note (composer:2 is a major tag; the
-		// exact version is the recorded pin for the current stage)
+		// exact version is the recorded pin for the current stage). The
+		// doc wraps the phrase across a line break, so allow \s+.
 		$this->assertSame(
 			1,
-			preg_match('/Composer 2\.x \(2\.10\.3 at time of recording\)/', $baseline),
+			preg_match('/Composer 2\.x \(2\.10\.3 at\s+time of recording\)/', $baseline),
 			'baseline.md does not record the exact resolved Composer version'
 		);
 	}
