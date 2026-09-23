@@ -35,6 +35,12 @@ class ComposeDatabasePinTest extends \PHPUnit_Framework_TestCase
 		return preg_replace('/^\s*#.*$/m', '', file_get_contents($this->composeFile()));
 	}
 
+	/** Baseline documentation file (docs mounted read-only as a sibling of WWW_ROOT). */
+	private function docsBaselineFile()
+	{
+		return dirname(__DIR__) . '/../docs/baseline/baseline.md';
+	}
+
 	/**
 	 * Must Support: "An exact database server version replacing any
 	 * floating 'latest' reference"
@@ -71,6 +77,36 @@ class ComposeDatabasePinTest extends \PHPUnit_Framework_TestCase
 			0,
 			preg_match('/\$\{/', $m2[1]),
 			'dbm image tag must not be variable-driven'
+		);
+	}
+
+	/**
+	 * Must Support: "A pinned version matching the production database
+	 * server so local and production environments stay in sync"
+	 *
+	 * Static proxy: baseline.md records the production-reported version
+	 * string; the live local-vs-production comparison is manual
+	 * verification scope (see docs/analysis/S1.2-story-steps.md Step 5).
+	 */
+	public function testPinnedVersionMatchesProductionVersionRecordedInBaseline()
+	{
+		$baselineFile = $this->docsBaselineFile();
+		$this->assertFileExists($baselineFile);
+		$contents = file_get_contents($baselineFile);
+
+		// Production-reported version string recorded in the baseline doc
+		// (10.11.18-MariaDB-log via phpMyAdmin server info)
+		$this->assertSame(
+			1,
+			preg_match('/production reports\s+`?([0-9]+\.[0-9]+\.[0-9]+)-MariaDB-log/', $contents, $m),
+			'baseline.md does not record the production-reported MariaDB version'
+		);
+
+		// The pinned tag must match the production version's numeric core
+		$this->assertSame(
+			self::PINNED_DB_VERSION,
+			$m[1],
+			'pinned dbm tag does not match the production-reported version'
 		);
 	}
 }

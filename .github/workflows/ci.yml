@@ -1,0 +1,60 @@
+# CI: enforce the commit-msg hook on every pushed/PR commit so client-side
+# bypasses (--no-verify, unwired hooks) cannot land non-conforming subjects.
+# The hook script .githooks/commit-msg is the single source of truth.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Read-only baseline: this workflow never writes to the repository.
+permissions:
+  contents: read
+
+jobs:
+  commit-msg:
+    name: Enforce commit-msg hook
+    runs-on: ubuntu-latest
+    steps:
+      # Full history is genuinely required: the push range and the
+      # new-branch fallback (--not --remotes) resolve commits a depth-1
+      # checkout would not fetch.
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit subjects with .githooks/commit-msg
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          BASE_REF: ${{ github.base_ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            # PR: validate every commit the pull request introduces
+            # (the merge commit itself is hook-exempt: "Merge ...")
+            git log --format=%s "origin/$BASE_REF".."$HEAD_SHA" > /tmp/subjects.txt
+          elif [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+            # New branch or rewritten history: BEFORE_SHA is all-zero or no
+            # longer resolves — validate every commit not on any remote ref
+            git log --format=%s "$HEAD_SHA" --not --remotes > /tmp/subjects.txt
+          else
+            # Push to an existing branch: validate exactly the pushed range
+            git log --format=%s "$BEFORE_SHA".."$HEAD_SHA" > /tmp/subjects.txt
+          fi
+
+          status=0
+          while IFS= read -r subject; do
+            printf '%s\n' "$subject" > /tmp/commit-msg.txt
+            if ! bash .githooks/commit-msg /tmp/commit-msg.txt; then
+              echo "::error::commit subject rejected by .githooks/commit-msg: $subject"
+              status=1
+            fi
+          done < /tmp/subjects.txt
+          exit "$status"
