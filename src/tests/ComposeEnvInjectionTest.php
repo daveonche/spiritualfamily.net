@@ -403,4 +403,76 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			'.gitignore must keep .env.example committed (!.env.example)'
 		);
 	}
+
+	/**
+	 * Must Support: "A documented template listing every required variable"
+	 *
+	 * Developer Note: "Keep the template complete so a fresh environment
+	 * needs no undocumented values."
+	 *
+	 * The required-variable set is derived dynamically from the stack
+	 * itself — every ${VAR} reference in compose.yml plus every getenv()
+	 * read in settings.php — and completed with the two image-consumed
+	 * env_file variables no committed file statically references (the
+	 * MariaDB entrypoint's MYSQL_ROOT_PASSWORD and the phpMyAdmin image's
+	 * PMA_HOST; both documented in .env.example sections). Forward
+	 * completeness: every required variable is an active KEY= line in
+	 * .env.example. Reverse drift guard: every active .env.example key is
+	 * required by the stack, so template entries the stack no longer uses
+	 * are caught (optional variables such as COMPOSE_PROJECT_NAME stay
+	 * commented out and are exempt).
+	 */
+	public function testEnvTemplateListsEveryRequiredVariable()
+	{
+		$templateFile = $this->envTemplateFile();
+		$this->assertFileExists($templateFile);
+		$template = file_get_contents($templateFile);
+
+		// 1. Every ${VAR} reference in comment-stripped compose.yml
+		//    (the cron entrypoint's $$NAME shell escapes carry no brace
+		//    and are correctly not compose interpolation)
+		$compose = $this->composeConfig();
+		preg_match_all('/\$\{([A-Z][A-Z0-9_]*)/', $compose, $m);
+		$required = $m[1];
+
+		// 2. Every getenv("VAR") read in comment-stripped settings.php
+		$settings = $this->stripComments(file_get_contents($this->settingsFile()));
+		preg_match_all('/getenv\("([A-Z][A-Z0-9_]*)"\)/', $settings, $m2);
+		$required = array_merge($required, $m2[1]);
+
+		// 3. Image-consumed env_file variables not statically derivable
+		//    from committed files
+		$required = array_merge($required, array('MYSQL_ROOT_PASSWORD', 'PMA_HOST'));
+
+		$required = array_values(array_unique($required));
+
+		// Active KEY= lines in the template (commented examples exempt)
+		$templateKeys = array();
+		foreach (preg_split('/\r?\n/', $template) as $line) {
+			if (preg_match('/^([A-Z][A-Z0-9_]*)=/', $line, $m3)) {
+				$templateKeys[] = $m3[1];
+			}
+		}
+
+		// Sanity: a broken extraction regex or an emptied template would
+		// otherwise let the set comparisons pass vacuously
+		$this->assertNotEmpty($required, 'required-variable extraction found nothing');
+		$this->assertNotEmpty($templateKeys, '.env.example has no active KEY= lines');
+
+		// Forward completeness: every required variable is documented
+		$missing = array_diff($required, $templateKeys);
+		$this->assertSame(
+			array(),
+			$missing,
+			'.env.example is missing required variables: ' . implode(', ', $missing)
+		);
+
+		// Reverse drift guard: every documented variable is required
+		$unrequired = array_diff($templateKeys, $required);
+		$this->assertSame(
+			array(),
+			$unrequired,
+			'.env.example lists variables the stack does not require: ' . implode(', ', $unrequired)
+		);
+	}
 }
