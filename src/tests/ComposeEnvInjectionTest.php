@@ -39,6 +39,18 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 		return $this->srcDir() . '/elgg-config/settings.php';
 	}
 
+	/** Committed orchestration definition (repo-root compose.yml). */
+	private function composeFile()
+	{
+		return $this->repoDir() . '/compose.yml';
+	}
+
+	/** Comment-stripped compose.yml contents (prose may say anything). */
+	private function composeConfig()
+	{
+		return preg_replace('/^\s*#.*$/m', '', file_get_contents($this->composeFile()));
+	}
+
 	/**
 	 * Must Support: "All environment-specific settings supplied as
 	 * environment variables"
@@ -89,5 +101,110 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			preg_match('/^date_default_timezone_set\(getenv\("ELGG_TIMEZONE"\)\);\s*$/m', $contents),
 			'settings.php must set the timezone via getenv("ELGG_TIMEZONE")'
 		);
+	}
+
+	/**
+	 * Must Support: "All environment-specific settings supplied as
+	 * environment variables"
+	 *
+	 * compose.yml side: every service that needs settings or secrets
+	 * receives them via env_file: .env or ${VAR} interpolation — no
+	 * credential values are hard-coded in the definition. The one
+	 * literal exception is dbm's non-secret MYSQL_HOST: localhost
+	 * override, which keeps its healthcheck probe on the unix socket
+	 * (documented in compose.yml).
+	 */
+	public function testComposeInjectsSettingsViaEnvironmentVariables()
+	{
+		$composeFile = $this->composeFile();
+		$this->assertFileExists($composeFile);
+		$config = $this->composeConfig();
+
+		// Service => regex bounding its block by the next service definition
+		$serviceBlocks = array(
+			'app' => '/^  app:\s*$(.*?)^  dbm:/ms',
+			'dbm' => '/^  dbm:\s*$(.*?)^  pma:/ms',
+			'pma' => '/^  pma:\s*$(.*?)^  cron:/ms',
+		);
+		$blocks = array();
+		foreach ($serviceBlocks as $svc => $pattern) {
+			$this->assertSame(
+				1,
+				preg_match($pattern, $config, $m),
+				"compose.yml has no recognizable '$svc' service block"
+			);
+			$blocks[$svc] = $m[1];
+
+			// Settings and secrets reach this service via env_file: .env
+			$this->assertSame(
+				1,
+				preg_match('/^    env_file:\s*-\s+\.env\s*$/m', $m[1]),
+				"compose.yml service $svc must receive settings via env_file: .env"
+			);
+		}
+
+		// Credential variables never appear in the definition — they
+		// reach containers only through .env
+		$credentialVars = array(
+			'MYSQL_ROOT_PASSWORD',
+			'MYSQL_PASSWORD',
+			'MYSQL_USER',
+			'MYSQL_DATABASE',
+		);
+		foreach ($credentialVars as $var) {
+			$this->assertSame(
+				0,
+				preg_match_all('/\b' . $var . '\b/', $config),
+				"compose.yml must not reference $var — it flows through .env only"
+			);
+		}
+
+		// The single allowed literal environment reference: dbm's
+		// non-secret MYSQL_HOST override (healthcheck probe stays on the
+		// unix socket — documented in compose.yml)
+		$this->assertSame(
+			1,
+			preg_match_all('/\bMYSQL_HOST\b/', $config),
+			'compose.yml must reference MYSQL_HOST exactly once'
+		);
+		$this->assertSame(
+			1,
+			preg_match('/^\s+MYSQL_HOST\s*:\s*localhost\s*$/m', $blocks['dbm']),
+			'compose.yml dbm must pin MYSQL_HOST to localhost (healthcheck probe on the unix socket)'
+		);
+
+		// Every environment-driven value is ${VAR}-interpolated, never a
+		// committed literal
+		$interpolatedVars = array(
+			'PHP_VERSION',
+			'APP_CONTAINER_NAME',
+			'MYSQL_CONTAINER_NAME',
+			'PMA_CONTAINER_NAME',
+			'CRON_CONTAINER_NAME',
+			'APP_HOST',
+			'APP_HOST_PORT',
+			'PMA_HOST_PORT',
+			'WWW_ROOT',
+			'WWW_DATA',
+			'WWW_CACHE',
+			'WWW_ASSET',
+			'WWW_DOCS',
+			'APP_CRON_MINUTE',
+			'APP_CRON_FIVEMINUTE',
+			'APP_CRON_FIFTEENMIN',
+			'APP_CRON_HALFHOUR',
+			'APP_CRON_HOURLY',
+			'APP_CRON_DAILY',
+			'APP_CRON_WEEKLY',
+			'APP_CRON_MONTHLY',
+			'APP_CRON_YEARLY',
+		);
+		foreach ($interpolatedVars as $var) {
+			$this->assertGreaterThanOrEqual(
+				1,
+				preg_match_all('/\$\{' . $var . '[:}]/', $config),
+				"compose.yml must reference $var via interpolation, not a committed literal"
+			);
+		}
 	}
 }
