@@ -144,4 +144,77 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 			'compose.yml cron service does not run crond in the foreground'
 		);
 	}
+
+	/**
+	 * Must Support: "All services running in one shared, reproducible local
+	 * environment"
+	 */
+	public function testAllServicesShareOneNetworkedReproducibleEnvironment()
+	{
+		$composeFile = $this->composeFile();
+		$this->assertFileExists($composeFile);
+		$config = $this->composeConfig();
+
+		// Each service block, bounded by the next service definition (the
+		// cron block ends at the top-level networks key)
+		$boundaries = array(
+			'app' => '^  dbm:',
+			'dbm' => '^  pma:',
+			'pma' => '^  cron:',
+			'cron' => '^networks:',
+		);
+		$blocks = array();
+		foreach ($boundaries as $service => $boundary) {
+			$this->assertSame(
+				1,
+				preg_match('/^  ' . $service . ':\s*$(.*?)' . $boundary . '/ms', $config, $m),
+				"compose.yml has no recognizable '$service' service block"
+			);
+			$blocks[$service] = $m[1];
+
+			// Every service attaches to the one shared appnet network
+			$this->assertSame(
+				1,
+				preg_match('/^    networks:\s*$(?:\s+-\s+appnet\s*$)/ms', $m[1]),
+				"compose.yml '$service' service does not attach to the shared appnet network"
+			);
+		}
+
+		// The shared network is defined once at the top level
+		$this->assertSame(
+			1,
+			preg_match('/^networks:\s*$(?:\s+appnet:\s*$)/ms', $config),
+			'compose.yml does not define the shared appnet network at the top level'
+		);
+
+		// Explicit, non-floating image references — the reproducibility
+		// half of this Must Support item. The app reference is explicitly
+		// tagged via its version interpolation + -composer2 suffix (the
+		// exact default is pinned in Step 1's ComposeImageBuildTest); the
+		// dbm/pma/cron exact values and their documentation recording are
+		// asserted in their own steps' tests (db: Step 5).
+		$this->assertSame(
+			1,
+			preg_match('/^    image:\s*"sfn\/elgg_webserver:\$\{PHP_VERSION:-[^}]+\}-composer2"/m', $blocks['app']),
+			'compose.yml app service image is not an explicitly tagged reference'
+		);
+
+		$staticPins = array(
+			'dbm' => 'mariadb',
+			'pma' => 'phpmyadmin\/phpmyadmin',
+			'cron' => 'alpine',
+		);
+		foreach ($staticPins as $service => $image) {
+			$this->assertSame(
+				1,
+				preg_match('/^    image:\s*' . $image . ':([^\s"]+)$/m', $blocks[$service], $m),
+				"compose.yml '$service' service image is not pinned to an explicit tag"
+			);
+			$this->assertNotSame(
+				'latest',
+				$m[1],
+				"compose.yml '$service' service floats the \"latest\" tag"
+			);
+		}
+	}
 }
