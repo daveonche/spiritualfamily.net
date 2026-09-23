@@ -37,11 +37,9 @@ Acceptance Criteria:
 
 - Web service built from a PHP-version-parameterized Dockerfile (build arg; ⚠ each PHP base image tag pinned per step) serving Elgg's entry points (REQ-DEPL-1)
 - Docker Compose orchestrates web, db, and cron services (REQ-DEPL-2)
-- MailHog service included for development only: catches all outgoing Elgg email (SMTP on its standard port), exposed via its web UI, and excluded from production Compose overrides (dev-only profile/override file)
-- Elgg SMTP settings point to MailHog in development via environment variables (e.g., uservalidationbyemail and notification emails are catchable in dev)
-- MySQL version pinned (⚠ currently "latest stable" — must be pinned; must remain compatible across the journey or be upgraded alongside)
+- MySQL version pinned to MariaDB 10.11.18 for production parity (recorded in `docs/baseline/baseline.md`)
 - Persistent volumes for MySQL data and the Elgg data directory
-- Settings and secrets injected via environment variables, never hard-coded
+- Settings and secrets injected via environment variables, never hard-coded; committed `.env.example` template documents every required variable
 - Build args accept any (Elgg version, PHP version) pair so intermediate upgrade steps are buildable (REQ-FR-PU-5)
 
 Dependencies: S1.1
@@ -50,14 +48,14 @@ Developer Notes:
 
 - Single web container keeps Elgg caches from drifting
 - The same Compose definition must serve Elgg 2.3 through Elgg 7 — avoid Elgg-7-only assumptions
-- MailHog image tag pinned (⚠ pin exact version); it is developer tooling, never deployed to production
+- Outgoing email in development is captured via the Docker Desktop MailHog extension (inspect the app container's Mail tab) rather than an in-Compose mail service; no dev-only Compose mail override exists (`compose.dev.yml` is a placeholder)
 
 Definition of Done:
 
-- `docker compose up` brings up web, db, cron, and MailHog for the Elgg 2.3 baseline
-- An Elgg-triggered email (e.g., user validation) appears in the MailHog UI
+- `docker compose up` brings up web, db, and cron for the Elgg 2.3 baseline
+- An Elgg-triggered email (e.g., user validation) is visible in the Docker Desktop MailHog extension
 - DB and file-store data persist across restarts
-- Pinned image/DB versions recorded
+- Pinned image/DB versions recorded in `docs/baseline/baseline.md`
 
 ---
 
@@ -146,7 +144,7 @@ Acceptance Criteria:
 - Deployment fully version-pinned and reproducible from the repository (no floating tags)
 - Secrets injected via Coolify environment settings; never committed
 - HTTPS entry routing terminates at the web container
-- MailHog and any dev-only Compose overrides are excluded from the production deployment; production email uses real SMTP configured via Coolify environment settings
+- No dev-only Compose overrides are included in the production deployment; production email uses real SMTP configured via Coolify environment settings
 - Production database migrated into the deployed stack and verified in sync with the baseline
 - A clean re-deploy reproduces the identical stack (verified once)
 
@@ -452,7 +450,7 @@ Definition of Done:
 ## Verification Checkpoints
 
 - After S1.1: pinned Elgg 2.3 + PHP versions documented; baseline reproducible
-- After S1.2: `docker compose up` on the 2.3 baseline; volumes persist
+- After S1.2: `docker compose up` on the 2.3 baseline; volumes persist; outgoing email visible in the Docker Desktop MailHog extension
 - After S1.3: site loads; production dump restores into containerized DB
 - After S1.4: codebase plugin-clean; dropped-plugins list committed
 - After S1.5: green CI including parameterized image build
@@ -468,9 +466,7 @@ Definition of Done:
 ## Version Pinning Flags
 
 - Elgg 2.3 exact version + its PHP version — pin in S1.1
-- MySQL server version — flagged "latest stable", pin in S1.2
 - PHP Docker base image tags — pin per step in S1.2/S1.9–S1.13
-- MailHog image tag — pin exact in S1.2
 - Intermediate Elgg 3.x/4.x/5.x/6.x versions + their PHP versions — flagged "latest stable", pin per step in S1.9–S1.12
 - htmlawed/htmlawed ~1.2.15 — pin exact in S1.14
 - Manual-install plugin versions (recorded at install) — lock in manifest in S1.14
