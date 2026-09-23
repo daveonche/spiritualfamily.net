@@ -109,4 +109,29 @@ class ComposeDatabasePinTest extends \PHPUnit_Framework_TestCase
 			'pinned dbm tag does not match the production-reported version'
 		);
 	}
+
+	/**
+	 * Must Support: "A version choice that remains compatible across the
+	 * journey or can be upgraded alongside it"
+	 *
+	 * Static proxy: baseline.md records the upgrade policy for the
+	 * database pin — bump the mariadb tag deliberately alongside the
+	 * upgrade journey, never float. The compatibility judgment itself
+	 * remains a human decision at each journey stage.
+	 */
+	public function testDatabaseUpgradePolicyRecordedInBaseline()
+	{
+		$baselineFile = $this->docsBaselineFile();
+		$this->assertFileExists($baselineFile);
+		$contents = file_get_contents($baselineFile);
+
+		// The deliberate-bump / never-float policy is recorded for the
+		// database pin; \s+ tolerates the doc's hard line wraps (the
+		// sentence wraps mid-phrase in baseline.md)
+		$this->assertSame(
+			1,
+			preg_match('/Bump\s+the\s+`mariadb:`\s+tag\s+deliberately\s+alongside\s+the\s+upgrade\s+journey,\s+never\s+float/', $contents),
+			'baseline.md does not record the database upgrade policy (bump deliberately alongside the journey, never float)'
+		);
+	}
 }
