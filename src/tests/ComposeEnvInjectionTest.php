@@ -52,6 +52,17 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * Strip PHP block comments and whole-line # and // comments from any
+	 * text file — prose may say anything; only live code/config lines
+	 * are scanned.
+	 */
+	private function stripComments($contents)
+	{
+		$contents = preg_replace('%/\*.*?\*/%s', '', $contents);
+		return preg_replace('/^\s*(?:#|\/\/).*$/m', '', $contents);
+	}
+
+	/**
 	 * Must Support: "All environment-specific settings supplied as
 	 * environment variables"
 	 *
@@ -205,6 +216,64 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 				preg_match_all('/\$\{' . $var . '[:}]/', $config),
 				"compose.yml must reference $var via interpolation, not a committed literal"
 			);
+		}
+	}
+
+	/**
+	 * Must Support: "No credentials hard-coded in committed files"
+	 *
+	 * Automates the manual verification "Search committed files for
+	 * hard-coded credentials and confirm none exist": every
+	 * credential-plausible key (password/passwd/pwd/pass/secret/api key/
+	 * private key) in the project-authored, container-reachable files
+	 * must carry a safe value — getenv(...), ${VAR} interpolation,
+	 * {{PLACEHOLDER}} tokens, <angle-bracket> placeholders, the changeme
+	 * placeholder convention, an empty value, or a numeric literal —
+	 * never a real secret literal.
+	 *
+	 * Scope: src/elgg-config/settings.php, compose.yml, .env.example,
+	 * crontab, docker/app/Dockerfile. The vendored Elgg core
+	 * (src/vendor, git-ignored) is out of scope — thousands of unrelated
+	 * 'password' strings; php/*.ini are not mounted under /var/www in the
+	 * container and carry no credentials. Comments are stripped first:
+	 * prose may say anything.
+	 */
+	public function testNoHardcodedCredentialsInCommittedFiles()
+	{
+		$files = array(
+			'src/elgg-config/settings.php' => $this->settingsFile(),
+			'compose.yml'                  => $this->composeFile(),
+			'.env.example'                 => $this->repoDir() . '/.env.example',
+			'crontab'                      => $this->repoDir() . '/crontab',
+			'docker/app/Dockerfile'        => $this->repoDir() . '/docker/app/Dockerfile',
+		);
+
+		// Credential-plausible key followed by an assignment/separator
+		$keyPattern = '/(?i)(?:password|passwd|pwd|pass|secret|api[_-]?key|apikey|private[_-]?key)\w*\s*[:=]/';
+
+		// Same match with the value captured (everything after the key)
+		$linePattern = '/(?i)^(.*?(?:password|passwd|pwd|pass|secret|api[_-]?key|apikey|private[_-]?key)\w*\s*[:=])(.*)$/';
+
+		// Safe values: changeme*, getenv(...), ${VAR}, {{PLACEHOLDER}},
+		// <placeholder>, empty/quoted-empty, numeric
+		$safeValuePattern = '/(?i)(changeme|getenv\s*\(|^\$\{|^\{\{|^<|^\d+[\s;]*$|^["\']{0,2}\s*;?\s*$)/';
+
+		foreach ($files as $label => $path) {
+			$this->assertFileExists($path, "committed file $label is missing");
+			$stripped = $this->stripComments(file_get_contents($path));
+
+			foreach (preg_split('/\r?\n/', $stripped) as $line) {
+				if (!preg_match($keyPattern, $line)) {
+					continue;
+				}
+				preg_match($linePattern, $line, $m);
+				$value = trim($m[2]);
+				$this->assertSame(
+					1,
+					preg_match($safeValuePattern, $value),
+					"hard-coded credential-like value in $label: $line"
+				);
+			}
 		}
 	}
 }
