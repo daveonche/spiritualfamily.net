@@ -14,6 +14,10 @@ Notes:
   environment variables (`MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`,
   `MYSQL_HOST`, `ELGG_DB_PREFIX`, `ELGG_TIMEZONE`), so no settings file editing
   is required at any point.
+- The committed pre-flight script `src/bin/install_preflight.sh` verifies
+  everything the installer depends on (required environment variables,
+  database reachability and freshness, data/cache directory writability,
+  pinned core version) before the install step runs.
 
 ## Prerequisites
 
@@ -103,7 +107,19 @@ record, not a blocker for the run verification.
 
 ### 6. Install Elgg (fresh database only)
 
-Browse the site URL (default `http://v2.sfnapp.local:3000/`); the Elgg 2.3
+First run the committed pre-flight checks from the repository root:
+
+```bash
+docker compose exec app /var/www/html/bin/install_preflight.sh
+```
+
+Expected: every check passes — required environment variables, database
+reachability and freshness (no Elgg tables yet), data and cache directory
+writability, and the pinned Elgg 2.3.17 core — and the script points back to
+this step. It exits non-zero on the first failed check; fix the reported
+issue and re-run before continuing.
+
+Then browse the site URL (default `http://v2.sfnapp.local:3000/`); the Elgg 2.3
 installer launches:
 
 1. Requirements check: all green.
@@ -147,7 +163,10 @@ Add `-v` to also remove this verification run's volumes.
 
 ## Manual Steps Not Yet Automated
 
-- The Elgg 2.3 web installer itself (no committed CLI installer in this repo)
+- The Elgg 2.3 web installer itself — Elgg 2.3 has no CLI installer
+  (`elgg-cli` arrives with Elgg 3), so the browser steps above remain manual;
+  the committed `src/bin/install_preflight.sh` automates the pre-flight
+  portion
 - The OS hosts entry for `v2.sfnapp.local`
 - The host-side Composer consistency check (optional)
 - Admin account creation and local credential recording
