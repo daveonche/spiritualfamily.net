@@ -13,6 +13,13 @@
 # build.args); the default records the version pinned for the current
 # journey stage in docs/baseline/baseline.md.
 #
+# Persistent mount targets (Story S1.3 Step 2): the base image
+# pre-creates /var/www/{dataroot,cacheroot,assetroot} owned by
+# www-data (33:33) — the web SAPI user — so first-use named-volume
+# initialization (Docker copies the image mount point's ownership
+# into an empty named volume) inherits the correct ownership. Do not
+# add mkdir/chown here; a base-image change must preserve this.
+#
 # TODO: pin base-image digests before relying on this in CI — resolve with:
 #   docker buildx imagetools inspect composer:2
 #   docker buildx imagetools inspect coldtrick/elgg_webserver:7.4

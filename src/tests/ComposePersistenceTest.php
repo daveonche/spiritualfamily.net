@@ -2,7 +2,8 @@
 
 /**
  * Step 4 tests for Story S1.2 — persistent storage for database and
- * application data.
+ * application data; extended by Story S1.3 Step 2 (data-directory
+ * ownership on the persistent volumes).
  *
  * PHPUnit 4.8: class name must match the file name and extend the
  * un-namespaced \PHPUnit_Framework_TestCase.
@@ -23,6 +24,56 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 	private function composeConfig()
 	{
 		return preg_replace('/^\s*#.*$/m', '', file_get_contents($this->composeFile()));
+	}
+
+	/**
+	 * Must Support: "correct ownership/permissions for the web container
+	 * user" (Story S1.3 Step 2) — the app image's base pre-creates the
+	 * three persistent mount targets owned by www-data, so first-use
+	 * named-volume initialization (Docker copies the image mount point's
+	 * ownership into an empty named volume) inherits it. Verified at
+	 * runtime (docker run --rm <image> ls -ln /var/www); statically this
+	 * pins the base-image line providing the directories and the matching
+	 * .env.example target defaults.
+	 */
+	public function testDataMountTargetsPreCreatedInAppImageWithWebUserOwnership()
+	{
+		$dockerfile = $this->repoDir() . '/docker/app/Dockerfile';
+		$this->assertFileExists($dockerfile);
+		$contents = file_get_contents($dockerfile);
+
+		// The base-image FROM line: the elgg_webserver image that ships
+		// /var/www/{dataroot,cacheroot,assetroot} owned by www-data (33:33)
+		$this->assertSame(
+			1,
+			preg_match('/^FROM coldtrick\/elgg_webserver:\$\{PHP_VERSION\}\s*$/m', $contents),
+			"docker/app/Dockerfile must build FROM the elgg_webserver base image that pre-creates the data mount targets"
+		);
+
+		// The ownership reliance is documented in the Dockerfile so a base
+		// image change doesn't silently drop it
+		$this->assertSame(
+			1,
+			preg_match('/www-data.*mount target|mount target.*www-data/is', $contents),
+			"docker/app/Dockerfile must document that the base image pre-creates the mount targets owned by www-data"
+		);
+
+		// The .env.example defaults match the image-provisioned paths, so
+		// the documented contract keeps volumes on owned directories
+		$envExample = $this->repoDir() . '/.env.example';
+		$this->assertFileExists($envExample);
+		$env = file_get_contents($envExample);
+		foreach (array(
+			'WWW_DATA'  => '/var/www/dataroot',
+			'WWW_CACHE' => '/var/www/cacheroot',
+			'WWW_ASSET' => '/var/www/assetroot',
+		) as $var => $path) {
+			$this->assertSame(
+				1,
+				preg_match('/^' . $var . '=' . preg_quote($path, '/') . '\s*$/m', $env),
+				".env.example must default $var to the image-provisioned path $path"
+			);
+		}
 	}
 
 	/**
