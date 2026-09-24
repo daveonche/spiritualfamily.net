@@ -129,7 +129,7 @@ $CONFIG->dbprefix = getenv("ELGG_DB_PREFIX");
  * you uncomment and configure these settings, you will not be able to change
  * them from the Elgg advanced settings page.
  */
-//$CONFIG->dataroot = "";
+$CONFIG->dataroot = getenv("WWW_DATA") . "/";
 //$CONFIG->simplecache_enabled = true;
 
 /**
@@ -150,7 +150,7 @@ $CONFIG->dbprefix = getenv("ELGG_DB_PREFIX");
  * (e.g. multiple servers with load balancing). You can specify a separate location
  * for the cache files here.
  */
-//$CONFIG->cacheroot = "";
+$CONFIG->cacheroot = getenv("WWW_CACHE") . "/";
 
 /**
  * Enable SendFile file serving

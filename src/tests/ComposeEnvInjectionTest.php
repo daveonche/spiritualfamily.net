@@ -112,6 +112,29 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			);
 		}
 
+		// The data and cache directories are likewise environment-injected,
+		// with the trailing slash Elgg expects appended here so the .env
+		// values stay clean mount-target paths
+		$slashSettings = array(
+			'dataroot'  => 'WWW_DATA',
+			'cacheroot' => 'WWW_CACHE',
+		);
+		foreach ($slashSettings as $key => $envVar) {
+			$this->assertSame(
+				1,
+				preg_match_all('/^\$CONFIG->' . $key . '\s*=/m', $contents),
+				"settings.php must assign \$CONFIG->$key exactly once"
+			);
+			$this->assertSame(
+				1,
+				preg_match(
+					'/^\$CONFIG->' . $key . '\s*=\s*getenv\("' . $envVar . '"\)\s*\.\s*"\/";\s*$/m',
+					$contents
+				),
+				"settings.php must assign \$CONFIG->$key via getenv(\"$envVar\") with a trailing slash"
+			);
+		}
+
 		// The PHP timezone is likewise environment-injected
 		$this->assertSame(
 			1,
