@@ -70,3 +70,52 @@ baseline builds and runs from a fresh checkout).
 Remaining manual steps are listed at the bottom of
 `docs/baseline/fresh_checkout.md` (web installer, OS hosts entry, optional
 host-side Composer check, admin credential recording).
+
+## Production Dump Restore Verification
+
+Story S1.3 Step 5 executed the migration-readiness check: the production
+database dump (exported via phpMyAdmin, gzip-compressed) restored into a
+dedicated `elgg_restore` database on the containerized MariaDB service
+(`dbm`, pinned version per Pinned Versions above). The fresh Elgg install
+database was not touched.
+
+| Item | Result |
+| :--- | :--- |
+| Verification date | 2026-09-25 |
+| Dump source | `spirihf6_elgg114` via phpMyAdmin export, gzip-compressed (~110 MB); kept in a git-ignored local path, never committed |
+| Restore target | `elgg_restore` database on the `dbm` service |
+| Import method | dump piped into `mariadb elgg_restore` with its `CREATE DATABASE`/`USE` redirect lines stripped |
+| Client exit | Clean, no errors |
+
+### Verification Figures vs. S1.1 Inventory
+
+| Check | Inventory (2026-09-18) | Restored dump (2026-09-25) | Result |
+| :--- | ---: | ---: | :--- |
+| Table count | not baselined | 36 | matches the dump's 36 `CREATE TABLE` statements |
+| Schema size | 1121.1 MB | 1255.9 MB | drift, see note below |
+| Datalists `version` | 2016092300 | 2016092300 | exact match |
+| Datalists `installed` | 1483761119 | 1483761119 | exact match |
+| Site row | GUID 1, SpiritualFamily.Net, `https://spiritualfamily.net/` | identical | exact match |
+| object entities | 87152 | 87217 | +65, expected live drift |
+| user entities | 1136 | 1136 | exact match |
+| group entities | 289 | 289 | exact match |
+| site entities | 1 | 1 | exact match |
+
+Drift note: the inventory was captured 2026-09-18 and the dump exported
+2026-09-25; live production grew in between (+65 objects, +134.8 MB reported
+size). Every exact-match check passes and content counts sit at or above the
+inventory, as expected for a live site.
+
+### Findings
+
+- The phpMyAdmin dump embeds `CREATE DATABASE IF NOT EXISTS spirihf6_elgg114`
+  and `USE spirihf6_elgg114`; a naive import self-targets that database
+  instead of the chosen restore target. The first import attempt therefore
+  landed complete (all 36 tables) in `spirihf6_elgg114`; that database was
+  dropped and the dump re-imported with those lines stripped. Restore
+  procedures must always strip or override these lines.
+- The `dbm` data volume had been initialized with a root password differing
+  from the current `.env` value (the image applies `MYSQL_ROOT_PASSWORD` only
+  on first-volume initialization). Root was reset to the `.env` value via a
+  temporary `--skip-grant-tables` container; authentication then verified
+  against `MYSQL_ROOT_PASSWORD`.
