@@ -74,9 +74,12 @@ from the current context. Structural markers such as `[STEP n]` and
 Before offering coding guidance in a project session, load the detection
 procedure with
 `/read-only .agent/.aider.prompt/core/framework-detection/SKILL.md`
-(shorthand `$core-framework-detection`) and follow it. Detection is
-read-only: it informs guidance only and never modifies or generates project
-files.
+(shorthand `$core-framework-detection`) and follow it. Before following
+its steps, quote the file's sentinel line
+(`<!-- sentinel: core/framework-detection -->`); if you cannot quote it
+verbatim, the file was truncated or partially loaded — request it again
+and wait for the user to add it. Detection is read-only: it informs
+guidance only and never modifies or generates project files.
 
 ## Conventions Reference Routing
 
@@ -97,11 +100,11 @@ task touches. Before creating or editing any file, check this mapping:
 
 Routing rules:
 
-1. When the task matches a row and that reference is not already in context,
-   output the matching `/read-only` command inline (per Critical Rules) and
-   wait for the user to add it before proceeding; if it is already in context,
-   proceed without re-requesting it. If a task matches multiple rows, request
-   each missing reference once, then proceed.
+1. When the task matches a row, output the matching `/read-only` command
+   inline (per Critical Rules) and wait for the user to add it before
+   proceeding; proceed without re-requesting only if the user has confirmed
+   the reference is loaded this session. If a task matches multiple rows,
+   request each missing reference once, then proceed.
 2. Never load a reference "just in case"; only on a match.
 3. When a `SKILL.md` is added to context, verify it contains the
    Convention Check Reminder line; if missing, add it to that file
@@ -123,11 +126,11 @@ file (empty SEARCH block) at the first checkpoint.
    of `docs/workflow_state.md` as a SEARCH/REPLACE edit. Ask the user
    to run `/code proceed` to save it.
 3. `$session-checkpoint` does the same at any time, without waiting for the
-   session to end. If nothing has changed since the last write (e.g., the
-   session was just resumed after `/clear` and the file already reflects this
-   position), do not draft an edit; announce "Checkpoint unchanged — nothing
-   to save" and tell the user to reply "continue" to resume from it. No
-   `/code proceed` is needed.
+   session to end. Announce "Checkpoint unchanged — nothing to save" only
+   when the drafted content is identical to the state file currently loaded
+   in context; never rely on memory of a previous session's write (e.g.,
+   after `/clear`). If unchanged, tell the user to reply "continue" to
+   resume from it. No `/code proceed` is needed.
 4. On session start (the first user message), ask the user to add the
    state file with `/read-only docs/workflow_state.md`. If an active
    workflow is recorded, announce: "Resuming: `<workflow>` at
@@ -180,6 +183,11 @@ file (empty SEARCH block) at the first checkpoint.
     announce the result with the draft (e.g., "Checkpoint validated:
     9 lines, 312 chars, reload-only"). If the existing state file
     violates a constraint, repair it in the same draft.
+13. Before acting on the state file's recorded position (resuming,
+    comparing a checkpoint draft, or clearing), quote its `Last updated`
+    date. If you cannot quote it verbatim, the file is not reliably in
+    context: request it again with `/read-only docs/workflow_state.md`
+    and wait for the user to add it before proceeding.
 
 ## Context Hygiene
 
@@ -187,9 +195,10 @@ Project context files (anything outside `.agent/.aider.prompt/**/SKILL.md`)
 can go stale as stories complete. At every story completion, workflow
 switch, and `$session-checkpoint`:
 
-1. Identify files in context that are no longer required by the active
-   work — outside the workflow's required context set and not targets
-   of upcoming steps.
+1. Propose droppables only from files the user added this session, derived
+   from the workflow's required context set — excluding targets of
+   upcoming steps. Present the list and let the user confirm before
+   outputting the `/drop` command.
 2. Announce each file with a one-line reason it is droppable, then output all
    droppable paths together under a single `/drop` command on one line,
    space-separated (e.g., `/drop <path1> <path2>`), inline (per Critical
@@ -225,7 +234,7 @@ Ensure the user is in `/ask` mode. If they are not, or if you are unsure, say EX
 [STOP - Do not proceed until user replies with "ready"]
 
 [STEP 2] Context Verification
-Verify if the *contents* of the `.agent/.aider.prompt/<category>/<promptname>/SKILL.md` file are actually in your context window. If you are unsure, ask the user: "Is the file `.agent/.aider.prompt/<category>/<promptname>/SKILL.md` currently loaded in your context? (Y/N)"
+Ask the user: "Is the file `.agent/.aider.prompt/<category>/<promptname>/SKILL.md` currently loaded in your context? (Y/N)". The user answers this; do not attempt to determine context contents yourself.
 
 [STEP 3] File Loading (If NOT in context)
 Output a brief message indicating you are loading the prompt, and ask the user to add the file using the `/read-only` command, followed by a prompt to continue.
@@ -233,8 +242,8 @@ Example: "Loading [promptname] prompt. Please add the file to the chat using the
 
 [STOP - Do not proceed until user replies with "continue".]
 
-[STEP 4] File Management (If IS in context)
-If the file is already in context, ask the user whether to drop it or keep it loaded, then wait for the selection.
+[STEP 4] File Management (If user confirmed it is loaded)
+If the user confirmed the file is loaded, ask the user whether to drop it or keep it loaded, then wait for the selection.
 Example: "The [promptname] prompt is already in context. Please select an option to proceed:
 
 1. Drop the file and proceed to the next prompt
@@ -249,6 +258,8 @@ If the user selects the drop option, output EXACTLY:
 
 [STEP 5] Staged Execution
 Once the file is loaded and the user chooses to continue, follow the instructions in the loaded SKILL.md file stage by stage.
+
+Before executing the first step, quote the SKILL.md's sentinel line — its final content line, of the form `<!-- sentinel: <category>/<promptname> -->`. If you cannot quote it verbatim, the file was truncated or only partially loaded: request it again with `/read-only` and restart this step once the user has added it.
 
 1. Execute the current step in the SKILL.md file.
 2. When you encounter a `[STOP]` point, stop and wait for the user's input. Do not proceed to the next step until the user provides the required input.
@@ -273,7 +284,7 @@ do not ask them to paste output manually.
 
 1. When the user needs to run `/read-only` or `/drop`, output the command inline as part of the sentence — embed the exact command in the sentence, never a paraphrase. Do not execute these commands yourself.
 2. Always wait for explicit user input at [STOP] points; if the input is invalid or unexpected, re-prompt with the original question.
-3. A file counts as in context when its contents appear anywhere in the conversation — including the initial read-only reference set — not only via a recent `/read-only` confirmation. Scan the full transcript before asking the user to run `/read-only`; request it only when the contents are absent from the transcript or the on-disk copy may have changed since it was added.
+3. A file counts as in context only if the user has added it during this session. Never assert a file's presence, absence, or freshness from transcript recall. When unsure whether a file is loaded or current, request it — re-loading is cheap and idempotent.
 4. Never construct a file path that is not stated verbatim in a SKILL.md, a routing table, or the transcript. When a required file's location is unknown, ask the user for its actual path instead of inferring it from sibling directories or similar file names.
 5. Request files in the one-line format: a single space-separated
    `/read-only <path1> <path2>` command for files needed for reading only, and
