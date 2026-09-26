@@ -10,10 +10,14 @@ Notes:
 - `src/vendor` (pinned Elgg 2.3.17) and `src/composer.lock` are tracked in git,
   so a fresh clone runs without `composer install`; the Composer step below is
   a consistency check only.
-- The committed `src/elgg-config/settings.php` reads every credential from
-  environment variables (`MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`,
-  `MYSQL_HOST`, `ELGG_DB_PREFIX`, `ELGG_TIMEZONE`), so no settings file editing
-  is required at any point.
+- The committed `src/elgg-config/settings.php` reads every environment-specific
+  setting from environment variables (`MYSQL_USER`, `MYSQL_PASSWORD`,
+  `MYSQL_DATABASE`, `MYSQL_HOST`, `ELGG_DB_PREFIX`, `WWW_DATA`, `WWW_CACHE`,
+  `ELGG_TIMEZONE`), so no settings file editing is required at any point.
+- The Elgg data directory (`WWW_DATA`, default `/var/www/dataroot`) is
+  provisioned on the persistent `fs-dataroot` named volume and pre-created in
+  the app image with `www-data` ownership, so files written there survive
+  stack restarts and rebuilds.
 - The committed pre-flight script `src/bin/install_preflight.sh` verifies
   everything the installer depends on (required environment variables,
   database reachability and freshness, data/cache directory writability,

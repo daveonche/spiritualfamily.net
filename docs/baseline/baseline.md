@@ -71,6 +71,25 @@ Remaining manual steps are listed at the bottom of
 `docs/baseline/fresh_checkout.md` (web installer, OS hosts entry, optional
 host-side Composer check, admin credential recording).
 
+## Installation and Configuration (Story S1.3)
+
+The pinned pair (Elgg 2.3.17 / PHP 7.4.27, see Pinned Versions above) is
+installed and configured inside the Compose stack;
+`docs/baseline/fresh_checkout.md` reproduces the procedure end to end. The
+Step 5 migration-readiness dump-restore check is recorded in the following
+section.
+
+| Item | Result |
+| :--- | :--- |
+| Verification date | 2026-09-26 |
+| `settings.php` | `src/elgg-config/settings.php` injects every environment-specific setting via `getenv()` — `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_HOST`, `ELGG_DB_PREFIX`, `WWW_DATA`, `WWW_CACHE`, `ELGG_TIMEZONE` — with no hard-coded environment-specific values; the committed `.env.example` documents every variable with placeholders only |
+| Data directory | `WWW_DATA` (default `/var/www/dataroot`) on the persistent `fs-dataroot` named volume, pre-created in the app image with `www-data` ownership; files survive stack restarts and rebuilds |
+| Cache directory | `WWW_CACHE` (default `/var/www/cacheroot`) on the persistent `fs-cacheroot` named volume |
+| Install method | Committed pre-flight checks (`src/bin/install_preflight.sh`), then the Elgg 2.3 web installer (Elgg 2.3 has no CLI installer) against the `dbm` service (MariaDB 10.11.18) |
+| Schema | Installs cleanly from a fresh database and empty data directory; no schema errors |
+| Admin login | Site front page loads; the admin account logs in and reaches the `/admin` dashboard |
+| Site URL | Stored on the site entity in the database at install time (from `APP_HOST`/`APP_HOST_PORT`); `$CONFIG->wwwroot` is overwritten from the database on every boot, so it is not a `settings.php` setting |
+
 ## Production Dump Restore Verification
 
 Story S1.3 Step 5 executed the migration-readiness check: the production
