@@ -19,6 +19,10 @@
 *.log
 *.code-workspace
 
+# repo-local scratch space for large temporary artifacts (e.g. production
+# dump restores); git-ignored so they are never committed
+/tmp/
+
 # ------------------------------------------------------------------
 # IDE / editor
 # ------------------------------------------------------------------
