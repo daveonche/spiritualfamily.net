@@ -4,6 +4,13 @@ Recorded: 2026-09-26 — Story S1.4, Step 1 (`docs/analysis/S1.4-story-steps.md`
 
 Scope: every plugin directory present in `src/mod` (85 total, active and inactive), cross-checked against `src/composer.lock` and the recorded decisions in `docs/tech_stack.md`. Each plugin carries exactly one disposition. Plugins in removal categories are dropped in Story S1.4 Steps 2–4; deferred plugins stay until their recorded trigger; kept plugins require no action.
 
+## Removal Procedure
+
+Applies to every plugin removal in Steps 2–4 of this story:
+
+- Deactivate a plugin before removing its files — never delete an active plugin.
+- Before removing a plugin, check the plugins still present in the codebase for dependencies on it; third-party plugins are removed later, in Step 4, and may require core plugins dropped here. Deactivate any dependent plugin first so the removal cannot trigger fatal errors from plugin dependencies.
+
 ## Dispositions
 
 ### Composer replacement at Elgg 7 (12)
@@ -91,14 +98,14 @@ Elgg 2.3 core plugins not bundled in Elgg 7.1.0 (REQ-FR-PU-7). Removed in Step 3
 
 | Plugin | Removed in | Duty coverage after drop |
 | --- | --- | --- |
-| diagnostics | Step 3 | to be recorded in Step 3 |
-| embed | Step 3 | to be recorded in Step 3 |
-| legacy_urls | Step 3 | to be recorded in Step 3 |
+| diagnostics | Step 3 | deferred — no surviving mechanism recorded |
+| embed | Step 3 | deferred — embedding duty returns via hypeEmbed manual upgrade in a later sprint |
+| legacy_urls | Step 3 | deferred — legacy-URL redirects; web-server redirects possible as a later option |
 | logbrowser | Step 3 | `system_log` + `garbagecollector` cover at Elgg 7 (S1.15 developer notes) |
-| login_as | Step 3 | to be recorded in Step 3 |
+| login_as | Step 3 | deferred — no bundled Elgg 7.1.0 replacement |
 | logrotate | Step 3 | container/cron log rotation (S1.7) + `system_log`/`garbagecollector` at Elgg 7 (S1.15 developer notes) |
 | notifications | Step 3 | Elgg 7 core notifications service covers PS-1 |
-| twitter_api | Step 3 | to be recorded in Step 3 |
+| twitter_api | Step 3 | deferred — social sign-on; elgg_hybridauth is permanently dropped, no replacement recorded |
 
 ### Deferred (2)
 
@@ -130,4 +137,3 @@ blog, bookmarks, ckeditor, dashboard, developers, discussions, externalpages, fi
 
 - Identify the Composer replacement package for widget_pack before Story S1.14.
 - Update `docs/tech_stack.md` (manual-upgrade candidates; widget_pack replacement) to mirror this list.
-- Record duty coverage for diagnostics, embed, legacy_urls, login_as, twitter_api during Step 3.
