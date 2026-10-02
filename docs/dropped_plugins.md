@@ -102,7 +102,7 @@ Elgg 2.3 core plugins not bundled in Elgg 7.1.0 (REQ-FR-PU-7). Removed in Step 3
 | embed | Step 3 | deferred — embedding duty returns via hypeEmbed manual upgrade in a later sprint |
 | legacy_urls | Step 3 | deferred — legacy-URL redirects; web-server redirects possible as a later option |
 | logbrowser | Step 3 | `system_log` + `garbagecollector` cover at Elgg 7 (S1.15 developer notes) |
-| login_as | Step 3 | deferred — no bundled Elgg 7.1.0 replacement |
+| login_as | Step 3 | deferred — no bundled Elgg 7.1.0 replacement; core 2.3.17 requires `elgg/login_as ~1.9` transitively, so the package is excluded at root via composer `replace` (2026-10-02) |
 | logrotate | Step 3 | container/cron log rotation (S1.7) + `system_log`/`garbagecollector` at Elgg 7 (S1.15 developer notes) |
 | notifications | Step 3 | Elgg 7 core notifications service covers PS-1 |
 | twitter_api | Step 3 | deferred — social sign-on; elgg_hybridauth is permanently dropped, no replacement recorded |

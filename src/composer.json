@@ -10,6 +10,9 @@
 	"require-dev": {
 		"phpunit/phpunit": "4.8.36"
 	},
+	"replace": {
+		"elgg/login_as": "1.9.2"
+	},
 	"scripts": {
 		"post-install-cmd": "\\Elgg\\Composer\\PostInstall::execute",
 		"post-package-update": "\\Elgg\\Composer\\PostUpdate::execute",
