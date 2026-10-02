@@ -15,11 +15,11 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
     );
 
     public static $prefixLengthsPsr4 = array (
-        'p' => 
+        'p' =>
         array (
             'phpDocumentor\\Reflection\\' => 25,
         ),
-        'Z' => 
+        'Z' =>
         array (
             'Zend\\Validator\\' => 15,
             'Zend\\Stdlib\\' => 12,
@@ -27,15 +27,15 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
             'Zend\\Mail\\' => 10,
             'Zend\\Loader\\' => 12,
         ),
-        'W' => 
+        'W' =>
         array (
             'Webmozart\\Assert\\' => 17,
         ),
-        'T' => 
+        'T' =>
         array (
             'TrueBV\\' => 7,
         ),
-        'S' => 
+        'S' =>
         array (
             'Symfony\\Polyfill\\Php55\\' => 23,
             'Symfony\\Polyfill\\Php54\\' => 23,
@@ -45,27 +45,27 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
             'Symfony\\Component\\HttpFoundation\\' => 33,
             'Stash\\' => 6,
         ),
-        'P' => 
+        'P' =>
         array (
             'Psr\\Container\\' => 14,
             'Psr\\Cache\\' => 10,
             'Prophecy\\' => 9,
         ),
-        'M' => 
+        'M' =>
         array (
             'Misd\\Linkify\\' => 13,
             'Michelf\\' => 8,
         ),
-        'L' => 
+        'L' =>
         array (
             'League\\Flysystem\\Memory\\' => 24,
             'League\\Flysystem\\' => 17,
         ),
-        'I' => 
+        'I' =>
         array (
             'Interop\\Container\\' => 18,
         ),
-        'D' => 
+        'D' =>
         array (
             'Doctrine\\Instantiator\\' => 22,
             'Doctrine\\Common\\Lexer\\' => 22,
@@ -73,152 +73,152 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
             'Doctrine\\Common\\Annotations\\' => 28,
             'Doctrine\\Common\\' => 16,
         ),
-        'C' => 
+        'C' =>
         array (
             'Composer\\Installers\\' => 20,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'phpDocumentor\\Reflection\\' => 
+        'phpDocumentor\\Reflection\\' =>
         array (
-            0 => __DIR__ . '/..' . '/phpdocumentor/reflection-common/src',
-            1 => __DIR__ . '/..' . '/phpdocumentor/reflection-docblock/src',
-            2 => __DIR__ . '/..' . '/phpdocumentor/type-resolver/src',
+            0 => __DIR__ . '/..' . '/phpdocumentor/reflection-docblock/src',
+            1 => __DIR__ . '/..' . '/phpdocumentor/type-resolver/src',
+            2 => __DIR__ . '/..' . '/phpdocumentor/reflection-common/src',
         ),
-        'Zend\\Validator\\' => 
+        'Zend\\Validator\\' =>
         array (
             0 => __DIR__ . '/..' . '/zendframework/zend-validator/src',
         ),
-        'Zend\\Stdlib\\' => 
+        'Zend\\Stdlib\\' =>
         array (
             0 => __DIR__ . '/..' . '/zendframework/zend-stdlib/src',
         ),
-        'Zend\\Mime\\' => 
+        'Zend\\Mime\\' =>
         array (
             0 => __DIR__ . '/..' . '/zendframework/zend-mime/src',
         ),
-        'Zend\\Mail\\' => 
+        'Zend\\Mail\\' =>
         array (
             0 => __DIR__ . '/..' . '/zendframework/zend-mail/src',
         ),
-        'Zend\\Loader\\' => 
+        'Zend\\Loader\\' =>
         array (
             0 => __DIR__ . '/..' . '/zendframework/zend-loader/src',
         ),
-        'Webmozart\\Assert\\' => 
+        'Webmozart\\Assert\\' =>
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
         ),
-        'TrueBV\\' => 
+        'TrueBV\\' =>
         array (
             0 => __DIR__ . '/..' . '/true/punycode/src',
         ),
-        'Symfony\\Polyfill\\Php55\\' => 
+        'Symfony\\Polyfill\\Php55\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php55',
         ),
-        'Symfony\\Polyfill\\Php54\\' => 
+        'Symfony\\Polyfill\\Php54\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php54',
         ),
-        'Symfony\\Polyfill\\Mbstring\\' => 
+        'Symfony\\Polyfill\\Mbstring\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
-        'Symfony\\Polyfill\\Ctype\\' => 
+        'Symfony\\Polyfill\\Ctype\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
         ),
-        'Symfony\\Component\\Yaml\\' => 
+        'Symfony\\Component\\Yaml\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/yaml',
         ),
-        'Symfony\\Component\\HttpFoundation\\' => 
+        'Symfony\\Component\\HttpFoundation\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/http-foundation',
         ),
-        'Stash\\' => 
+        'Stash\\' =>
         array (
             0 => __DIR__ . '/..' . '/tedivm/stash/src/Stash',
         ),
-        'Psr\\Container\\' => 
+        'Psr\\Container\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
-        'Psr\\Cache\\' => 
+        'Psr\\Cache\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
-        'Prophecy\\' => 
+        'Prophecy\\' =>
         array (
             0 => __DIR__ . '/..' . '/phpspec/prophecy/src/Prophecy',
         ),
-        'Misd\\Linkify\\' => 
+        'Misd\\Linkify\\' =>
         array (
             0 => __DIR__ . '/..' . '/misd/linkify/src/Misd/Linkify',
         ),
-        'Michelf\\' => 
+        'Michelf\\' =>
         array (
             0 => __DIR__ . '/..' . '/michelf/php-markdown/Michelf',
         ),
-        'League\\Flysystem\\Memory\\' => 
+        'League\\Flysystem\\Memory\\' =>
         array (
             0 => __DIR__ . '/..' . '/league/flysystem-memory/src',
         ),
-        'League\\Flysystem\\' => 
+        'League\\Flysystem\\' =>
         array (
             0 => __DIR__ . '/..' . '/league/flysystem/src',
         ),
-        'Interop\\Container\\' => 
+        'Interop\\Container\\' =>
         array (
             0 => __DIR__ . '/..' . '/container-interop/container-interop/src/Interop/Container',
         ),
-        'Doctrine\\Instantiator\\' => 
+        'Doctrine\\Instantiator\\' =>
         array (
             0 => __DIR__ . '/..' . '/doctrine/instantiator/src/Doctrine/Instantiator',
         ),
-        'Doctrine\\Common\\Lexer\\' => 
+        'Doctrine\\Common\\Lexer\\' =>
         array (
             0 => __DIR__ . '/..' . '/doctrine/lexer/lib/Doctrine/Common/Lexer',
         ),
-        'Doctrine\\Common\\Cache\\' => 
+        'Doctrine\\Common\\Cache\\' =>
         array (
             0 => __DIR__ . '/..' . '/doctrine/cache/lib/Doctrine/Common/Cache',
         ),
-        'Doctrine\\Common\\Annotations\\' => 
+        'Doctrine\\Common\\Annotations\\' =>
         array (
             0 => __DIR__ . '/..' . '/doctrine/annotations/lib/Doctrine/Common/Annotations',
         ),
-        'Doctrine\\Common\\' => 
+        'Doctrine\\Common\\' =>
         array (
             0 => __DIR__ . '/..' . '/doctrine/common/lib/Doctrine/Common',
         ),
-        'Composer\\Installers\\' => 
+        'Composer\\Installers\\' =>
         array (
             0 => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers',
         ),
     );
 
     public static $prefixesPsr0 = array (
-        'I' => 
+        'I' =>
         array (
-            'Imagine' => 
+            'Imagine' =>
             array (
                 0 => __DIR__ . '/..' . '/imagine/imagine/lib',
             ),
         ),
-        'D' => 
+        'D' =>
         array (
-            'Doctrine\\DBAL\\' => 
+            'Doctrine\\DBAL\\' =>
             array (
                 0 => __DIR__ . '/..' . '/doctrine/dbal/lib',
             ),
-            'Doctrine\\Common\\Inflector\\' => 
+            'Doctrine\\Common\\Inflector\\' =>
             array (
                 0 => __DIR__ . '/..' . '/doctrine/inflector/lib',
             ),
-            'Doctrine\\Common\\Collections\\' => 
+            'Doctrine\\Common\\Collections\\' =>
             array (
                 0 => __DIR__ . '/..' . '/doctrine/collections/lib',
             ),
@@ -232,19 +232,7 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
     public static $classMap = array (
         'CSSmin' => __DIR__ . '/..' . '/mrclay/minify/min/lib/CSSmin.php',
         'CallbackFilterIterator' => __DIR__ . '/..' . '/symfony/polyfill-php54/Resources/stubs/CallbackFilterIterator.php',
-        'CodeReview\\Analyzer' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/Analyzer.php',
-        'CodeReview\\Autoloader' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/Autoloader.php',
-        'CodeReview\\CodeFixer' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/CodeFixer.php',
-        'CodeReview\\Config' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/Config.php',
-        'CodeReview\\FileFilterIterator' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/FileFilterIterator.php',
-        'CodeReview\\Foo\\TestClass' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/Foo/TestClass.php',
-        'CodeReview\\IOException' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/IOException.php',
-        'CodeReview\\Issues\\AbstractIssue' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/Issues/AbstractIssue.php',
-        'CodeReview\\Issues\\DeprecatedIssue' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/Issues/DeprecatedIssue.php',
-        'CodeReview\\Issues\\NotDocumentedIssue' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/Issues/NotDocumentedIssue.php',
-        'CodeReview\\Issues\\PrivateIssue' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/Issues/PrivateIssue.php',
-        'CodeReview\\PhpFileParser' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/PhpFileParser.php',
-        'CodeReview\\PhpTokensFilterIterator' => __DIR__ . '/../..' . '/mod/code_review/classes/CodeReview/PhpTokensFilterIterator.php',
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'DooDigestAuth' => __DIR__ . '/..' . '/mrclay/minify/min/lib/DooDigestAuth.php',
         'File_Iterator' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Iterator.php',
         'File_Iterator_Facade' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Facade.php',
@@ -742,7 +730,6 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'SebastianBergmann\\Version' => __DIR__ . '/..' . '/sebastian/version/src/Version.php',
         'SessionHandlerInterface' => __DIR__ . '/..' . '/symfony/polyfill-php54/Resources/stubs/SessionHandlerInterface.php',
         'Text_Template' => __DIR__ . '/..' . '/phpunit/php-text-template/src/Template.php',
-        'code_review' => __DIR__ . '/../..' . '/mod/code_review/classes/code_review.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

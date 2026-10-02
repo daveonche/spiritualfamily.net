@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d7e8c84a92a4de39cab974915db0b719",
+    "content-hash": "6125fae528386382636fe0088bbc1b76",
     "packages": [
         {
             "name": "bower-asset/jquery",
@@ -931,41 +931,6 @@
             ],
             "description": "Elgg is an award-winning social networking engine, delivering the building blocks that enable businesses, schools, universities and associations to create their own fully-featured social networks and applications.",
             "time": "2021-04-16T09:26:41+00:00"
-        },
-        {
-            "name": "elgg/login_as",
-            "version": "1.9.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Elgg/login_as.git",
-                "reference": "6cade385000e726875aba74498c28e0121222a1c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Elgg/login_as/zipball/6cade385000e726875aba74498c28e0121222a1c",
-                "reference": "6cade385000e726875aba74498c28e0121222a1c",
-                "shasum": ""
-            },
-            "require": {
-                "composer/installers": ">=1.0.8"
-            },
-            "type": "elgg-plugin",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Brett Profitt",
-                    "email": "brett@elgg.org"
-                }
-            ],
-            "description": "Elgg plugin that allows admin users to login as another user.",
-            "keywords": [
-                "elgg",
-                "plugin"
-            ],
-            "time": "2015-09-03T12:18:17+00:00"
         },
         {
             "name": "fortawesome/font-awesome",
@@ -3516,53 +3481,6 @@
             "time": "2015-06-21T13:59:46+00:00"
         },
         {
-            "name": "srokap/code_review",
-            "version": "1.0.6",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Srokap/code_review.git",
-                "reference": "c79c619f99279cf15713b118ae19b0ef017db362"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Srokap/code_review/zipball/c79c619f99279cf15713b118ae19b0ef017db362",
-                "reference": "c79c619f99279cf15713b118ae19b0ef017db362",
-                "shasum": ""
-            },
-            "require": {
-                "composer/installers": ">=1.0.8",
-                "php": ">=5.3"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "~4.1"
-            },
-            "type": "elgg-plugin",
-            "autoload": {
-                "classmap": [
-                    "classes/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Paweł Sroka",
-                    "email": "srokap@gmail.com"
-                }
-            ],
-            "description": "Elgg plugin that analyzes plugins code and provides basic information on code quality, compatibility and structure.",
-            "homepage": "https://github.com/Srokap/code_review",
-            "keywords": [
-                "analyzer",
-                "elgg",
-                "plugin",
-                "tools"
-            ],
-            "time": "2016-05-15T21:04:55+00:00"
-        },
-        {
             "name": "symfony/polyfill-ctype",
             "version": "v1.19.0",
             "source": {
@@ -3758,13 +3676,13 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": [],
+    "platform": {},
+    "platform-dev": {},
     "platform-overrides": {
         "php": "7.4.27"
     },
-    "plugin-api-version": "1.1.0"
+    "plugin-api-version": "2.9.0"
 }
