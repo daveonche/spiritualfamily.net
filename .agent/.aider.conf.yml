@@ -109,7 +109,10 @@ commit-prompt: >-
   Write one concise Conventional Commits subject line for the staged diff
   (type(scope): summary, max 72 chars). The type MUST be one of: build,
   chore, ci, docs, feat, fix, perf, refactor, revert, style, test — never
-  invent a type such as config. Reply with ONLY that line — plain
+  invent a type such as config. The scope, when present, MUST be
+  lowercase: only a-z, 0-9, '_', '-', and '/' (e.g. upgrade-notes,
+  elgg) — uppercase scopes such as docs(ELGG) are rejected by the
+  commit-msg hook. Reply with ONLY that line — plain
   text, no markdown, no quotes, no code fences, no branch names, no file
   names, no SEARCH/REPLACE edit blocks, no explanations. Base it strictly
   on the diff; never continue or repeat the conversation, and never copy
@@ -143,12 +146,12 @@ read:
 - .agent/AGENTS.md
 - docs/workflow_state.md
 # If your project uses one of the supported frameworks, uncomment the matching
-# line below so its conventions are read from .agent/.aider.conventions/ on
-# launch. Convention files stay in .agent/.aider.conventions/; never copy
+# line below so its conventions are read from .agent/specs/ on
+# launch. Convention files stay in .agent/specs/; never copy
 # them to the project root.
-# - .agent/.aider.conventions/ELGG.md
-# - .agent/.aider.conventions/RAILS.md
+# - .agent/specs/ELGG.md
+# - .agent/specs/RAILS.md
 # TODO: Uncomment the following lines if you want to use the conventions for Odoo, Flask, or Django.
-# - .agent/.aider.conventions/ODOO.md
-# - .agent/.aider.conventions/FLASK.md
-# - .agent/.aider.conventions/DJANGO.md
+# - .agent/specs/ODOO.md
+# - .agent/specs/FLASK.md
+# - .agent/specs/DJANGO.md
