@@ -94,10 +94,11 @@ task touches. Before creating or editing any file, check this mapping:
 | `AGENTS.md` files | `.agent/specs/AFM.md` |
 | `*.md` documentation | `.agent/specs/references/github-flavored-markdown.md` |
 | `SKILL.md` prompt files | `.agent/specs/references/agent-skills.md` |
-| `Dockerfile*`, `*.dockerfile`, or `.dockerignore` | `.agent/specs/references/docker-best-practices.md` |
-| `compose.yml`, `compose.yaml`, `docker-compose*.yml`/`*.yaml`, or any Compose file | `.agent/specs/references/compose-file-spec.md` |
-| Docker/Compose project layout or command execution: compose file placement, `docker/<service>/` build contexts, `.log/<service>.log` logs, in-container commands | `.agent/specs/references/docker-project-layout.md` |
-| A framework identified by Project Framework Detection | The matching framework-named file in `.agent/specs/` (e.g., `ELGG.md`, `RAILS.md`) |
+| `Dockerfile*`, `*.dockerfile`, or `.dockerignore` | `.agent/specs/docker/SKILL.md` |
+| `compose.yml`, `compose.yaml`, `docker-compose*.yml`/`*.yaml`, or any Compose file | `.agent/specs/docker/SKILL.md` |
+| Docker/Compose project layout or command execution: compose file placement, `docker/<service>/` build contexts, `.log/<service>.log` logs, in-container commands | `.agent/specs/docker/SKILL.md` |
+| A framework identified by Project Framework Detection | The matching framework pack's `SKILL.md` in `.agent/specs/` (e.g., `elgg/SKILL.md`, `rails/SKILL.md`) |
+| Creating or editing anything under `.agent/specs/` (packs, `SKILL.md`, `SKILL.meta.md`, `rules/`, pack `references/`) | `.agent/specs/references/spec-pack-standard.md` |
 
 Routing rules:
 
@@ -114,9 +115,12 @@ Routing rules:
 ## Session State Persistence
 
 Maintain `docs/workflow_state.md` as the session checkpoint file. It records
-at most one active workflow and is a pointer, not a log. If the file does not
-exist yet (e.g., in a project using a copied-in `.agent/`), draft it as a new
-file (empty SEARCH block) at the first checkpoint.
+at most one active workflow and is a pointer, not a log. Checkpoints must be
+concise and directly actionable: an LLM reading the file must know
+immediately what to do next without additional reasoning — every line crisp
+and prescriptive (the exact next command or action, no narrative). If the
+file does not exist yet (e.g., in a project using a copied-in `.agent/`),
+draft it as a new file (empty SEARCH block) at the first checkpoint.
 
 1. While a workflow is active, track its position: the current step,
    the last completed step, the next action, and the minimal reload
@@ -269,17 +273,32 @@ Before executing the first step, quote the SKILL.md's sentinel line — its fina
 
 ## Command Suggestions
 
-When suggesting CLI commands that may produce long output, prefer
-non-interactive forms so an interactive pager does not interrupt the
-session. For git, prefix with `--no-pager`: suggest
-`git --no-pager status --porcelain` rather than `git status --porcelain`,
-and `git --no-pager show --stat` rather than `git show --stat`.
+**Mandatory git form (hard rule):** Every suggested git command MUST
+begin with `git --no-pager`, for every subcommand (`status`, `show`,
+`diff`, `log`, `grep`, `branch`, …). Before outputting any git
+command, self-check that it starts with `git --no-pager`; if it does
+not, rewrite it before presenting. Bare git commands open an
+interactive pager that swallows or truncates output (e.g., `git grep`
+over many files), wasting a round-trip and losing the evidence.
+Example: `git --no-pager grep -n "pattern" -- tests/`, never bare
+`git grep ...`.
 
 When asking the user to run verification commands, output each command
 in a fenced code block tagged with a shell language (for example, `bash`),
 with no prefix such as `/run`, so aider recognizes it in the response
 and offers to execute it directly. Then ask the user to reply "done" —
 do not ask them to paste output manually.
+
+## Stop on Missing Input (hard rule)
+
+When a reply requires a value, file, or decision that is not in context
+and not derivable from a stated source (SKILL.md, routing table,
+transcript), do NOT reason toward it. Output the specific question(s)
+and [STOP]. Never resolve ambiguity by enumerating hypothetical
+branches, guessing values, or drafting contingent plans for outcomes
+the user has not chosen. Self-check before sending any reply: "Is every
+required input present or explicitly asked for?" If a required input is
+missing, abandon the composed plan and end the reply with the question.
 
 ## Critical Rules
 

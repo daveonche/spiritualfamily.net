@@ -4,6 +4,8 @@ This role responds to the following commands:
 - `$workflows-post-scaffolding-chain` - Starts or resumes the post-scaffolding workflow chain
 - `$planning-implementation-analysis` - Activates Phase 1: Implementation Status Analysis
 - `$planning-sprint-story` - Activates Phase 2: Sprint Story Generation
+- `$architecture-frontend-design` - Activates conditional frontend design generation for UI stories (`.agent/workflows/architecture/frontend-design/SKILL.md`)
+- `$architecture-mobile-app-design` - Activates conditional mobile app design generation for mobile app stories (`.agent/workflows/architecture/mobile-app-design/SKILL.md`)
 - `$planning-story-analysis S<X.Y>` - Activates Phase 3: Story Analysis
 - `$code-implementation S<X.Y> [step-number]` - Activates Phase 4A: Implementation
 - `$testing-unit-test S<X.Y> [step-number]` - Activates Phase 4B: Unit Testing
@@ -16,6 +18,8 @@ This role responds to the following commands:
 The post-scaffolding chain takes a project that has completed scaffolding and produces a new sprint narrative:
 - **Phase 1** establishes the current implementation status and identifies what remains to be built.
 - **Phase 2** generates sprint stories from the implementation status.
+- **Frontend Design** is invoked conditionally when Phase 2 generates a UI/frontend story, producing an approved design direction and file inventory before that story's analysis.
+- **Mobile App Design** is invoked conditionally when Phase 2 generates a mobile app story, producing an approved mobile design direction and file inventory before that story's analysis.
 - **Phase 3** analyzes the chosen story so it is ready for implementation.
 - **Phase 4A** implements the analyzed story.
 - **Phase 4B** writes unit tests for the implementation.
@@ -28,9 +32,12 @@ You are a Post-Scaffolding Sprint Workflow Chain Orchestrator. Your task is to g
 When activated, do not silently proceed through the chain. Instead:
 
 1. Present the user with the available phase commands.
-2. Ask the user to select the phase they want to start with or update.
-3. Instruct the user to type the corresponding shorthand command for that phase.
-4. Before running the selected phase, ask the user: "Is the matching `.agent/workflows/<category>/<promptname>/SKILL.md` currently loaded in your context? (Y/N)" — do not assess context contents yourself (Critical Rule 3). If the user answers N, ask them to add the file with `/read-only <file>` and wait for confirmation.
+2. After the main lean phases, present the two on-demand sections separately, clearly marked as not chain phases:
+   - "Quality Gates & Support Services (on demand — not chain phases)" table
+   - "SDLC Coverage" list
+3. Ask the user to select the phase they want to start with or update.
+4. Instruct the user to type the corresponding shorthand command for that phase.
+5. Before running the selected phase, ask the user: "Is the matching `.agent/workflows/<category>/<promptname>/SKILL.md` currently loaded in your context? (Y/N)" — do not assess context contents yourself (Critical Rule 3). If the user answers N, ask them to add the file with `/read-only <file>` and wait for confirmation.
 
 If the user is unsure which phase to use, start with `$planning-implementation-analysis` to re-establish the current implementation status before generating or updating stories.
 
@@ -42,6 +49,8 @@ Each phase depends on the output of the previous phase. Use this table to choose
 | --- | --- | --- |
 | Phase 1: Implementation Status Analysis | Existing project code and status files | Updated implementation status |
 | Phase 2: Sprint Story Generation | Updated implementation status | Sprint stories |
+| Frontend Design (conditional) | A UI/frontend story from Phase 2; framework detection | Approved design direction and file inventory |
+| Mobile App Design (conditional) | A mobile app story from Phase 2; framework detection; tech stack naming a mobile client | Approved mobile design direction and file inventory |
 | Phase 3: Story Analysis `S<X.Y>` | A sprint story ID from Phase 2 | Analyzed story steps and acceptance criteria |
 | Phase 4A: Implementation `S<X.Y>` | Analyzed story from Phase 3 | Implemented code changes |
 | Phase 4B: Unit Testing `S<X.Y>` | Implemented code from Phase 4A | Unit tests and validation results |
@@ -53,6 +62,8 @@ Each phase depends on the output of the previous phase. Use this table to choose
 | --- | --- |
 | `$planning-implementation-analysis` | Phase 1: Implementation Status Analysis |
 | `$planning-sprint-story` | Phase 2: Sprint Story Generation |
+| `$architecture-frontend-design` | Conditional: Frontend Design Generation (UI stories) |
+| `$architecture-mobile-app-design` | Conditional: Mobile App Design Generation (mobile app stories) |
 | `$planning-story-analysis S<X.Y>` | Phase 3: Story Analysis |
 | `$code-implementation S<X.Y> [step-number]` | Phase 4A: Implementation |
 | `$testing-unit-test S<X.Y> [step-number]` | Phase 4B: Unit Testing |
@@ -62,6 +73,8 @@ Each phase depends on the output of the previous phase. Use this table to choose
 
 - [ ] Phase 1: Implementation status is current.
 - [ ] Phase 2: Sprint stories are generated from the current status.
+- [ ] Conditional Frontend Design completed for each UI story before its story analysis.
+- [ ] Conditional Mobile App Design completed for each mobile app story before its story analysis.
 - [ ] Phase 3: At least one story is analyzed with actionable steps and acceptance criteria.
 - [ ] Phase 4A: The analyzed story is implemented.
 - [ ] Phase 4B: Unit tests are written and passing.
@@ -70,6 +83,9 @@ Each phase depends on the output of the previous phase. Use this table to choose
 ### Gotchas
 
 - `S<X.Y>` story IDs must come from Phase 2; do not guess them.
+- `$architecture-frontend-design` is conditional: activate it only when Phase 2 generated a UI/frontend story, and run it before that story's Phase 3 analysis.
+- `$architecture-mobile-app-design` is conditional: activate it only when Phase 2 generated a mobile app story (or the tech stack includes a mobile app client), and run it before that story's Phase 3 analysis.
+- In this chain, use the frontend design prompt for its planning steps only ([STEP 1]-[STEP 3A], including the design-artifact save); Phase 4A implements the analyzed steps following the approved plan.
 - Phase 4A and Phase 4B can be resumed at a specific `[step-number]`, but only after the story has been analyzed in Phase 3.
 - Do not run implementation and unit-testing commands together; complete implementation before requesting validation tests.
 - `$code-dependency-management` is conditional and should be activated only when a new dependency is identified during Phase 4A.
@@ -83,7 +99,11 @@ Each phase depends on the output of the previous phase. Use this table to choose
 Phase 1: Implementation Status Analysis
 ↓ [Outputs feed Phase 2]
 Phase 2: Sprint Story Generation
-↓ [Outputs feed Phase 3]
+↓ [Outputs feed Phase 3; UI stories also feed Frontend Design; mobile app stories also feed Mobile App Design]
+Frontend Design (conditional, UI stories)
+↓ [Approved design feeds Phase 3]
+Mobile App Design (conditional, mobile app stories)
+↓ [Approved design feeds Phase 3]
 Phase 3: Story Analysis
 ↓ [Outputs feed Phase 4A]
 Phase 4A: Implementation
@@ -127,10 +147,65 @@ Create focused user stories for the next sprint based on technical dependencies.
 
 - Implementation Status Report
 - Previous sprint's user stories
+- Project requirements list
+- Technology stack
 
 **Key Outputs → [Feed into Phase 3]:**
 
 - Sprint Stories (`sprint_X_stories.md`)
+
+### Conditional: Frontend Design Generation (`$architecture-frontend-design`)
+
+[Frontend Design Prompt](../../architecture/frontend-design/SKILL.md)
+
+#### Frontend Design Purpose
+
+Produce an approved design direction and file inventory for a UI/frontend story before its story analysis.
+
+**Trigger (conditional):**
+
+- Phase 2 generated one or more sprint stories with UI/frontend scope
+
+**Required Inputs:**
+
+- The UI/frontend sprint story from Phase 2
+- Implementation status from Phase 1
+- Project Framework Detection (run inside the prompt)
+
+**Key Outputs → [Feed into Phase 3]:**
+
+- Approved design direction and design plan/file inventory for the story
+
+**Scope Note:**
+
+In this chain, run the prompt through its planning steps only ([STEP 1]-[STEP 3A], including the design-artifact save); do not proceed to its [STEP 4] implementation. Phase 4A implements the analyzed steps following the approved plan, keeping dependency management conditional in Phase 4A.
+
+### Conditional: Mobile App Design Generation (`$architecture-mobile-app-design`)
+
+[Mobile App Design Prompt](../../architecture/mobile-app-design/SKILL.md)
+
+#### Mobile App Design Purpose
+
+Produce an approved mobile design direction and file inventory for a mobile app story before its story analysis.
+
+**Trigger (conditional):**
+
+- Phase 2 generated one or more sprint stories with mobile app scope (or the tech stack includes a mobile app client consuming the API backend)
+
+**Required Inputs:**
+
+- The mobile app sprint story from Phase 2
+- Implementation status from Phase 1
+- Tech stack document naming the mobile app client
+- Project Framework Detection (run inside the prompt)
+
+**Key Outputs → [Feed into Phase 3]:**
+
+- Approved mobile design direction and design plan/file inventory for the story
+
+**Scope Note:**
+
+In this chain, run the prompt through its planning steps only ([STEP 1]-[STEP 3A], including the design-artifact save); do not proceed to its [STEP 4] implementation. Phase 4A implements the analyzed steps following the approved plan, keeping dependency management conditional in Phase 4A.
 
 ### Phase 3: Story Analysis (`$planning-story-analysis S<X.Y>`)
 
@@ -161,6 +236,8 @@ Systematically implement one specific step from the story analysis, ensuring all
 - Story Steps Report (`S<X.Y>-story-steps.md`)
 - Sprint story
 - Project's dependency definition file (e.g., `package.json`)
+- For UI/frontend stories: the approved design direction and file inventory from Frontend Design
+- For mobile app stories: the approved mobile design direction and file inventory from Mobile App Design
 
 **Key Outputs → [Feed into Phase 4B]:**
 
@@ -218,7 +295,25 @@ Generate and verify unit tests for the implemented story step, ensuring comprehe
    - Must have all Phase 1 outputs available
    - Proceeds only when analysis outputs are complete
 
-3. **Analyze Story:**
+3. **Generate Frontend Design (conditional, UI stories):**
+
+   ```cmd
+   $architecture-frontend-design
+   ```
+
+   - Run only for stories with UI/frontend scope, before their story analysis
+   - Complete the prompt's planning steps ([STEP 1]-[STEP 3A], including the design-artifact save) and stop before [STEP 4]
+
+4. **Generate Mobile App Design (conditional, mobile app stories):**
+
+   ```cmd
+   $architecture-mobile-app-design
+   ```
+
+   - Run only for stories with mobile app scope, before their story analysis
+   - Complete the prompt's planning steps ([STEP 1]-[STEP 3A], including the design-artifact save) and stop before [STEP 4]
+
+5. **Analyze Story:**
 
    ```cmd
    $planning-story-analysis S<X.Y>
@@ -227,7 +322,7 @@ Generate and verify unit tests for the implemented story step, ensuring comprehe
    - Ensure the specific user story is available in the context
    - Wait for story analysis to complete before proceeding
 
-4. **Implement Stories, step by step:**
+6. **Implement Stories, step by step:**
 
    ```cmd
    $code-implementation S<X.Y> [step-number]
@@ -236,7 +331,7 @@ Generate and verify unit tests for the implemented story step, ensuring comprehe
    - Requires complete story analysis outputs
    - Execute for each story and step, in sequence
 
-5. **Generate Unit Tests:**
+7. **Generate Unit Tests:**
 
    ```cmd
    $testing-unit-test S<X.Y> [step-number]
@@ -259,6 +354,8 @@ See `Input/Output Chain` above for the single source of phase dependencies and o
 
 2. **Story Generation → Story Analysis**
    - Verify all sprint stories have required components
+   - For UI/frontend stories: verify Frontend Design ran first and its direction and file inventory are approved
+   - For mobile app stories: verify Mobile App Design ran first and its direction and file inventory are approved
 
 3. **Story Analysis → Implementation**
    - Verify story steps report is complete
@@ -320,5 +417,39 @@ Before starting each phase, verify:
 4. Documentation is current
 
 Remember: The strength of this workflow lies in its chained nature. Each phase builds upon the outputs of the previous phase, creating a comprehensive and connected development process.
+
+## Quality Gates & Support Services (on demand — not chain phases)
+
+The chain keeps the critical path lean; the following skills are invoked on
+demand at defined checkpoints rather than baked into the phases:
+
+| Skill | When to invoke |
+| --- | --- |
+| `$code-review <file>` | After each Phase 4A step, before its Phase 4B unit test |
+| `$ci-pipeline` | When designing or changing CI/CD workflows — continuous, per PR/merge, not release-bound |
+| `$testing-integration-test S<X.Y>` | Per story, after the Phase 4A/4B loop completes all of that story's steps |
+| `$code-security-audit [target]` | On the sprint branch diff before sprint close; its reproducer tests feed Phase 4B |
+| `$testing-e2e-test` | At sprint close, after the Phase 4A/4B loop completes for all stories; shares the session with `$code-security-audit` |
+| `$deployment-release` | When a release is ready — after the sprint-close gates; produces the runbook and executes with rollback triggers |
+| `$monitoring-observability` | When establishing or overhauling the monitoring stack — always-on operations, not release-bound |
+| `$incident-response` | When an incident is active or a postmortem is due — on-demand operations, not release-bound |
+| `#analyze-health` | At sprint boundaries, after the Phase 4A/4B iteration loop completes |
+| `$core-framework-detection` | Invoked inside Frontend Design; not run directly |
+| `#generate-framework-docs` / `#update-framework-docs` | After stack selection; on dependency upgrades or ref bumps |
+| `$documentation-project-README` | After chain completion; refresh at sprint ends |
+| `$documentation-plantUML-diagram` | During design phases or to document new subsystems |
+| `$requirements-revised-project` | Standalone; revised requirements feed Phase 1 → Phase 2 inputs |
+| `$learning-project-tutor` | Onboarding; consumes the chain's outputs |
+| `$session-checkpoint` | Between sessions; records chain position |
+
+## SDLC Coverage
+
+Record of SDLC areas covered by this chain and its on-demand skills:
+
+- [x] Integration / end-to-end testing (unit: Phase 4B; integration: `$testing-integration-test` per story; E2E: `$testing-e2e-test` at sprint close)
+- [x] Deployment / release workflow (covered by `$deployment-release`)
+- [x] CI/CD pipeline management (covered by `$ci-pipeline`; conventions reference: `.agent/specs/references/ci-cd-best-practices.md`)
+- [x] Monitoring / observability (covered by `$monitoring-observability`; deployment-window monitoring: `$deployment-release` STEP 5)
+- [x] Incident response (covered by `$incident-response`; on-call rotation and the incident workflow are foundations in `$monitoring-observability` STEP 7)
 
 <!-- sentinel: workflows/post-scaffolding-chain -->
