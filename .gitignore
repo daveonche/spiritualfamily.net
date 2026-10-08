@@ -58,8 +58,9 @@ Desktop.ini
 # ------------------------------------------------------------------
 # AI assistant files
 # ------------------------------------------------------------------
+# .aider* also covers the unguessably named per-checkout aiderignore copy
+# (stamped from docs/aiderignore.template) — never negate a name here.
 .aider*
-!.aiderignore
 
 # agent workflow / orchestration context (dev-only, install from source repo)
 .agent/

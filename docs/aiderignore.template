@@ -1,0 +1,140 @@
+# aiderignore template — the source for this project's per-checkout
+# aiderignore copy. NEVER commit the copy and NEVER write its name into
+# any tracked file or commit message: the unguessable filename is the
+# secret that stops a hostile checkout from pre-placing a file that
+# satisfies the --aiderignore reference. The name lives only in the
+# off-repo per-project args file (~/.config/aider-agent/projects/).
+#
+# ORDER MATTERS (last match wins): generic boilerplate first, project
+# negations (!) last, so a trailing boilerplate pattern can never
+# re-ignore something a project negation re-included.
+#
+# The binary/media patterns below apply repo-wide, exactly as they did
+# while .agent/.aiderignore was the wired file. Aider can't edit binaries
+# anyway; add ! negations here if a plugin's assets must be visible.
+
+# ---------------------------------------------------------------------
+# Part 1 — generic boilerplate (merged from .agent/.aiderignore)
+# ---------------------------------------------------------------------
+# Dependencies
+node_modules/
+env/
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.so
+*.egg-info/
+eggs/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*
+!.env.example
+
+# Build & Distribution
+dist/
+build/
+*.zip
+*.tar.gz
+*.egg
+
+# Logs & Caches
+*.log
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+coverage/
+.coverage
+htmlcov/
+
+# Binary & Media Files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+*.sqlite3
+*.db
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.tmp
+*.bak
+*.orig
+
+# ---------------------------------------------------------------------
+# Part 2 — project rules (merged from the deleted root .aiderignore)
+# ---------------------------------------------------------------------
+# Composer vendor trees (includes Elgg core at src/vendor/elgg/elgg).
+# Ignore directory contents, then negate specific paths so they can
+# still be added to the chat via /read-only.
+src/vendor/*
+!src/vendor/elgg/
+src/vendor/elgg/*
+!src/vendor/elgg/elgg/
+src/vendor/elgg/elgg/*
+!src/vendor/elgg/elgg/composer.json
+!src/vendor/elgg/elgg/version.php
+
+# Personal plugins: only src/mod/ directories with the "sfn_" prefix are
+# visible to aider; all other (third-party) plugins are excluded from the
+# repo map and edit scope. New sfn_* plugins are picked up automatically.
+src/mod/*
+!src/mod/sfn_*/
+
+# Dependency/asset dirs inside the visible personal plugins
+src/mod/*/vendor/
+src/mod/*/vendors/
+src/mod/*/node_modules/
+src/node_modules/
+
+# Aider launcher tooling — never edited in this project; excluded from
+# the repo map (their function defs were the largest .agent/ token source).
+.agent/ai_assistant.py
+.agent/ai-assistant.sh
+
+# To expose more Elgg core files/dirs to aider, add negation lines, e.g.:
+# !src/vendor/elgg/elgg/engine/
+
+# ---------------------------------------------------------------------
+# Recreating the copy in a freshly cloned repo
+# ---------------------------------------------------------------------
+# The unguessable filename is per-checkout state: it lives only in the
+# off-repo per-project args file, so every fresh clone must recreate it.
+#
+# 1. Install/update .agent/ (pinned release):
+#      curl -fsSL https://raw.githubusercontent.com/daveonche/dev-orchestrator/v1.0.27/scripts/install.sh | bash
+#    The installer restores .agent/.aiderignore; this project keeps it.
+#    The args-file --aiderignore wired in step 4 is appended after the
+#    launcher's own flag and wins (argparse last-wins), so the boilerplate
+#    fallback is shadowed whenever the args file is loaded. Until the
+#    copy is stamped and wired, a fresh checkout runs with only the
+#    boilerplate rules — the project rules above are inactive.
+# 2. Roll an unguessable name and stamp the copy at the project root:
+#      name=".aiderignore-$(openssl rand -hex 8)"
+#      cp docs/aiderignore.template "$name"
+#    Same-path re-clone shortcut: reuse the name already recorded in the
+#    args file (./.agent/start.sh --show-project-config) — then step 4
+#    is unnecessary.
+# 3. Verify git ignores the copy (the tracked .aider* rule covers it):
+#      git check-ignore -v "$name"
+# 4. Wire it in the per-project args file — create the template first if
+#    the project path is new (the file is keyed to the project path):
+#      ./.agent/start.sh --init-project-args
+#    then edit that file (the flag never overwrites an existing file) to
+#    add, one token per line:
+#      --aiderignore
+#      <the rolled name>
+# 5. Launch: ./.agent/start.sh
