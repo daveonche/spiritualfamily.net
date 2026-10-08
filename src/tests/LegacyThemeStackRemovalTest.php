@@ -132,6 +132,40 @@ class LegacyThemeStackRemovalTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * Returns the Step 2 removal rows as plugin ID => Notes cell, parsed
+	 * from the "Permanently dropped — no replacement" category table.
+	 */
+	private function stepTwoRemovalNotes()
+	{
+		$body = $this->categoryBody(
+			$this->dispositionDoc(),
+			'Permanently dropped — no replacement'
+		);
+		$notes = array();
+		foreach ($this->tableRows($body) as $row) {
+			if (isset($row[1]) && trim($row[1]) === 'Step 2') {
+				$notes[$row[0]] = isset($row[2]) ? $row[2] : '';
+			}
+		}
+		return $notes;
+	}
+
+	/** The S1.4 story block of docs/sprints/sprint_1_stories.md. */
+	private function sprintStorySection()
+	{
+		$doc = file_get_contents($this->repoDir() . '/docs/sprints/sprint_1_stories.md');
+		$start = strpos($doc, 'Story S1.4:');
+		if ($start === false) {
+			return '';
+		}
+		$next = strpos($doc, 'Story S1.5:', $start + 1);
+		if ($next === false) {
+			return substr($doc, $start);
+		}
+		return substr($doc, $start, $next - $start);
+	}
+
+	/**
 	 * Must Support: "Remove the legacy theme plugins identified in the
 	 * disposition list"
 	 */
@@ -157,5 +191,55 @@ class LegacyThemeStackRemovalTest extends \PHPUnit_Framework_TestCase
 				$this->modDir() . '/' . $pluginId . '/elgg-plugin.php'
 			);
 		}
+	}
+
+	/**
+	 * Must Support: "Remove the legacy theme plugins identified in the
+	 * disposition list" — the Step 2 removal set must be exactly the
+	 * legacy theme stack, and every row must cite REQ-FR-TR-1.
+	 */
+	public function testStepTwoRemovalSetIsExactlyLegacyThemeStack()
+	{
+		$notes = $this->stepTwoRemovalNotes();
+		$this->assertNotEmpty(
+			$notes,
+			'No "Removed in Step 2" rows found in the disposition list'
+		);
+
+		// The Step 2 removal set must be exactly the legacy theme stack.
+		$removals = array_keys($notes);
+		sort($removals);
+		$this->assertSame(
+			array('aalborg_theme', 'l1', 'mrdave_aalborg', 'paul_override'),
+			$removals,
+			'The "Removed in Step 2" set does not match the legacy theme stack'
+		);
+
+		// Every Step 2 row must cite the legacy theme requirement.
+		foreach ($notes as $pluginId => $note) {
+			$this->assertContains(
+				'REQ-FR-TR-1',
+				$note,
+				"Step 2 removal row for $pluginId does not cite REQ-FR-TR-1"
+			);
+		}
+
+		// The sprint story's legacy-theme-stack criterion must name the
+		// stack and cite the requirement.
+		$story = $this->sprintStorySection();
+		$this->assertNotSame('', $story, 'S1.4 story not found in the sprint stories document');
+		$this->assertContains('Legacy theme stack dropped:', $story);
+		$this->assertContains('aalborg_theme', $story);
+		$this->assertContains('aalborg extras/L1', $story);
+		$this->assertContains('paul_override', $story);
+		$this->assertContains('REQ-FR-TR-1', $story);
+
+		// Coverage: each story-named stack member must be covered by the
+		// Step 2 removal set — "aalborg extras/L1" via l1, whose notes
+		// record it.
+		$this->assertArrayHasKey('aalborg_theme', $notes);
+		$this->assertArrayHasKey('paul_override', $notes);
+		$this->assertArrayHasKey('l1', $notes);
+		$this->assertContains('aalborg extras/L1', $notes['l1']);
 	}
 }
