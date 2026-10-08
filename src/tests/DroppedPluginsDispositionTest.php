@@ -52,6 +52,23 @@ class DroppedPluginsDispositionTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * Returns the body of the "## <title>" section of docs/tech_stack.md,
+	 * up to the next same-level heading or end of file; '' when absent.
+	 */
+	private function techStackSection($doc, $title)
+	{
+		$start = strpos($doc, '## ' . $title);
+		if ($start === false) {
+			return '';
+		}
+		$next = strpos($doc, "\n## ", $start + 1);
+		if ($next === false) {
+			return substr($doc, $start);
+		}
+		return substr($doc, $start, $next - $start);
+	}
+
+	/**
 	 * Returns the body of the "## Dispositions" section, up to the next
 	 * same-level heading or end of file; '' when absent.
 	 */
@@ -140,6 +157,47 @@ class DroppedPluginsDispositionTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * Returns the raw body of one "### <title> (N)" category within the
+	 * dispositions section, up to the next category heading; '' when
+	 * absent.
+	 */
+	private function categoryBody($doc, $title)
+	{
+		$section = $this->dispositionsSection($doc);
+		$start = strpos($section, '### ' . $title);
+		if ($start === false) {
+			return '';
+		}
+		$next = strpos($section, "\n### ", $start + 1);
+		if ($next === false) {
+			return substr($section, $start);
+		}
+		return substr($section, $start, $next - $start);
+	}
+
+	/**
+	 * Returns the data rows of a category table as arrays of trimmed cell
+	 * values; header and separator rows are skipped.
+	 */
+	private function tableRows($body)
+	{
+		$rows = array();
+		if (!preg_match_all('/^\|(.+)\|\s*$/m', $body, $matches)) {
+			return $rows;
+		}
+		foreach ($matches[1] as $row) {
+			$cells = array_map('trim', explode('|', $row));
+			$first = $cells[0];
+			if ($first === '' || $first === 'Plugin' || strpos($first, '---') === 0) {
+				continue;
+			}
+			$rows[] = $cells;
+		}
+
+		return $rows;
+	}
+
+	/**
 	 * Returns the plugin directories currently present in src/mod: every
 	 * subdirectory carrying a plugin marker (manifest.xml or
 	 * elgg-plugin.php).
@@ -223,5 +281,63 @@ class DroppedPluginsDispositionTest extends \PHPUnit_Framework_TestCase
 			array_values($missing),
 			'Plugin directories present in src/mod but missing from the disposition list'
 		);
+	}
+
+	/**
+	 * Must Support: "Record, for each plugin, whether an upgraded
+	 * replacement is provisioned through the project's dependency
+	 * mechanism or it must be installed manually in a later sprint"
+	 */
+	public function testDispositionsMatchRecordedReplacementDecisions()
+	{
+		$doc = $this->dispositionDoc();
+		$techStack = $this->techStackDoc();
+
+		// Composer-replacement rows: the recorded package must be named in
+		// docs/tech_stack.md. A "not yet recorded" package is permitted
+		// only when the row defers identification to a recorded trigger.
+		$composerBody = $this->categoryBody($doc, 'Composer replacement at Elgg 7');
+		$this->assertNotSame('', $composerBody, 'No "Composer replacement at Elgg 7" category found');
+
+		foreach ($this->tableRows($composerBody) as $row) {
+			$pluginId = $row[0];
+			$this->assertArrayHasKey(2, $row, "Row for $pluginId lacks a replacement-package cell");
+
+			$package = trim($row[2], '` ');
+			if ($package === 'not yet recorded') {
+				$this->assertArrayHasKey(3, $row, "Row for $pluginId lacks a Notes cell");
+				$this->assertContains(
+					'S1.14',
+					$row[3],
+					"$pluginId records no replacement package and no deferred-identification trigger"
+				);
+				continue;
+			}
+
+			// Strip the version suffix: "vendor/package v1.2" -> "vendor/package".
+			$packageName = preg_replace('/\s+v?\S+$/', '', $package);
+			$this->assertContains(
+				$packageName,
+				$techStack,
+				"Replacement package for $pluginId is not recorded in docs/tech_stack.md"
+			);
+		}
+
+		// Manual-reinstall rows: every plugin must appear in the tech
+		// stack's Manual Installs section.
+		$manualBody = $this->categoryBody($doc, 'Manual reinstall in a later sprint');
+		$this->assertNotSame('', $manualBody, 'No "Manual reinstall in a later sprint" category found');
+
+		$manualSection = $this->techStackSection($techStack, 'Manual Installs');
+		$this->assertNotSame('', $manualSection, 'docs/tech_stack.md lacks a "Manual Installs" section');
+
+		foreach ($this->tableRows($manualBody) as $row) {
+			$pluginId = $row[0];
+			$this->assertContains(
+				$pluginId,
+				$manualSection,
+				"Manual-reinstall plugin $pluginId is not recorded in the tech stack's Manual Installs section"
+			);
+		}
 	}
 }
