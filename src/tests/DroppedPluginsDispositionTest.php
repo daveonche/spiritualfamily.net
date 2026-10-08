@@ -52,10 +52,10 @@ class DroppedPluginsDispositionTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * Returns the body of the "## <title>" section of docs/tech_stack.md,
-	 * up to the next same-level heading or end of file; '' when absent.
+	 * Returns the body of the "## <title>" section of a document, up to
+	 * the next same-level heading or end of file; '' when absent.
 	 */
-	private function techStackSection($doc, $title)
+	private function docSection($doc, $title)
 	{
 		$start = strpos($doc, '## ' . $title);
 		if ($start === false) {
@@ -66,6 +66,15 @@ class DroppedPluginsDispositionTest extends \PHPUnit_Framework_TestCase
 			return substr($doc, $start);
 		}
 		return substr($doc, $start, $next - $start);
+	}
+
+	/**
+	 * Returns the body of the "## <title>" section of docs/tech_stack.md,
+	 * up to the next same-level heading or end of file; '' when absent.
+	 */
+	private function techStackSection($doc, $title)
+	{
+		return $this->docSection($doc, $title);
 	}
 
 	/**
@@ -195,6 +204,25 @@ class DroppedPluginsDispositionTest extends \PHPUnit_Framework_TestCase
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Parses a comma-separated list spanning one or more lines into
+	 * trimmed items; trailing periods are stripped from each item.
+	 */
+	private function commaList($text)
+	{
+		$items = array();
+		foreach (explode(',', $text) as $item) {
+			$item = trim($item);
+			$item = rtrim($item, '.');
+			$item = trim($item);
+			if ($item !== '') {
+				$items[] = $item;
+			}
+		}
+
+		return $items;
 	}
 
 	/**
@@ -402,5 +430,137 @@ class DroppedPluginsDispositionTest extends \PHPUnit_Framework_TestCase
 			$techStack,
 			'Tech stack does not record the custom_index handling requirement'
 		);
+	}
+
+	/**
+	 * Must Support: "Cross-check the list against the project's recorded
+	 * drop and replacement decisions before finalizing"
+	 */
+	public function testCrossCheckAgainstRecordedDecisions()
+	{
+		$doc = $this->dispositionDoc();
+		$techStack = $this->techStackDoc();
+		$categories = $this->dispositionCategories($doc);
+
+		// The categories the cross-check depends on must exist.
+		foreach (array(
+			'Permanently dropped — no replacement',
+			'Legacy core drops',
+			'Manual-upgrade candidates',
+			'Kept — bundled in Elgg 7.1.0',
+		) as $requiredCategory) {
+			$this->assertArrayHasKey(
+				$requiredCategory,
+				$categories,
+				"Disposition list lacks a '$requiredCategory' category"
+			);
+		}
+
+		// The cross-check section must exist and record the custom_index
+		// exclusion with its recorded trigger.
+		$crossCheck = $this->docSection($doc, 'Cross-Check Against docs/tech_stack.md');
+		$this->assertNotSame('', $crossCheck, 'No "Cross-Check Against docs/tech_stack.md" section found');
+		$this->assertContains(
+			'custom_index is excluded',
+			$crossCheck,
+			'Cross-check does not record the custom_index exclusion from the kept list'
+		);
+		$this->assertContains(
+			'S1.16',
+			$crossCheck,
+			'Cross-check does not record the custom_index S1.16 trigger'
+		);
+
+		// The count-reconciliation line's addends must match the declared
+		// category counts and sum to the declared src/mod total.
+		$this->assertSame(
+			1,
+			preg_match('/`src\/mod` \((\d+) total/', $doc, $scope),
+			'Scope line does not declare a src/mod plugin total'
+		);
+		$this->assertSame(
+			1,
+			preg_match('/Count reconciliation: ([\d+ ]+)= (\d+) = plugin directories/', $doc, $recon),
+			'No count-reconciliation line found'
+		);
+		$addends = array_map('intval', explode('+', str_replace(' ', '', $recon[1])));
+		$declaredCounts = array();
+		foreach ($categories as $category) {
+			$declaredCounts[] = $category['count'];
+		}
+		sort($addends);
+		sort($declaredCounts);
+		$this->assertSame(
+			$declaredCounts,
+			$addends,
+			'Reconciliation addends do not match the declared category counts'
+		);
+		$this->assertSame(
+			(int)$scope[1],
+			(int)$recon[2],
+			'Reconciliation total does not match the declared src/mod total'
+		);
+
+		// Every tech-stack permanently-dropped entry must appear under its
+		// matching disposition category.
+		$permanentlyDropped = $this->techStackSection($techStack, 'Permanently Dropped');
+		$this->assertNotSame('', $permanentlyDropped, 'docs/tech_stack.md lacks a "Permanently Dropped" section');
+
+		$this->assertSame(
+			1,
+			preg_match('/Third-party:(.*?)Elgg 2\.3 core per REQ-FR-PU-7:/s', $permanentlyDropped, $thirdPartyLine),
+			'Tech stack does not record the third-party permanently-dropped list'
+		);
+		foreach ($this->commaList($thirdPartyLine[1]) as $pluginId) {
+			$this->assertContains(
+				$pluginId,
+				$categories['Permanently dropped — no replacement']['ids'],
+				"Permanently dropped third-party plugin $pluginId is not recorded under the matching category"
+			);
+		}
+
+		$this->assertSame(
+			1,
+			preg_match('/Elgg 2\.3 core per REQ-FR-PU-7:(.*?)(?=\n\s*\n|$)/s', $permanentlyDropped, $coreLine),
+			'Tech stack does not record the REQ-FR-PU-7 core drop list'
+		);
+		foreach ($this->commaList($coreLine[1]) as $pluginId) {
+			$this->assertContains(
+				$pluginId,
+				$categories['Legacy core drops']['ids'],
+				"Core drop $pluginId is not recorded under the matching category"
+			);
+		}
+
+		// Every tech-stack manual-upgrade candidate must appear under the
+		// manual-upgrade candidates category.
+		$manualInstalls = $this->techStackSection($techStack, 'Manual Installs');
+		$this->assertNotSame('', $manualInstalls, 'docs/tech_stack.md lacks a "Manual Installs" section');
+
+		$this->assertSame(
+			1,
+			preg_match('/Manual-upgrade candidates:(.*?)(?=\n-|\n\s*\n|$)/s', $manualInstalls, $candidatesLine),
+			'Tech stack does not record the manual-upgrade candidates list'
+		);
+		foreach ($this->commaList($candidatesLine[1]) as $pluginId) {
+			$this->assertContains(
+				$pluginId,
+				$categories['Manual-upgrade candidates']['ids'],
+				"Manual-upgrade candidate $pluginId is not recorded under the matching category"
+			);
+		}
+
+		// Every kept plugin must appear in the tech stack's bundled Elgg
+		// 7.1.0 plugin list (word-boundary match).
+		$bundled = $this->techStackSection($techStack, 'Bundled Elgg 7.1.0 Plugins');
+		$this->assertNotSame('', $bundled, 'docs/tech_stack.md lacks a "Bundled Elgg 7.1.0 Plugins" section');
+
+		foreach ($categories['Kept — bundled in Elgg 7.1.0']['ids'] as $pluginId) {
+			$this->assertSame(
+				1,
+				preg_match('/(?<![A-Za-z0-9_-])' . preg_quote($pluginId, '/') . '(?![A-Za-z0-9_-])/', $bundled),
+				"Kept plugin $pluginId is not in the tech stack's bundled Elgg 7.1.0 plugin list"
+			);
+		}
 	}
 }
