@@ -340,4 +340,67 @@ class DroppedPluginsDispositionTest extends \PHPUnit_Framework_TestCase
 			);
 		}
 	}
+
+	/**
+	 * Must Support: "Record explicit deferrals for plugins intentionally
+	 * kept until later sprint work"
+	 */
+	public function testExplicitDeferralsRecordTriggers()
+	{
+		$doc = $this->dispositionDoc();
+
+		// A Deferred category must exist, and its declared count must
+		// match its recorded rows.
+		$deferredBody = $this->categoryBody($doc, 'Deferred');
+		$this->assertNotSame('', $deferredBody, 'No "Deferred" category found');
+
+		$this->assertSame(
+			1,
+			preg_match('/^### Deferred \((\d+)\)/m', $deferredBody, $declared),
+			'Deferred category does not declare a count'
+		);
+		$rows = $this->tableRows($deferredBody);
+		$this->assertSame(
+			(int)$declared[1],
+			count($rows),
+			'Declared deferred count does not match the number of deferred rows'
+		);
+
+		// Every deferred plugin must record a non-empty trigger.
+		$deferred = array();
+		foreach ($rows as $row) {
+			$pluginId = $row[0];
+			$this->assertArrayHasKey(1, $row, "Deferred row for $pluginId lacks a trigger cell");
+			$this->assertNotSame('', $row[1], "Deferred plugin $pluginId records no trigger");
+			$deferred[$pluginId] = $row[1];
+		}
+
+		// The recorded deferrals must be present with their recorded
+		// triggers, cross-checked against docs/tech_stack.md.
+		$techStack = $this->techStackDoc();
+
+		$this->assertArrayHasKey('amap_coverphoto', $deferred, 'amap_coverphoto is not recorded as deferred');
+		$this->assertContains(
+			'Content migration then drop',
+			$techStack,
+			'Tech stack does not record the amap_coverphoto drop trigger'
+		);
+		$this->assertContains(
+			'migration',
+			strtolower($deferred['amap_coverphoto']),
+			'amap_coverphoto deferral does not reference the content migration'
+		);
+
+		$this->assertArrayHasKey('custom_index', $deferred, 'custom_index is not recorded as deferred');
+		$this->assertContains(
+			'S1.16',
+			$deferred['custom_index'],
+			'custom_index deferral does not reference Story S1.16'
+		);
+		$this->assertContains(
+			'REQ-FR-TR-1',
+			$techStack,
+			'Tech stack does not record the custom_index handling requirement'
+		);
+	}
 }
