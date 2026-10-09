@@ -60,17 +60,21 @@ RUN <<EOF
 if command -v apk >/dev/null 2>&1; then
     apk add --no-cache msmtp
 elif command -v apt-get >/dev/null 2>&1; then
-    # Workaround (Elgg 2.3 baseline only): the base image's apt lists pin
-    # gsasl 1.10.0-4+deb11u3, since pruned from the security pool, and the
-    # CDN keeps serving a stale Packages index that still lists it — the
-    # install 404s. security.debian.org and deb.debian.org front the same
-    # Fastly edge (same IP in the build logs), so the index is stale via
-    # either hostname; route the security suite through Debian's alternate
-    # CDN backend (cdn-aws.deb.debian.org, CloudFront) whose index matches
-    # the pool. Drop this with the legacy base image once the journey
-    # leaves 2.3.
+    # Workaround (Elgg 2.3 baseline only): the base image's baked-in apt
+    # lists pin gsasl 1.10.0-4+deb11u3, whose .deb has been pruned from
+    # the security pool — the install 404s. Repointing the suite at
+    # deb.debian.org and then cdn-aws.deb.debian.org (Fastly and
+    # CloudFront edges, distinct IPs in the build logs) still resolved
+    # the pruned version, so the security suite is unusable here
+    # regardless of index/pool sync state. Drop the security lines and
+    # their stale baked-in lists, then install from bullseye main, whose
+    # index and pool are self-consistent; the relay forgoes only the
+    # newest gsasl security patches, acceptable for this throwaway dev
+    # layer. Drop this whole workaround with the legacy base image once
+    # the journey leaves 2.3.
     if [ -f /etc/apt/sources.list ]; then
-        sed -i 's|http://security.debian.org|http://cdn-aws.deb.debian.org|g' /etc/apt/sources.list
+        sed -i '/security\.debian\.org/d' /etc/apt/sources.list
+        rm -f /var/lib/apt/lists/*security*
     fi
     apt-get update && apt-get install -y --no-install-recommends msmtp && rm -rf /var/lib/apt/lists/*
 else
