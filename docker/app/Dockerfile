@@ -47,3 +47,23 @@ printf '%s\n' \
 chmod 0755 /usr/local/bin/composer
 composer --version
 EOF
+
+# Outgoing-mail relay (Story S1.4 Step 3 duty check): the base image's
+# stock /usr/sbin/sendmail cannot deliver from inside the container, so
+# PHP mail() fails silently and uservalidationbyemail never reaches the
+# dev MailHog extension. Install msmtp; the repo-mounted php/mail.ini
+# points sendmail_path at it with host/port from the environment
+# (compose.yml app.environment defaults; .env.example documents both).
+# The base image's package manager is not pinned knowledge, so both
+# common families are handled — exactly one branch runs.
+RUN <<EOF
+if command -v apk >/dev/null 2>&1; then
+    apk add --no-cache msmtp
+elif command -v apt-get >/dev/null 2>&1; then
+    apt-get update && apt-get install -y --no-install-recommends msmtp && rm -rf /var/lib/apt/lists/*
+else
+    echo "unknown base image: no apk or apt-get found" >&2
+    exit 1
+fi
+msmtp --version
+EOF
