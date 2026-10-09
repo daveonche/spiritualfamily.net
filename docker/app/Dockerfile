@@ -60,6 +60,15 @@ RUN <<EOF
 if command -v apk >/dev/null 2>&1; then
     apk add --no-cache msmtp
 elif command -v apt-get >/dev/null 2>&1; then
+    # Workaround (Elgg 2.3 baseline only): the base image's apt lists pin
+    # gsasl 1.10.0-4+deb11u3, since pruned from the security.debian.org
+    # pool, and its CDN keeps serving the stale index — the install 404s.
+    # Point the security source at deb.debian.org (current index) before
+    # updating; a no-op on a rebuilt base image that already uses it.
+    # Drop this with the legacy base image once the journey leaves 2.3.
+    if [ -f /etc/apt/sources.list ]; then
+        sed -i 's|http://security.debian.org|http://deb.debian.org/debian-security|g' /etc/apt/sources.list
+    fi
     apt-get update && apt-get install -y --no-install-recommends msmtp && rm -rf /var/lib/apt/lists/*
 else
     echo "unknown base image: no apk or apt-get found" >&2
