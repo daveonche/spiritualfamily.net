@@ -345,6 +345,8 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			'MYSQL_HOST'    => 'dbm',
 			'PMA_HOST'      => 'dbm',
 			'ELGG_TIMEZONE' => 'UTC',
+			'MAIL_SMTP_HOST'=> 'host.docker.internal',
+			'MAIL_SMTP_PORT'=> '1025',
 		);
 
 		// Credential variables must be exactly the changeme placeholder

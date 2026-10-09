@@ -67,7 +67,7 @@ elif command -v apt-get >/dev/null 2>&1; then
     # updating; a no-op on a rebuilt base image that already uses it.
     # Drop this with the legacy base image once the journey leaves 2.3.
     if [ -f /etc/apt/sources.list ]; then
-        sed -i 's|http://security.debian.org|http://deb.debian.org/debian-security|g' /etc/apt/sources.list
+        sed -i 's|http://security.debian.org|http://deb.debian.org|g' /etc/apt/sources.list
     fi
     apt-get update && apt-get install -y --no-install-recommends msmtp && rm -rf /var/lib/apt/lists/*
 else
