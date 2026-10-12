@@ -140,4 +140,3 @@ blog, bookmarks, ckeditor, dashboard, data_views, developers, discussions, exter
 - Identify the Composer replacement package for widget_pack before Story S1.14.
 - Update `docs/tech_stack.md` (manual-upgrade candidates; widget_pack replacement) to mirror this list.
 - Confirm friend-request handling at Elgg 7 (bundled `friends` plugin coverage vs. a replacement) before Story S1.15; friend_request was a production-DB ghost with no directory in this repo.
-- Dev MailHog capture non-functional (found 2026-10-08 during Step 3 verification): Elgg 2.3 sends via PHP `mail()` → stock `/usr/sbin/sendmail`, nothing relays to the MailHog extension's SMTP endpoint (port 1025); fix the app image's sendmail routing so the email-validation duty check (and S1.7 email duties) can be verified.
