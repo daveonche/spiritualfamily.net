@@ -11,6 +11,9 @@
 #   declared metadata with `composer validate --strict`, independent of
 #   installation (nothing is downloaded). Manifest ↔ lock consistency is
 #   a separate dedicated check.
+# - composer-install: install dependencies from the committed lock file
+#   on the pinned runtime — exactly the locked versions, no
+#   re-resolution; a missing or unusable lock file fails the job.
 
 name: CI
 
@@ -109,6 +112,9 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Validate composer.json structure and declared metadata
+        # The manifest lives in src/ (src/composer.json), not at the
+        # checkout root.
+        working-directory: src
         run: |
           set -euo pipefail
           composer --version
@@ -119,3 +125,106 @@ jobs:
           # this repository is a project, not a published package.
           composer validate --strict --no-check-all --no-check-lock --no-check-publish --no-check-version
           echo "Dependency manifest validation passed."
+
+  composer-install:
+    name: Install dependencies from committed lock file
+    runs-on: ubuntu-latest
+    # Read-only job: explicit job-level override keeps the effective
+    # scope visible on top of the workflow-level baseline.
+    permissions:
+      contents: read
+    container:
+      # The pinned runtime (docs/baseline/baseline.md, PHP 7.4.27) — the
+      # same image as the runtime job. The composer:2.2.24 image runs a
+      # newer PHP, so it cannot host this check: config.platform.php
+      # pins the platform to 7.4.27, which that image does not satisfy.
+      image: php:7.4.27-cli
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Verify runtime matches the pinned baseline version
+        # config.platform.php would mask a drifted image tag, so assert
+        # the actual runtime version explicitly.
+        run: |
+          set -euo pipefail
+          actual="$(php -r 'echo PHP_VERSION;')"
+          expected="7.4.27"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::PHP runtime $actual does not match the pinned baseline version $expected (docs/baseline/baseline.md)"
+            exit 1
+          fi
+          echo "Pinned runtime confirmed: PHP $expected"
+
+      - name: Install platform extensions required by the manifest
+        # The manifest requires ext-gd; json/pdo/xml are bundled in the
+        # php CLI image. Platform checks stay enforced — no
+        # --ignore-platform-reqs anywhere below.
+        run: |
+          set -euo pipefail
+          apt-get update
+          apt-get install -y --no-install-recommends libpng-dev
+          docker-php-ext-install gd
+          php -m | grep -qi '^gd$'
+
+      - name: Install Composer 2.2.24 (SHA-384-verified installer)
+        # Same pinned version as the composer-validate job. The official
+        # installer is verified against the published installer signature
+        # before it may run; --version pins the composer release itself.
+        run: |
+          set -euo pipefail
+          expected="$(curl -fsS https://composer.github.io/installer.sig)"
+          curl -fsS https://getcomposer.org/installer -o /tmp/composer-setup.php
+          actual="$(php -r 'echo hash_file("sha384", "/tmp/composer-setup.php");')"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::Composer installer signature mismatch"
+            exit 1
+          fi
+          php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer --version=2.2.24
+          composer --version
+
+      - name: Guard — committed lock file must exist and be usable
+        # composer install without a lock file silently re-resolves
+        # fresh versions — the exact fallback this check forbids — so a
+        # missing or unusable lock must fail the job before install runs.
+        working-directory: src
+        run: |
+          set -euo pipefail
+          if [ ! -f composer.lock ]; then
+            echo "::error::composer.lock is missing in src/ — refusing to install: composer install would re-resolve fresh versions instead of using the committed lock file"
+            exit 1
+          fi
+          php -r '
+            $lock = json_decode(file_get_contents("composer.lock"), true);
+            if (!is_array($lock)) {
+                fwrite(STDERR, "::error::composer.lock is not usable: invalid JSON\n");
+                exit(1);
+            }
+            $count = 0;
+            foreach (["packages", "packages-dev"] as $key) {
+                if (isset($lock[$key]) && is_array($lock[$key])) {
+                    $count += count($lock[$key]);
+                }
+            }
+            if ($count === 0) {
+                fwrite(STDERR, "::error::composer.lock is not usable: empty package set\n");
+                exit(1);
+            }
+            echo "composer.lock usable: $count locked packages\n";
+          '
+
+      - name: Install dependencies exactly as locked
+        # Full install (dev deps included, post-install scripts run) —
+        # faithful to a developer's `composer install`. Composer reads
+        # the lock file and installs exactly those versions; the output
+        # assertion proves no re-resolution happened.
+        working-directory: src
+        run: |
+          set -euo pipefail
+          composer install --no-interaction --no-progress 2>&1 | tee /tmp/composer-install.log
+          if ! grep -q "from lock file" /tmp/composer-install.log; then
+            echo "::error::install output does not show lock-file-driven installation — refusing to trust a re-resolved dependency set"
+            exit 1
+          fi
+          echo "Installed versions (composer show --direct):"
+          composer show --direct
