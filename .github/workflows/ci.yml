@@ -194,6 +194,9 @@ jobs:
             echo "::error::composer.lock is missing in src/ — refusing to install: composer install would re-resolve fresh versions instead of using the committed lock file"
             exit 1
           fi
+          # The PHP script is intentionally single-quoted so the shell
+          # never expands its $variables — SC2016 is a false positive.
+          # shellcheck disable=SC2016
           php -r '
             $lock = json_decode(file_get_contents("composer.lock"), true);
             if (!is_array($lock)) {
