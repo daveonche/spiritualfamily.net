@@ -135,7 +135,7 @@ blog, bookmarks, ckeditor, dashboard, data_views, developers, discussions, exter
 - Manual Installs (manual-upgrade candidates, 17 recorded): all 17 appear under "Manual-upgrade candidates". elgg_file_viewer and hypeNotifications were added on 2026-09-26 per user decision, extending the recorded list; `docs/tech_stack.md` should be updated to stay in sync.
 - Content migration then drop: amap_coverphoto appears under "Deferred".
 - Bundled Elgg 7.1.0 plugins: the 25 kept plugins match the recorded bundled list plus data_views (re-dispositioned 2026-10-08, Composer-managed); custom_index is excluded (deferred to S1.16 per REQ-FR-TR-1).
-- Count reconciliation: 11 + 6 + 19 + 15 + 8 + 2 + 25 = 86 (85 legacy production plugins + the friend_request DB ghost). This repo's `src/mod` carries 27 directories after the Step 2–3 removals; the rest exist only in the legacy production webroot or database.
+- Count reconciliation: 11 + 6 + 19 + 15 + 8 + 2 + 25 = 86 = plugin directories (85 legacy production plugins + the friend_request DB ghost). Declared disposition scope — the legacy production platform's `src/mod` (86 total): this repo actually held 40 of the listed directories at the start of S1.4 and carries 27 after the Step 2–3 removals; the rest exist only in the legacy production webroot or database.
 
 ## Open Items Carried Forward
 
