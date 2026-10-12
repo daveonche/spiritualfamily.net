@@ -7,6 +7,10 @@
 #   single source of truth.
 # - runtime: verify the pipeline executes on the single pinned runtime
 #   version recorded in docs/baseline/baseline.md (PHP 7.4.27).
+# - composer-validate: validate the dependency manifest's structure and
+#   declared metadata with `composer validate --strict`, independent of
+#   installation (nothing is downloaded). Manifest ↔ lock consistency is
+#   a separate dedicated check.
 
 name: CI
 
@@ -45,14 +49,14 @@ jobs:
           if [ "$EVENT_NAME" = "pull_request" ]; then
             # PR: validate every commit the pull request introduces
             # (the merge commit itself is hook-exempt: "Merge ...")
-            git log --format=%s "origin/$BASE_REF".."$HEAD_SHA" > /tmp/subjects.txt
+            git log --format=%s "origin/$BASE_REF..$HEAD_SHA" > /tmp/subjects.txt
           elif [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
             # New branch or rewritten history: BEFORE_SHA is all-zero or no
             # longer resolves — validate every commit not on any remote ref
             git log --format=%s "$HEAD_SHA" --not --remotes > /tmp/subjects.txt
           else
             # Push to an existing branch: validate exactly the pushed range
-            git log --format=%s "$BEFORE_SHA".."$HEAD_SHA" > /tmp/subjects.txt
+            git log --format=%s "$BEFORE_SHA..$HEAD_SHA" > /tmp/subjects.txt
           fi
 
           status=0
@@ -87,3 +91,31 @@ jobs:
             exit 1
           fi
           echo "Pinned runtime confirmed: PHP $expected"
+
+  composer-validate:
+    name: Validate dependency manifest (composer.json)
+    runs-on: ubuntu-latest
+    # Read-only job: explicit job-level override keeps the effective
+    # scope visible on top of the workflow-level baseline.
+    permissions:
+      contents: read
+    container:
+      # Composer 2.2 LTS line — the composer line compatible with the
+      # PHP 7.4 baseline era — at an exact tag. Validation is local
+      # only: no dependency download, no install step.
+      image: composer:2.2.24
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Validate composer.json structure and declared metadata
+        run: |
+          set -euo pipefail
+          composer --version
+          # --strict: any warning fails the job, so a failed validation
+          # marks the whole pipeline failed.
+          # Lock-related and publish/version checks are out of scope here:
+          # manifest ↔ lock consistency is a separate dedicated check, and
+          # this repository is a project, not a published package.
+          composer validate --strict --no-check-all --no-check-lock --no-check-publish --no-check-version
+          echo "Dependency manifest validation passed."
