@@ -1,6 +1,12 @@
-# CI: enforce the commit-msg hook on every pushed/PR commit so client-side
-# bypasses (--no-verify, unwired hooks) cannot land non-conforming subjects.
-# The hook script .githooks/commit-msg is the single source of truth.
+# CI pipeline.
+#
+# Jobs:
+# - commit-msg: enforce the commit-msg hook on every pushed/PR commit so
+#   client-side bypasses (--no-verify, unwired hooks) cannot land
+#   non-conforming subjects. The hook script .githooks/commit-msg is the
+#   single source of truth.
+# - runtime: verify the pipeline executes on the single pinned runtime
+#   version recorded in docs/baseline/baseline.md (PHP 7.4.27).
 
 name: CI
 
@@ -58,3 +64,26 @@ jobs:
             fi
           done < /tmp/subjects.txt
           exit "$status"
+
+  runtime:
+    name: Pinned runtime verification (PHP 7.4.27)
+    runs-on: ubuntu-latest
+    container:
+      # Single pinned runtime version from docs/baseline/baseline.md
+      # (Pinned Versions: PHP runtime 7.4.27). The project's own app image
+      # is built locally and not registry-published, so CI uses the official
+      # php image tagged at the exact pinned version; the version assertion
+      # below guards against tag drift.
+      image: php:7.4.27-cli
+    steps:
+      - name: Verify runtime matches the pinned baseline version
+        run: |
+          set -euo pipefail
+          php -v
+          actual="$(php -r 'echo PHP_VERSION;')"
+          expected="7.4.27"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::PHP runtime $actual does not match the pinned baseline version $expected (docs/baseline/baseline.md)"
+            exit 1
+          fi
+          echo "Pinned runtime confirmed: PHP $expected"
