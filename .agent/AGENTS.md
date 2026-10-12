@@ -94,11 +94,14 @@ task touches. Before creating or editing any file, check this mapping:
 | `AGENTS.md` files | `.agent/specs/AFM.md` |
 | `*.md` documentation | `.agent/specs/references/github-flavored-markdown.md` |
 | `SKILL.md` prompt files | `.agent/specs/references/agent-skills.md` |
+| Creating or improving an agent skill (drafting, evals, benchmarking, description optimization) | `.agent/specs/skill-creator/SKILL.md` |
 | `Dockerfile*`, `*.dockerfile`, or `.dockerignore` | `.agent/specs/docker/SKILL.md` |
 | `compose.yml`, `compose.yaml`, `docker-compose*.yml`/`*.yaml`, or any Compose file | `.agent/specs/docker/SKILL.md` |
 | Docker/Compose project layout or command execution: compose file placement, `docker/<service>/` build contexts, `.log/<service>.log` logs, in-container commands | `.agent/specs/docker/SKILL.md` |
 | A framework identified by Project Framework Detection | The matching framework pack's `SKILL.md` in `.agent/specs/` (e.g., `elgg/SKILL.md`, `rails/SKILL.md`) |
+| `*.php` files or PHP language-level guidance (also linked from framework packs' Language pack sections) | `.agent/specs/php-best-practices/SKILL.md` |
 | Creating or editing anything under `.agent/specs/` (packs, `SKILL.md`, `SKILL.meta.md`, `rules/`, pack `references/`) | `.agent/specs/references/spec-pack-standard.md` |
+| Creating or editing anything under `.agent/workflows/` (`SKILL.md`, `SKILL.meta.md`, `references/`) | `.agent/specs/references/workflow-pack-standard.md` |
 
 Routing rules:
 
@@ -282,6 +285,22 @@ interactive pager that swallows or truncates output (e.g., `git grep`
 over many files), wasting a round-trip and losing the evidence.
 Example: `git --no-pager grep -n "pattern" -- tests/`, never bare
 `git grep ...`.
+
+**Log redirect for verbose output (hard rule):** Any command that can
+flood the context (builds, test suites, dependency installs, log dumps)
+MUST redirect all output into the gitignored `.log/` directory and emit
+only a status line, grepping a short failure tail from the log on
+failure instead of letting raw output enter context. Always prefix the
+redirect with `mkdir -p .log &&` so it cannot fail on a missing
+directory. Pattern:
+
+```bash
+mkdir -p .log && [command] > .log/[name].log 2>&1 && echo OK || { echo FAILED; grep -nE "ERROR|E: |404" .log/[name].log | tail -n 20; }
+```
+
+Replace `[command]` and `[name]` with the actual values; the `OK`/`FAILED`
+status line (plus at most the grep tail on failure) is the only output
+that enters context.
 
 When asking the user to run verification commands, output each command
 in a fenced code block tagged with a shell language (for example, `bash`),

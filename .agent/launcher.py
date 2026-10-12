@@ -523,6 +523,22 @@ PROJECT_ARGS_TEMPLATE = """\
 #   --lint-cmd
 #   ruff check .
 #
+# Multi-value options — repeat the flag once per value; entries
+# accumulate with the assistant's own defaults (--read adds to the
+# read-only files the launcher already passes, such as
+# .agent/AGENTS.md; it does not replace them):
+#
+#   --read
+#   docs/architecture.md
+#   --read
+#   docs/conventions.md
+#
+# Positional file arguments (files opened for editing) are bare paths
+# with no flag, one per line:
+#
+#   src/main.py
+#   src/util.py
+#
 # File overrides — replace the assistant's own file entirely, so use them
 # only when this project genuinely needs extra or different
 # configurations; otherwise leave them commented out so the assistant's

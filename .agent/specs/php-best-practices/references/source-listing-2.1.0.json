@@ -1,0 +1,25 @@
+{
+  "pack": "php-best-practices",
+  "upstream": {
+    "repository": "https://github.com/AsyrafHussin/agent-skills",
+    "path": "skills/php-best-practices",
+    "commit": "1aa0ff717c10309226c9e678f00873976450fd76",
+    "skill_version": "2.1.0",
+    "php_version": "8.0 - 8.5",
+    "date": "March 2026",
+    "license": "MIT"
+  },
+  "distillation": {
+    "date": "2026-10-11",
+    "rules_total": 51,
+    "categories": [
+      {"name": "Type System", "prefix": "type", "impact": "CRITICAL", "rules": 9},
+      {"name": "Modern PHP Features", "prefix": "modern", "impact": "CRITICAL", "rules": 16},
+      {"name": "PSR Standards", "prefix": "psr", "impact": "HIGH", "rules": 6},
+      {"name": "SOLID Principles", "prefix": "solid", "impact": "HIGH", "rules": 5},
+      {"name": "Error Handling", "prefix": "error", "impact": "HIGH", "rules": 5},
+      {"name": "Performance", "prefix": "perf", "impact": "MEDIUM", "rules": 5},
+      {"name": "Security", "prefix": "sec", "impact": "CRITICAL", "rules": 5}
+    ]
+  }
+}

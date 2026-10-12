@@ -39,11 +39,22 @@ below govern what it contains.
 1. Confirm Elgg is the detected framework (Project Framework Detection).
 2. Determine the site's Elgg version from the `elgg/elgg` constraint in
    `composer.json` or `composer.lock`.
-3. For any upgrade task or work crossing a version boundary, load
-   `references/upgrading.md` via `/read-only` first, then the matching
-   `references/upgrade-notes/<from>-to-<to>.md` file for each boundary
-   crossed.
-4. Load only the rule files the current task touches (index below).
+3. Before using any `rules/` topic, run the documentation freshness
+   check: compare the distilled version recorded in
+   `references/source-listing-7.1.json` against the latest stable
+   Elgg release. If a newer stable release exists, always prompt the
+   user to update to that release's source listing JSON (e.g.,
+   `references/source-listing-<new>.json`) and refresh the affected
+   `references/upgrade-notes/` and `rules/` files before relying on
+   them.
+4. `rules/` topics apply only to the latest stable version recorded
+   in the source listing. If the site runs a legacy version, do not
+   apply `rules/` topics to it: load `references/upgrading.md` via
+   `/read-only` and the matching
+   `references/upgrade-notes/<from>-to-<to>.md` for each boundary
+   crossed, upgrade the site to the latest stable version first, and
+   only then use `rules/` topics.
+5. Load only the rule files the current task touches (index below).
 
 ## Rules index
 
@@ -95,6 +106,11 @@ PHP), load `.agent/specs/php-best-practices/SKILL.md` via `/read-only`.
   `references/upgrading.md`.
 - `references/upgrade-notes/` drives `rules/` updates: when a note
   changes, update the affected rule files in the same change.
+- `rules/` topics apply only to the latest stable version recorded in
+  `references/source-listing-7.1.json`; run the freshness check
+  (Before advising, step 3) before relying on any rule, and route
+  legacy versions through `references/upgrade-notes/` to upgrade
+  first (Before advising, step 4).
 
 ## How to use
 

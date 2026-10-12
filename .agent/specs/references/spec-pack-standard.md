@@ -71,6 +71,21 @@ file; increment Version and Last Updated after `SKILL.md` changes.
 - Empty `rules/` or `references/` directories are kept in git with a
   `.gitkeep` file; remove it when the first content file lands.
 
+## Source freshness
+
+A pack distilled from upstream documentation must keep a
+machine-readable provenance manifest under its `references/` (e.g.,
+`source-listing-<version>.json`) naming the upstream version the
+distillation covers. Its `SKILL.md` before-advising steps must include
+a freshness check: before using any `rules/` topic, compare the
+manifest's version against the latest stable upstream release; if a
+newer stable exists, prompt to fetch that release's source listing and
+refresh the affected `references/upgrade-notes/` and `rules/` files
+before relying on them. `rules/` topics apply only to the latest
+stable version the manifest records; the pack must direct
+legacy-version work to its upgrade notes to upgrade to the latest
+stable before any `rules/` topic is used.
+
 ## Adding a pack
 
 1. Create `<pack>/` with `SKILL.md`, `SKILL.meta.md`, `rules/`, and
@@ -79,7 +94,9 @@ file; increment Version and Last Updated after `SKILL.md` changes.
    `SKILL.md`.
 3. Framework packs link their language pack (for example, Elgg links
    `php-best-practices/SKILL.md`).
-4. Run `python3 -m pytest tests/test_s4_2_step1.py`.
+4. If the pack distills upstream documentation, add the provenance
+   manifest and freshness check per Source freshness.
+5. Run `python3 -m pytest tests/test_s4_2_step1.py`.
 
 ## Migrating a flat file
 

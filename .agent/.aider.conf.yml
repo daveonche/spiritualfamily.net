@@ -96,7 +96,7 @@ dark-mode: true
 #stream: true
 
 ## Show diffs when committing changes (default: False)
-show-diffs: true
+# show-diffs: true
 
 ###############
 # Git settings:
