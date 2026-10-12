@@ -82,7 +82,8 @@ thewire (CF-5), tagcloud (CF-9), search (CF-10), likes (CF-11), groups (CMF-1),
 members (CMF-2), invitefriends (CMF-3), messages (CMF-4), site_notifications (PS-2),
 uservalidationbyemail (PS-3), reportedcontent (PS-6), web_services (PS-7), developers (DAT-1),
 custom_index (deactivate or override per REQ-FR-TR-1), activity, dashboard, file, friends,
-friends_collections, garbagecollector, messageboard, pages, profile, system_log, theme_sandbox.
+friends_collections, garbagecollector, messageboard, pages, profile, system_log, theme_sandbox,
+data_views (PS-8; Composer-managed, elgg/data_views 1.0.0 — re-dispositioned to kept 2026-10-08).
 Core notifications service covers PS-1.
 
 ## Manual Installs (no Packagist package; versions recorded at install time)

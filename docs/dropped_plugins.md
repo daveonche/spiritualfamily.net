@@ -124,8 +124,6 @@ No action; activated at Elgg 7 in Story S1.15.
 
 blog, bookmarks, ckeditor, dashboard, data_views, developers, discussions, externalpages, file, garbagecollector, groups, invitefriends, likes, members, messageboard, messages, pages, profile, reportedcontent, search, site_notifications, tagcloud, thewire, uservalidationbyemail, web_services
 
-`data_views` was re-dispositioned from "Composer replacement at Elgg 7" to kept on 2026-10-08: it is Composer-managed (`elgg/data_views 1.0.0`, a dependency of `elgg/elgg` itself), already pinned in `src/composer.json`/`src/composer.lock` and installed at `src/mod/data_views` — removing the directory would be undone by the next `composer install`. Story S1.14 re-pins it at Elgg 7.
-
 ## Cross-Check Against docs/tech_stack.md
 
 - Permanently Dropped (third-party, 14 recorded): all 14 appear under "Permanently dropped — no replacement" with matching disposition.
@@ -134,7 +132,7 @@ blog, bookmarks, ckeditor, dashboard, data_views, developers, discussions, exter
 - Manual Installs (required features): sbw_campaigns, videos, faq, tidypics, views_counter, captcha all appear under "Manual reinstall in a later sprint".
 - Manual Installs (manual-upgrade candidates, 17 recorded): all 17 appear under "Manual-upgrade candidates". elgg_file_viewer and hypeNotifications were added on 2026-09-26 per user decision, extending the recorded list; `docs/tech_stack.md` should be updated to stay in sync.
 - Content migration then drop: amap_coverphoto appears under "Deferred".
-- Bundled Elgg 7.1.0 plugins: the 25 kept plugins match the recorded bundled list plus data_views (re-dispositioned 2026-10-08, Composer-managed); custom_index is excluded (deferred to S1.16 per REQ-FR-TR-1).
+- Bundled Elgg 7.1.0 plugins: the 25 kept plugins match the recorded bundled list; custom_index is excluded (deferred to S1.16 per REQ-FR-TR-1). `data_views` was re-dispositioned from "Composer replacement at Elgg 7" to kept on 2026-10-08: it is Composer-managed (`elgg/data_views 1.0.0`, a dependency of `elgg/elgg` itself), already pinned in `src/composer.json`/`src/composer.lock` and installed at `src/mod/data_views` — removing the directory would be undone by the next `composer install`; Story S1.14 re-pins it at Elgg 7.
 - Count reconciliation: 11 + 6 + 19 + 15 + 8 + 2 + 25 = 86 = plugin directories (85 legacy production plugins + the friend_request DB ghost). Declared disposition scope — the legacy production platform's `src/mod` (86 total): this repo actually held 40 of the listed directories at the start of S1.4 and carries 27 after the Step 2–3 removals; the rest exist only in the legacy production webroot or database.
 
 ## Open Items Carried Forward
