@@ -14,6 +14,9 @@
 # - composer-install: install dependencies from the committed lock file
 #   on the pinned runtime — exactly the locked versions, no
 #   re-resolution; a missing or unusable lock file fails the job.
+# - php-lint: scan the project's own source (src/, excluding
+#   src/vendor/) for PHP syntax errors with `php -l` on the pinned
+#   runtime; any syntax error fails the pipeline and names the file.
 
 name: CI
 
@@ -231,3 +234,60 @@ jobs:
           fi
           echo "Installed versions (composer show --direct):"
           composer show --direct
+
+  php-lint:
+    name: PHP syntax lint (src/, excluding vendor)
+    runs-on: ubuntu-latest
+    # Read-only job: explicit job-level override keeps the effective
+    # scope visible on top of the workflow-level baseline.
+    permissions:
+      contents: read
+    container:
+      # The pinned runtime (docs/baseline/baseline.md, PHP 7.4.27).
+      # Syntax rules are PHP-version-dependent, so the lint must run on
+      # the exact pinned version — a drifted image tag would silently
+      # change what "valid syntax" means. `php -l` needs no extra
+      # extensions, so no apt/gd step is required here.
+      image: php:7.4.27-cli
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Verify runtime matches the pinned baseline version
+        # Same explicit assertion as composer-install: guard against a
+        # drifted image tag changing what "valid syntax" means.
+        run: |
+          set -euo pipefail
+          actual="$(php -r 'echo PHP_VERSION;')"
+          expected="7.4.27"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::PHP runtime $actual does not match the pinned baseline version $expected (docs/baseline/baseline.md)"
+            exit 1
+          fi
+          echo "Pinned runtime confirmed: PHP $expected"
+
+      - name: Lint project source for syntax errors
+        # Scope: the project's own source (src/), excluding vendored
+        # third-party code (src/vendor/). Passing files stay silent;
+        # failures are collected and printed with php -l's own file+line
+        # message, then the job fails — any syntax error fails the
+        # pipeline and the output names the offending file.
+        run: |
+          set -euo pipefail
+          mapfile -d '' files < <(find src -type f -name '*.php' -not -path 'src/vendor/*' -print0)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::no PHP files found under src/ (excluding src/vendor/) — check the lint scope"
+            exit 1
+          fi
+          failures=0
+          for file in "${files[@]}"; do
+            if ! output="$(php -l "$file" 2>&1)"; then
+              echo "$output"
+              failures=$((failures + 1))
+            fi
+          done
+          if [ "$failures" -gt 0 ]; then
+            echo "::error::$failures of ${#files[@]} PHP files failed the syntax check"
+            exit 1
+          fi
+          echo "Syntax lint passed: ${#files[@]} PHP files checked, 0 errors."
