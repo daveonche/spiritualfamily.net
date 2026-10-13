@@ -14,6 +14,10 @@
 # - composer-install: install dependencies from the committed lock file
 #   on the pinned runtime — exactly the locked versions, no
 #   re-resolution; a missing or unusable lock file fails the job.
+# - composer-lock-consistency: enforce composer.json ↔ composer.lock
+#   consistency with `composer validate --strict` (lock check enabled);
+#   any divergence between the manifest and the lock file fails the
+#   pipeline — never a warning.
 # - php-lint: scan the project's own source (src/, excluding
 #   src/vendor/) for PHP syntax errors with `php -l` on the pinned
 #   runtime; any syntax error fails the pipeline and names the file.
@@ -234,6 +238,42 @@ jobs:
           fi
           echo "Installed versions (composer show --direct):"
           composer show --direct
+
+  composer-lock-consistency:
+    name: Enforce composer.json ↔ composer.lock consistency
+    runs-on: ubuntu-latest
+    # Read-only job: explicit job-level override keeps the effective
+    # scope visible on top of the workflow-level baseline.
+    permissions:
+      contents: read
+    container:
+      # Same pinned image as composer-validate: the check is local-only
+      # (content-hash comparison — no dependency download, no install).
+      image: composer:2.2.24
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Fail on any manifest ↔ lock file divergence
+        # The lock check is deliberately ENABLED here (no --no-check-lock,
+        # unlike composer-validate): Composer compares the lock file's
+        # content-hash against the manifest locally and reports divergence
+        # as a warning — --strict turns that warning into a hard failure,
+        # so any divergence fails the pipeline rather than producing a
+        # warning. A missing lock file fails the same way ("No lock file
+        # found"). The ::error:: names the mismatched pair and the fix.
+        working-directory: src
+        run: |
+          set -euo pipefail
+          composer --version
+          if output="$(composer validate --strict --no-check-all --no-check-publish --no-check-version 2>&1)"; then
+            echo "$output"
+            echo "composer.json ↔ composer.lock are consistent."
+          else
+            echo "$output"
+            echo "::error::composer.json and composer.lock have diverged — the lock file is not up to date with the manifest. Run 'composer update' (metadata-only changes: 'composer update --lock') in src/ and commit the refreshed composer.lock."
+            exit 1
+          fi
 
   php-lint:
     name: PHP syntax lint (src/, excluding vendor)
