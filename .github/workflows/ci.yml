@@ -1,10 +1,11 @@
 # CI pipeline.
 #
 # Jobs:
-# - commit-msg: enforce the commit-msg hook on every pushed/PR commit so
-#   client-side bypasses (--no-verify, unwired hooks) cannot land
-#   non-conforming subjects. The hook script .githooks/commit-msg is the
-#   single source of truth.
+# - commit-msg: enforce Conventional Commits subjects on every pushed/PR
+#   commit so client-side bypasses (--no-verify, unwired hooks) cannot
+#   land non-conforming subjects. The check is inlined here and mirrors
+#   the local .agent/githooks/commit-msg hook, which stays a local-only
+#   dev tool and is intentionally not committed.
 # - runtime: verify the pipeline executes on the single pinned runtime
 #   version recorded in docs/baseline/baseline.md (PHP 7.4.27).
 # - composer-validate: validate the dependency manifest's structure and
@@ -34,9 +35,17 @@ on:
 permissions:
   contents: read
 
+# Pin the step shell: in container jobs the runner's default-shell
+# detection can fall back to sh (dash), which rejects `set -o pipefail`
+# and bash-only builtins. Explicit bash runs steps with -eo pipefail, so
+# every run step gets fail-fast + pipefail semantics on every job.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   commit-msg:
-    name: Enforce commit-msg hook
+    name: Enforce Conventional Commits subjects
     runs-on: ubuntu-latest
     steps:
       # Full history is genuinely required: the push range and the
@@ -47,7 +56,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate commit subjects with .githooks/commit-msg
+      - name: Validate commit subjects (Conventional Commits)
         env:
           EVENT_NAME: ${{ github.event_name }}
           BEFORE_SHA: ${{ github.event.before }}
@@ -69,11 +78,34 @@ jobs:
             git log --format=%s "$BEFORE_SHA..$HEAD_SHA" > /tmp/subjects.txt
           fi
 
+          # Inline Conventional Commits check — same rules as the local
+          # .agent/githooks/commit-msg hook (local-only dev tool, not
+          # committed): git-generated exemptions, SEARCH/REPLACE
+          # edit-block rejection, 72-char subject cap, plain-text rule,
+          # and the type(scope): summary format. CI validates subjects
+          # (git log --format=%s); the hook's whole-body grep is local.
+          re='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9_/-]+\))?!?: .+'
+
           status=0
           while IFS= read -r subject; do
-            printf '%s\n' "$subject" > /tmp/commit-msg.txt
-            if ! bash .githooks/commit-msg /tmp/commit-msg.txt; then
-              echo "::error::commit subject rejected by .githooks/commit-msg: $subject"
+            # Git-generated subjects are exempt (same list as the hook)
+            case "$subject" in
+              "Merge "*|"fixup! "*|"squash! "*|'Revert "'*) continue ;;
+            esac
+            reason=""
+            if [ -z "$subject" ]; then
+              reason="commit message is empty"
+            elif printf '%s\n' "$subject" | grep -qE '^<<<<<<< SEARCH|^>>>>>>> REPLACE'; then
+              reason="subject embeds a SEARCH/REPLACE edit block; write a prose commit message instead"
+            elif [ "${#subject}" -gt 72 ]; then
+              reason="subject is ${#subject} characters (max 72)"
+            elif case "$subject" in *'"'*|*'`'*) true ;; *) false ;; esac; then
+              reason="subject must be plain text: no double quotes or backticks"
+            elif [[ ! "$subject" =~ $re ]]; then
+              reason="subject must be 'type(scope): summary'; allowed types: build chore ci docs feat fix perf refactor revert style test"
+            fi
+            if [ -n "$reason" ]; then
+              echo "::error::$reason: $subject"
               status=1
             fi
           done < /tmp/subjects.txt

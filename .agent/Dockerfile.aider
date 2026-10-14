@@ -140,6 +140,29 @@ RUN case "${TARGETARCH}" in \
     install -m 0755 /tmp/actionlint/actionlint /usr/local/bin/actionlint && \
     rm -rf /tmp/actionlint /tmp/actionlint.tar.gz
 
+# ---- Layer D2c: GitHub CLI (gh) ---------------------------------------------
+# Version-pinned; the tarball is verified against the release's published
+# checksums.txt BEFORE extraction, so a corrupted or replaced asset fails
+# the build instead of installing as root. TARGETARCH (declared in Layer
+# D2) maps to the gh release asset arch (amd64/arm64/armv6). To hard-pin
+# like ShellCheck/actionlint above: fetch gh_${GH_VERSION}_checksums.txt
+# once and bake the three hashes into GH_SHA256_* ARGs. To upgrade: bump
+# GH_VERSION (check https://github.com/cli/cli/releases for the current
+# release).
+ARG GH_VERSION=2.63.2
+RUN case "${TARGETARCH}" in \
+        arm64) GH_ARCH=arm64 ;; \
+        arm) GH_ARCH=armv6 ;; \
+        *) GH_ARCH=amd64 ;; \
+    esac && \
+    curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_checksums.txt" -o /tmp/gh_checksums.txt && \
+    curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${GH_ARCH}.tar.gz" -o /tmp/gh.tar.gz && \
+    expected="$(grep "gh_${GH_VERSION}_linux_${GH_ARCH}.tar.gz" /tmp/gh_checksums.txt | cut -d ' ' -f 1)" && \
+    echo "${expected}  /tmp/gh.tar.gz" | sha256sum -c - && \
+    tar -xzf /tmp/gh.tar.gz -C /tmp && \
+    install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${GH_ARCH}/bin/gh" /usr/local/bin/gh && \
+    rm -rf "/tmp/gh_${GH_VERSION}_linux_${GH_ARCH}" /tmp/gh.tar.gz /tmp/gh_checksums.txt
+
 # ---- Layer D3: pytest testing dependency (pip) ------------------------------
 # pytest pinned to match .agent/pyproject.toml (8.3.5) so the container's
 # /venv interpreter can run the project's test suite exactly like the host.
