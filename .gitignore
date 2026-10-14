@@ -64,8 +64,6 @@ Desktop.ini
 
 # agent workflow / orchestration context (dev-only, install from source repo)
 .agent/
-agent.sh
-.githooks/
 
 # ------------------------------------------------------------------
 # plugins (tracked intentionally — add exclusions here if needed)
