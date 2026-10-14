@@ -43,6 +43,9 @@ services:
       - ./.env.example:/var/www/.env.example:ro
       # .gitignore — verifies the .env ignore rule (Story S1.2 Step 6 test)
       - ./.gitignore:/var/www/.gitignore:ro
+      # Mount the CI workflow read-only so unit tests can verify the
+      # pipeline definition (Story S1.5 Step 1 test)
+      - ./.github/workflows/ci.yml:/var/www/.github/workflows/ci.yml:ro
       # Persist dataroot
       - fs-dataroot:${WWW_DATA:-/var/www/dataroot}
       # Persist cacheroot
