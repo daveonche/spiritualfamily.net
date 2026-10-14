@@ -209,7 +209,10 @@ jobs:
         # Pin apt to a snapshot.debian.org timestamp instead: index and
         # pool are frozen together and can never disagree. To refresh:
         # pick a new timestamp, verify its three InRelease URLs return
-        # 200, and update the snapshot variable below.
+        # 200, and update the snapshot variable below. snapshot.debian.org
+        # rate-limits per request (503), so apt gets per-fetch retries
+        # (Acquire::Retries) on top of the outer loop, and every failed
+        # attempt prints apt's error lines instead of hiding them.
         run: |
           set -euo pipefail
           snapshot='20250601T000000Z'
@@ -218,21 +221,30 @@ jobs:
           deb https://snapshot.debian.org/archive/debian/${snapshot}/ bullseye-updates main
           deb https://snapshot.debian.org/archive/debian-security/${snapshot}/ bullseye-security main
           EOF
+          # Per-fetch retries: snapshot 503 rate limits are per-request,
+          # so retrying each individual fetch (InRelease, Packages, .deb)
+          # absorbs them far better than coarse outer-loop retries.
+          apt_opts=(-o Acquire::Retries=8)
+          log=/tmp/apt-gd.log
           gd_deps_installed=1
-          for attempt in 1 2 3; do
-            if apt-get update && apt-get install -y --no-install-recommends libpng-dev; then
+          for attempt in 1 2 3 4 5; do
+            : > "$log"
+            if apt-get "${apt_opts[@]}" update >>"$log" 2>&1 \
+               && apt-get "${apt_opts[@]}" install -y --no-install-recommends libpng-dev >>"$log" 2>&1; then
               gd_deps_installed=0
               break
             fi
-            if [ "$attempt" -lt 3 ]; then
-              echo "apt attempt ${attempt}/3 failed against the pinned snapshot — retrying (snapshot rate limits are transient)"
-              sleep $((attempt * 20))
+            echo "apt attempt ${attempt}/5 failed against the pinned snapshot — error lines:"
+            grep -E '^(E:|W:|Err:)' "$log" | tail -n 10 || tail -n 10 "$log"
+            if [ "$attempt" -lt 5 ]; then
+              sleep $((attempt * 30))
             fi
           done
           if [ "$gd_deps_installed" -ne 0 ]; then
-            echo "::error::apt-get install libpng-dev failed after 3 attempts against snapshot.debian.org@${snapshot}"
+            echo "::error::apt failed after 5 attempts against snapshot.debian.org@${snapshot} — see the E:/Err: lines above for the real cause (503 rate limit vs TLS vs missing https method)"
             exit 1
           fi
+          echo "libpng-dev installed from snapshot.debian.org@${snapshot}"
           docker-php-ext-install gd
           php -m | grep -qi '^gd$'
 
