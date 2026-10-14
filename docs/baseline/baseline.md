@@ -41,6 +41,19 @@ documents every required variable with placeholder values and no real
 secrets; copy it to `.env` and supply real values locally. `.env` is
 git-ignored, so real secrets never enter the repository.
 
+## Base-Image Digest Pins
+
+Digest pins for the app image build chain (`docker/app/Dockerfile`),
+resolved 2026-10-14 with `docker buildx imagetools inspect <name:tag>`:
+
+| Base image | Digest (sha256) | Enforcement |
+| --- | --- | --- |
+| `composer:2` | `af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac` | Hard-pinned inline in the Dockerfile (`FROM composer:2@sha256:<digest>`); the stage only contributes the Composer phar and is version-agnostic, so a hard pin is safe |
+| Runtime webserver base (tag per Pinned Versions above) | `6ce84d10cfe10c10d7c1f12bfc53b13415785a1df0296970b8a8bf58e48573d5` | The Dockerfile FROM stays tag-pinned so `PHP_VERSION` overrides keep working — in a `name:tag@digest` reference the digest wins over the tag — and the CI `image-build` job verifies the pulled tag against this digest, failing the pipeline on upstream tag movement |
+
+Re-resolve both digests after an intentional base refresh and update the
+Dockerfile pin and the CI workflow together.
+
 ## Cross-Check Notes
 
 - The repository-root `composer.json` was overwritten in a previous session and

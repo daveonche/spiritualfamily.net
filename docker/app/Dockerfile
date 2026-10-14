@@ -20,14 +20,28 @@
 # into an empty named volume) inherits the correct ownership. Do not
 # add mkdir/chown here; a base-image change must preserve this.
 #
-# TODO: pin base-image digests before relying on this in CI — resolve with:
-#   docker buildx imagetools inspect composer:2
-#   docker buildx imagetools inspect coldtrick/elgg_webserver:7.4
-# then change both FROM lines to <tag>@sha256:<digest>.
+# Base-image digest pins (resolved 2026-10-14 with `docker buildx
+# imagetools inspect <name:tag>`; also recorded in
+# docs/baseline/baseline.md, Base-Image Digest Pins):
+# - composer:2 is pinned inline below (tag@sha256:<digest>). The digest
+#   addresses an OCI image index; Docker resolves the runner platform's
+#   manifest from it at pull time. This stage only contributes the
+#   Composer phar and is version-agnostic, so a hard pin is safe here.
+# - The runtime base stays tag-pinned (FROM ...:${PHP_VERSION}): in a
+#   `name:tag@digest` reference the digest wins over the tag, so a
+#   hard-coded 7.4 digest would silently pin every PHP_VERSION override
+#   to 7.4 content — breaking the version-pair-agnostic build (S1.2).
+#   The per-step pinned tag (recorded in docs/baseline/baseline.md) is
+#   the runtime pin; CI's image-build job additionally verifies the tag
+#   resolves to the recorded digest
+#   sha256:6ce84d10cfe10c10d7c1f12bfc53b13415785a1df0296970b8a8bf58e48573d5
+#   and fails the pipeline on upstream tag movement. Re-resolve after an
+#   intentional base refresh with:
+#   docker buildx imagetools inspect coldtrick/elgg_webserver:<tag>
 
 ARG PHP_VERSION=7.4
 
-FROM composer:2 AS composer
+FROM composer:2@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac AS composer
 
 FROM coldtrick/elgg_webserver:${PHP_VERSION}
 

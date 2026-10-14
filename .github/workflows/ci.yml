@@ -25,6 +25,8 @@
 # - image-build: build the application image from the committed build
 #   recipe (docker/app/Dockerfile) with the same version build argument
 #   the local Compose orchestration passes (PHP_VERSION, default 7.4).
+#   The runtime base tag is verified against its recorded digest pin
+#   before building, so upstream tag movement fails the pipeline.
 #   Validation only — the image is never published or pushed.
 
 name: CI
@@ -440,6 +442,30 @@ jobs:
         run: |
           set -euo pipefail
           php_version="7.4"
+          # Recorded digest of coldtrick/elgg_webserver:7.4, resolved with
+          # `docker buildx imagetools inspect coldtrick/elgg_webserver:7.4`
+          # on 2026-10-14 (recorded in docs/baseline/baseline.md and
+          # docker/app/Dockerfile). The tag is mutable; this pin turns
+          # silent upstream tag movement into a hard pipeline failure
+          # instead of a build on shifted content.
+          expected_digest="sha256:6ce84d10cfe10c10d7c1f12bfc53b13415785a1df0296970b8a8bf58e48573d5"
+          # The composer stage's digest is pinned inline in the Dockerfile
+          # (FROM composer:2@sha256:<digest>); guard its presence so a
+          # revert to the mutable major tag cannot land unnoticed.
+          if ! grep -qE '^FROM composer:[0-9]+@sha256:[0-9a-f]{64} AS composer$' docker/app/Dockerfile; then
+            echo "::error::docker/app/Dockerfile no longer pins the composer stage to tag@sha256:<digest> — re-pin it before building"
+            exit 1
+          fi
+          # Pull the runtime base by tag and verify the pulled content's
+          # digest against the recorded pin before building on it; the
+          # build below then resolves FROM to this verified local image.
+          docker pull "coldtrick/elgg_webserver:${php_version}"
+          actual_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "coldtrick/elgg_webserver:${php_version}" | sed 's/^.*@//')"
+          if [ "$actual_digest" != "$expected_digest" ]; then
+            echo "::error::coldtrick/elgg_webserver:${php_version} resolves to ${actual_digest:-<unresolvable>}, not the recorded pin ${expected_digest} — the upstream tag moved. Re-resolve with 'docker buildx imagetools inspect coldtrick/elgg_webserver:${php_version}' and update the pin in this workflow and docker/app/Dockerfile after reviewing the new content."
+            exit 1
+          fi
+          echo "Runtime base digest verified: ${actual_digest}"
           # BuildKit is required for the Dockerfile's RUN heredocs; it is
           # the runner default, pinned explicitly so a runner-image
           # change cannot silently flip it off.
