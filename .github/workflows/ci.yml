@@ -195,10 +195,13 @@ jobs:
           fi
           echo "Pinned runtime confirmed: PHP $expected"
 
-      - name: Install platform extensions required by the manifest
+      - name: Install platform extensions and composer download tools
         # The manifest requires ext-gd; json/pdo/xml are bundled in the
         # php CLI image. Platform checks stay enforced — no
-        # --ignore-platform-reqs anywhere below.
+        # --ignore-platform-reqs anywhere below. The CLI image also
+        # ships neither ext-zip/unzip/7z nor git, so composer cannot
+        # extract dist archives (zip) or fall back to source downloads
+        # (git) — unzip and git ride along with libpng-dev below.
         #
         # The php:7.4.27-cli image is never rebuilt, so its apt state is
         # frozen while the live Debian mirrors keep moving: superseded
@@ -235,7 +238,7 @@ jobs:
           for attempt in 1 2 3 4 5; do
             : > "$log"
             if apt-get "${apt_opts[@]}" update >>"$log" 2>&1 \
-               && apt-get "${apt_opts[@]}" install -y --no-install-recommends libpng-dev >>"$log" 2>&1; then
+               && apt-get "${apt_opts[@]}" install -y --no-install-recommends libpng-dev unzip git >>"$log" 2>&1; then
               gd_deps_installed=0
               break
             fi
@@ -249,7 +252,7 @@ jobs:
             echo "::error::apt failed after 5 attempts against snapshot.debian.org@${snapshot} — see the E:/Err: lines above for the real cause (503 rate limit vs TLS vs missing https method)"
             exit 1
           fi
-          echo "libpng-dev installed from snapshot.debian.org@${snapshot}"
+          echo "libpng-dev, unzip, git installed from snapshot.debian.org@${snapshot}"
           docker-php-ext-install gd
           php -m | grep -qi '^gd$'
 
