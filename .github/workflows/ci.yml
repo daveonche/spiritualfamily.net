@@ -224,7 +224,12 @@ jobs:
           # Per-fetch retries: snapshot 503 rate limits are per-request,
           # so retrying each individual fetch (InRelease, Packages, .deb)
           # absorbs them far better than coarse outer-loop retries.
-          apt_opts=(-o Acquire::Retries=8)
+          # Check-Valid-Until=false: bullseye-updates/-security Release
+          # files carry a Valid-Until freshness stamp, so any pinned
+          # snapshot older than it is "expired" by design — frozen data
+          # is the point. GPG signature verification is unaffected; only
+          # the freshness check is skipped.
+          apt_opts=(-o Acquire::Retries=8 -o Acquire::Check-Valid-Until=false)
           log=/tmp/apt-gd.log
           gd_deps_installed=1
           for attempt in 1 2 3 4 5; do
