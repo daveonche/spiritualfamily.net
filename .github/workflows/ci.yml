@@ -22,6 +22,10 @@
 # - php-lint: scan the project's own source (src/, excluding
 #   src/vendor/) for PHP syntax errors with `php -l` on the pinned
 #   runtime; any syntax error fails the pipeline and names the file.
+# - image-build: build the application image from the committed build
+#   recipe (docker/app/Dockerfile) with the same version build argument
+#   the local Compose orchestration passes (PHP_VERSION, default 7.4).
+#   Validation only — the image is never published or pushed.
 
 name: CI
 
@@ -413,3 +417,36 @@ jobs:
             exit 1
           fi
           echo "Syntax lint passed: ${#files[@]} PHP files checked, 0 errors."
+
+  image-build:
+    name: Validate container image build (PHP_VERSION build arg)
+    runs-on: ubuntu-latest
+    # Read-only job: explicit job-level override keeps the effective
+    # scope visible on top of the workflow-level baseline.
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Build the app image with the orchestration's version build arg
+        # Same parameterized entry point as the local orchestration:
+        # compose.yml passes PHP_VERSION (default 7.4, the pinned
+        # baseline runtime) into docker/app/Dockerfile's ARG. CI passes
+        # the same value explicitly so the pipeline build is identical
+        # to a local `docker compose build`. Validation only — nothing
+        # is published or pushed anywhere. A failed build fails this
+        # job and therefore the whole pipeline.
+        run: |
+          set -euo pipefail
+          php_version="7.4"
+          # BuildKit is required for the Dockerfile's RUN heredocs; it is
+          # the runner default, pinned explicitly so a runner-image
+          # change cannot silently flip it off.
+          export DOCKER_BUILDKIT=1
+          echo "Building with PHP_VERSION=${php_version} (compose.yml default: PHP_VERSION=7.4)"
+          docker build \
+            --build-arg "PHP_VERSION=${php_version}" \
+            --tag "sfn/elgg_webserver:${php_version}-composer2" \
+            docker/app
+          echo "Image build validation passed (PHP_VERSION=${php_version})."
