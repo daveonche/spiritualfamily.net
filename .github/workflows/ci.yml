@@ -199,10 +199,32 @@ jobs:
         # The manifest requires ext-gd; json/pdo/xml are bundled in the
         # php CLI image. Platform checks stay enforced — no
         # --ignore-platform-reqs anywhere below.
+        #
+        # The php:7.4.27-cli image is never rebuilt, so its apt state is
+        # frozen while the Debian mirrors keep moving: when a security
+        # update supersedes a package version, the CDN can serve a stale
+        # index that references the removed .deb and the install 404s.
+        # Retry with a fresh index — the re-run update picks up the
+        # superseding version. The bounded backoff waits out the CDN's
+        # cached-index TTL; an immediate retry can re-fetch the same
+        # stale index.
         run: |
           set -euo pipefail
-          apt-get update
-          apt-get install -y --no-install-recommends libpng-dev
+          gd_deps_installed=1
+          for attempt in 1 2 3; do
+            if apt-get update && apt-get install -y --no-install-recommends libpng-dev; then
+              gd_deps_installed=0
+              break
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "apt attempt ${attempt}/3 failed — refreshing the package index and retrying"
+              sleep $((attempt * 20))
+            fi
+          done
+          if [ "$gd_deps_installed" -ne 0 ]; then
+            echo "::error::apt-get install libpng-dev failed after 3 attempts (Debian mirror index/download race)"
+            exit 1
+          fi
           docker-php-ext-install gd
           php -m | grep -qi '^gd$'
 
