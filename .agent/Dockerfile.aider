@@ -141,27 +141,27 @@ RUN case "${TARGETARCH}" in \
     rm -rf /tmp/actionlint /tmp/actionlint.tar.gz
 
 # ---- Layer D2c: GitHub CLI (gh) ---------------------------------------------
-# Version-pinned; the tarball is verified against the release's published
-# checksums.txt BEFORE extraction, so a corrupted or replaced asset fails
-# the build instead of installing as root. TARGETARCH (declared in Layer
-# D2) maps to the gh release asset arch (amd64/arm64/armv6). To hard-pin
-# like ShellCheck/actionlint above: fetch gh_${GH_VERSION}_checksums.txt
-# once and bake the three hashes into GH_SHA256_* ARGs. To upgrade: bump
-# GH_VERSION (check https://github.com/cli/cli/releases for the current
-# release).
+# Version-pinned and checksum-gated, same pattern as ShellCheck/actionlint
+# above: the tarball's SHA256 is pinned per arch and verified BEFORE
+# extraction, so a replaced release asset fails the build instead of
+# installing as root. TARGETARCH (declared in Layer D2) maps to the gh
+# release asset arch (amd64/arm64/armv6). To upgrade: bump GH_VERSION and
+# all three SHA256 ARGs together, from the release's
+# gh_<version>_checksums.txt (https://github.com/cli/cli/releases).
 ARG GH_VERSION=2.63.2
+ARG GH_SHA256_AMD64=912fdb1ca29cb005fb746fc5d2b787a289078923a29d0f9ec19a0b00272ded00
+ARG GH_SHA256_ARM64=0f31e2a8549c64b5c1679f0b99ce5e0dac7c91da9e86f6246adb8805b0f0b4bb
+ARG GH_SHA256_ARMV6=483c64a4502a56eee1be592e50e6a6ae41663a2f0471c2187dc550c6a3f63696
 RUN case "${TARGETARCH}" in \
-        arm64) GH_ARCH=arm64 ;; \
-        arm) GH_ARCH=armv6 ;; \
-        *) GH_ARCH=amd64 ;; \
+        arm64) GH_ARCH=arm64 ; GH_SHA256="${GH_SHA256_ARM64}" ;; \
+        arm) GH_ARCH=armv6 ; GH_SHA256="${GH_SHA256_ARMV6}" ;; \
+        *) GH_ARCH=amd64 ; GH_SHA256="${GH_SHA256_AMD64}" ;; \
     esac && \
-    curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_checksums.txt" -o /tmp/gh_checksums.txt && \
     curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${GH_ARCH}.tar.gz" -o /tmp/gh.tar.gz && \
-    expected="$(grep "gh_${GH_VERSION}_linux_${GH_ARCH}.tar.gz" /tmp/gh_checksums.txt | cut -d ' ' -f 1)" && \
-    echo "${expected}  /tmp/gh.tar.gz" | sha256sum -c - && \
+    echo "${GH_SHA256}  /tmp/gh.tar.gz" | sha256sum -c - && \
     tar -xzf /tmp/gh.tar.gz -C /tmp && \
     install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${GH_ARCH}/bin/gh" /usr/local/bin/gh && \
-    rm -rf "/tmp/gh_${GH_VERSION}_linux_${GH_ARCH}" /tmp/gh.tar.gz /tmp/gh_checksums.txt
+    rm -rf "/tmp/gh_${GH_VERSION}_linux_${GH_ARCH}" /tmp/gh.tar.gz
 
 # ---- Layer D3: pytest testing dependency (pip) ------------------------------
 # pytest pinned to match .agent/pyproject.toml (8.3.5) so the container's

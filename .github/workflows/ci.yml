@@ -201,15 +201,23 @@ jobs:
         # --ignore-platform-reqs anywhere below.
         #
         # The php:7.4.27-cli image is never rebuilt, so its apt state is
-        # frozen while the Debian mirrors keep moving: when a security
-        # update supersedes a package version, the CDN can serve a stale
-        # index that references the removed .deb and the install 404s.
-        # Retry with a fresh index — the re-run update picks up the
-        # superseding version. The bounded backoff waits out the CDN's
-        # cached-index TTL; an immediate retry can re-fetch the same
-        # stale index.
+        # frozen while the live Debian mirrors keep moving: superseded
+        # .deb versions 404 from the CDN pool, and post-EOL suites
+        # disappear entirely (bullseye left LTS in 2026-08). Retrying
+        # with a fresh index cannot fix either mode — the CDN's cached
+        # index outlives any backoff, and a removed suite never returns.
+        # Pin apt to a snapshot.debian.org timestamp instead: index and
+        # pool are frozen together and can never disagree. To refresh:
+        # pick a new timestamp, verify its three InRelease URLs return
+        # 200, and update the snapshot variable below.
         run: |
           set -euo pipefail
+          snapshot='20250601T000000Z'
+          cat > /etc/apt/sources.list <<EOF
+          deb https://snapshot.debian.org/archive/debian/${snapshot}/ bullseye main
+          deb https://snapshot.debian.org/archive/debian/${snapshot}/ bullseye-updates main
+          deb https://snapshot.debian.org/archive/debian-security/${snapshot}/ bullseye-security main
+          EOF
           gd_deps_installed=1
           for attempt in 1 2 3; do
             if apt-get update && apt-get install -y --no-install-recommends libpng-dev; then
@@ -217,12 +225,12 @@ jobs:
               break
             fi
             if [ "$attempt" -lt 3 ]; then
-              echo "apt attempt ${attempt}/3 failed — refreshing the package index and retrying"
+              echo "apt attempt ${attempt}/3 failed against the pinned snapshot — retrying (snapshot rate limits are transient)"
               sleep $((attempt * 20))
             fi
           done
           if [ "$gd_deps_installed" -ne 0 ]; then
-            echo "::error::apt-get install libpng-dev failed after 3 attempts (Debian mirror index/download race)"
+            echo "::error::apt-get install libpng-dev failed after 3 attempts against snapshot.debian.org@${snapshot}"
             exit 1
           fi
           docker-php-ext-install gd
