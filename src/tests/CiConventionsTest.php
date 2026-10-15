@@ -102,6 +102,23 @@ class CiConventionsTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * The workflow's job names, in declaration order. Job keys sit at
+	 * exactly two-space indent within the jobs block; every deeper line
+	 * (job fields, step entries, run-block content) is indented further.
+	 */
+	private function jobNames($contents)
+	{
+		$jobsBlock = $this->topLevelBlock($contents, 'jobs');
+		$count = preg_match_all('/^  ([a-z][a-z0-9-]*):$/m', $jobsBlock, $matches);
+		$this->assertGreaterThan(
+			0,
+			$count,
+			'The jobs block declares no jobs — the inventory check would pass vacuously'
+		);
+		return $matches[1];
+	}
+
+	/**
 	 * Must Support: "Workflow configuration files committed in the
 	 * repository's conventional location"
 	 */
@@ -204,6 +221,58 @@ class CiConventionsTest extends \PHPUnit_Framework_TestCase
 			1,
 			preg_match('/Full history is genuinely required/', $commitMsg),
 			"The commit-msg job's fetch-depth: 0 carries no documented reason — full history is justified only where genuinely required"
+		);
+	}
+
+	/**
+	 * Must Support: "The pipeline contains build and validation jobs only
+	 * — no deployment actions (deployment is a later story)"
+	 */
+	public function testPipelineContainsBuildAndValidationJobsOnly()
+	{
+		$contents = $this->workflowContents();
+
+		// The exact job inventory: the seven declared build/validation
+		// checks — no more, no less. Any added job, above all a deployment
+		// job, fails this assertion. Compared as a sorted set so job
+		// declaration order stays free to change.
+		$expectedJobs = array(
+			'commit-msg',
+			'composer-install',
+			'composer-lock-consistency',
+			'composer-validate',
+			'image-build',
+			'php-lint',
+			'runtime',
+		);
+		$actualJobs = $this->jobNames($contents);
+		sort($actualJobs);
+		$this->assertSame(
+			$expectedJobs,
+			$actualJobs,
+			"The pipeline's job inventory is not exactly the seven declared build/validation checks — an undeclared job (e.g., deployment) must not exist"
+		);
+
+		// No deployment action anywhere in the whole workflow file —
+		// strictly stronger than CiImageBuildTest's job-scoped push/login
+		// absence checks, which cover only the image-build job block.
+		$this->assertSame(
+			0,
+			preg_match('/\bdocker push\b/', $contents),
+			'The workflow pushes an image — the pipeline is validation-only; deployment is a later story'
+		);
+		$this->assertSame(
+			0,
+			preg_match('/\bdocker login\b/', $contents),
+			'The workflow authenticates to a registry — the pipeline is validation-only'
+		);
+
+		// No deployment-shaped action reference: a deploy/release action
+		// would be an external composite or workflow action.
+		$this->assertSame(
+			0,
+			preg_match('/^\s+uses:\s*\S*(deploy|release)/im', $contents),
+			'The workflow references a deploy/release action — the pipeline contains build and validation jobs only'
 		);
 	}
 }
