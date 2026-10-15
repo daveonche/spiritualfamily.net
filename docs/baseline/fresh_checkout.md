@@ -27,7 +27,8 @@ Notes:
 
 - Docker Engine and Docker Compose v2
 - Git and a Web browser
-- Free host ports `3000` (app) and `3001` (phpMyAdmin)
+- Free host port `3000` (app); port `3001` is needed only if you also run
+  the dev-only phpMyAdmin (see step 7)
 - An OS hosts entry mapping your `APP_HOST` hostname (e.g. `v2.sfnapp.local`)
   to `127.0.0.1` (see the note at the bottom of `.env.example`)
 - Several GB of free disk for images and named volumes
@@ -85,9 +86,10 @@ docker compose ps
 ```
 
 Expected: `app` (`sfn/elgg_webserver:7.4-composer2`), `dbm` (`mariadb:10.11.18`),
-`pma`, and `cron` all `Up`. The first start builds the app image locally from
-`docker/app/Dockerfile` and initializes the empty `fs-dbmdata` volume; wait
-for the database to settle before the install step.
+and `cron` all `Up` — the dev-only `pma` service lives in `compose.dev.yml`
+and is not part of this stack. The first start builds the app image locally
+from `docker/app/Dockerfile` and initializes the empty `fs-dbmdata` volume;
+wait for the database to settle before the install step.
 
 ### 4. Confirm the pinned runtime pair
 
@@ -153,9 +155,11 @@ Troubleshooting:
 - Log in as the admin created in step 6.
 - The administration area (`/admin`) is reachable and its dashboard renders
   without errors.
-- Optional: phpMyAdmin on port `3001` (server `dbm`, user `MYSQL_USER` and
-  password `MYSQL_PASSWORD` from `.env`) lists the site's tables (prefix per
-  `ELGG_DB_PREFIX`).
+- Optional: the dev-only phpMyAdmin (defined in `compose.dev.yml`, not
+  started by this procedure's `docker compose up -d`) — start it with
+  `docker compose -f compose.yml -f compose.dev.yml up -d pma`, then browse
+  port `3001` (server `dbm`, user `MYSQL_USER` and password `MYSQL_PASSWORD`
+  from `.env`) to list the site's tables (prefix per `ELGG_DB_PREFIX`).
 
 ### 8. Tear down
 
