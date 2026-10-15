@@ -138,4 +138,53 @@ class CiLockConsistencyTest extends \PHPUnit_Framework_TestCase
 			"Job 'composer-lock-consistency' disables the lock check on its validate invocation — divergence would go undetected"
 		);
 	}
+
+	/**
+	 * Must Support: "Any divergence fails the pipeline rather than
+	 * producing a warning"
+	 */
+	public function testAnyDivergenceFailsThePipelineRatherThanProducingAWarning()
+	{
+		$job = $this->jobBlock(
+			$this->workflowJobs($this->workflowContents()),
+			'composer-lock-consistency'
+		);
+
+		// Fail-fast shell: a non-zero validate exit fails the step, the
+		// step failure fails the job, and a failed job fails the pipeline.
+		$this->assertSame(
+			1,
+			preg_match('/^\s+set -euo pipefail\s*$/m', $job),
+			"Job 'composer-lock-consistency' does not run its steps with 'set -euo pipefail' — a failed validation could be swallowed"
+		);
+
+		// --strict turns Composer's divergence warning into a failure, so
+		// a failed validation can never degrade into a warning.
+		$this->assertSame(
+			1,
+			preg_match('/composer validate --strict\b/', $job),
+			"Job 'composer-lock-consistency' does not run 'composer validate' with --strict — divergence would surface only as a warning"
+		);
+
+		// The captured invocation's exact if/else shape: success echoes the
+		// consistent message; the else branch echoes ::error:: naming the
+		// diverged pair and exits 1. Pinning the exact invocation also
+		// guards against '|| true'-style suppression inside $( ).
+		$this->assertSame(
+			1,
+			preg_match(
+				'/if output="\$\(composer validate --strict --no-check-all --no-check-publish --no-check-version 2>&1\)"; then\s+echo "\$output"\s+echo "composer\.json ↔ composer\.lock are consistent\."\s+else\s+echo "\$output"\s+echo "::error::composer\.json and composer\.lock have diverged.*?exit 1\s+fi/s',
+				$job
+			),
+			"Job 'composer-lock-consistency' does not fail on divergence — the validate invocation must be captured, and the else branch must echo ::error:: and exit 1"
+		);
+
+		// No error tolerance: continue-on-error would let a failed
+		// validation pass the pipeline.
+		$this->assertSame(
+			0,
+			preg_match('/continue-on-error/', $job),
+			"Job 'composer-lock-consistency' declares continue-on-error — a failed validation would not fail the pipeline"
+		);
+	}
 }
