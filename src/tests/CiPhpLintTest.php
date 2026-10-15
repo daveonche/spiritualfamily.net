@@ -16,7 +16,9 @@ class CiPhpLintTest extends \PHPUnit_Framework_TestCase
 {
 	private function repoDir()
 	{
-		return dirname(__DIR__);
+		// The workflow file lives at the repository root, one level above
+		// src/ (this file is src/tests/CiPhpLintTest.php).
+		return dirname(dirname(__DIR__));
 	}
 
 	private function workflowFile()
