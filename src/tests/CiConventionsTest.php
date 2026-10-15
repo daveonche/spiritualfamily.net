@@ -135,16 +135,30 @@ class CiConventionsTest extends \PHPUnit_Framework_TestCase
 
 		// Every uses: reference pinned to a full-length commit SHA with a
 		// version comment. Tags and branches on actions are mutable; only
-		// full-length commit SHAs are immutable.
+		// full-length commit SHAs are immutable. The count of uses: lines
+		// must equal the count of pinned+commented ones, so an unpinned or
+		// uncommented reference can never escape validation.
+		$totalUses = preg_match_all('/^\s+uses:/m', $contents);
+		$this->assertGreaterThan(
+			0,
+			$totalUses,
+			'The workflow declares no uses: reference — the pinning check would pass vacuously'
+		);
+		$pinnedUses = preg_match_all(
+			'/^\s+uses:\s*([^\s#]+)\s*#\s*(\S+)\s*$/m',
+			$contents,
+			$uses,
+			PREG_SET_ORDER
+		);
 		$this->assertSame(
-			1,
-			preg_match_all('/^\s+uses:\s*([^\s#]+)\s*#\s*(\S+)\s*$/m', $contents, $uses, PREG_SET_ORDER),
-			'The workflow declares no pinned uses: reference — every action must be pinned'
+			$totalUses,
+			$pinnedUses,
+			'Every uses: reference must be pinned to a full-length commit SHA and carry a version comment — a reference without them escapes validation'
 		);
 		foreach ($uses as $use) {
 			$this->assertSame(
 				1,
-				preg_match('/^[0-9a-f]{40}$/', $use[1]),
+				preg_match('/^[^@\s]+@[0-9a-f]{40}$/', $use[1]),
 				"The uses: reference '{$use[1]}' is not pinned to a full-length commit SHA — mutable references (@main, @latest, major tags) can be silently moved"
 			);
 			$this->assertSame(
