@@ -93,6 +93,18 @@ class CiImageBuildTest extends \PHPUnit_Framework_TestCase
 		return implode("\n", $block);
 	}
 
+	private function composeFile()
+	{
+		return $this->repoDir() . '/compose.yml';
+	}
+
+	private function composeContents()
+	{
+		$contents = file_get_contents($this->composeFile());
+		$this->assertNotSame(false, $contents, 'compose.yml must be readable');
+		return $contents;
+	}
+
 	/**
 	 * Must Support: "The pipeline builds the application image from the
 	 * committed build recipe"
@@ -136,6 +148,41 @@ class CiImageBuildTest extends \PHPUnit_Framework_TestCase
 			0,
 			preg_match('/docker login\b/', $job),
 			"The image-build job authenticates to a registry — the build is validation-only"
+		);
+	}
+
+	/**
+	 * Must Support: "The build receives the version build argument using
+	 * the same parameterization as the local orchestration"
+	 */
+	public function testImageBuildJobPassesTheOrchestrationVersionBuildArg()
+	{
+		$job = $this->jobBlock(
+			$this->workflowJobs($this->workflowContents()),
+			'image-build'
+		);
+
+		// The job passes PHP_VERSION as a --build-arg to docker build.
+		$this->assertSame(
+			1,
+			preg_match('/--build-arg "PHP_VERSION=\$\{php_version\}"/', $job),
+			"The image-build job does not pass PHP_VERSION as a --build-arg to docker build"
+		);
+
+		// The supplied value equals the local orchestration's committed
+		// default: compose.yml's app build arg with its ${PHP_VERSION:-...}
+		// default. Reading the default from compose.yml means the CI value
+		// cannot drift from the orchestration default.
+		$compose = $this->composeContents();
+		$this->assertSame(
+			1,
+			preg_match('/PHP_VERSION:\s*"\$\{PHP_VERSION:-([^\}]+)\}"/', $compose, $m),
+			'compose.yml does not pass PHP_VERSION as a build arg with a committed default'
+		);
+		$this->assertSame(
+			1,
+			preg_match('/php_version="' . preg_quote($m[1], '/') . '"/', $job),
+			"The image-build job's PHP_VERSION build arg value does not match the local orchestration default (compose.yml build arg default: " . $m[1] . ")"
 		);
 	}
 }
