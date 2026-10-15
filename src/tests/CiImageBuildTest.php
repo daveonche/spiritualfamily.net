@@ -185,4 +185,63 @@ class CiImageBuildTest extends \PHPUnit_Framework_TestCase
 			"The image-build job's PHP_VERSION build arg value does not match the local orchestration default (compose.yml build arg default: " . $m[1] . ")"
 		);
 	}
+
+	/**
+	 * Must Support: "A failed image build fails the pipeline"
+	 */
+	public function testFailedImageBuildFailsThePipeline()
+	{
+		$job = $this->jobBlock(
+			$this->workflowJobs($this->workflowContents()),
+			'image-build'
+		);
+
+		// Fail-fast shell: a non-zero build exit fails the step, the step
+		// failure fails the job, and a failed job fails the pipeline.
+		$this->assertSame(
+			1,
+			preg_match('/^\s+set -euo pipefail\s*$/m', $job),
+			"The image-build job does not run its steps with 'set -euo pipefail' — a failed build could be swallowed"
+		);
+
+		// The build command's final line ends at the docker/app context —
+		// no '|| true'-style suffix could mask a failed build's exit code.
+		$this->assertSame(
+			1,
+			preg_match('/^\s+docker\/app\s*$/m', $job),
+			"The image-build job's docker build does not end as a bare final command — a suppression suffix would mask a failed build"
+		);
+
+		// Pre-build guard 1: a Dockerfile that lost its composer-stage
+		// digest pin exits 1 before any build runs. The guard's grep
+		// pattern is itself regex text, so its metacharacters (^, [0-9]+,
+		// {64}, $) are matched literally — escaped below.
+		$this->assertSame(
+			1,
+			preg_match(
+				'/if ! grep -qE \'\^FROM composer:\[0-9\]\+@sha256:\[0-9a-f\]\{64\} AS composer\$\' docker\/app\/Dockerfile; then\s+echo "::error::.*?exit 1\s+fi/s',
+				$job
+			),
+			"The image-build job does not guard the Dockerfile's composer-stage digest pin — a revert to a mutable tag would build unverified content"
+		);
+
+		// Pre-build guard 2: the pulled runtime base digest mismatching the
+		// recorded pin exits 1 before any build runs.
+		$this->assertSame(
+			1,
+			preg_match(
+				'/if \[ "\$actual_digest" != "\$expected_digest" \]; then\s+echo "::error::coldtrick\/elgg_webserver.*?exit 1\s+fi/s',
+				$job
+			),
+			"The image-build job does not fail on a runtime base digest mismatch — upstream tag movement would build on shifted content"
+		);
+
+		// No error tolerance: continue-on-error would let a failed build
+		// pass the pipeline.
+		$this->assertSame(
+			0,
+			preg_match('/continue-on-error/', $job),
+			"The image-build job declares continue-on-error — a failed build would not fail the pipeline"
+		);
+	}
 }
