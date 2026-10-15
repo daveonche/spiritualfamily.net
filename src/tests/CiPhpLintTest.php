@@ -161,4 +161,48 @@ class CiPhpLintTest extends \PHPUnit_Framework_TestCase
 			'An empty scan scope must fail the step, not pass vacuously'
 		);
 	}
+
+	/**
+	 * Must Support: "Any syntax error fails the pipeline"
+	 */
+	public function testAnySyntaxErrorFailsThePipeline()
+	{
+		$job = $this->jobBlock(
+			$this->workflowJobs($this->workflowContents()),
+			'php-lint'
+		);
+		$lint = $this->stepBlock($job, 'Lint project source for syntax errors');
+		$this->assertNotNull(
+			$lint,
+			"The php-lint job must declare a 'Lint project source for syntax errors' step"
+		);
+
+		// Fail-fast shell: the step aborts on any unexpected error.
+		$this->assertSame(
+			1,
+			preg_match('/set -euo pipefail/', $lint),
+			'The lint step must run under a fail-fast shell (set -euo pipefail)'
+		);
+
+		// php -l failures are captured per file, the offending file's own
+		// file+line message is echoed, and each failure is counted.
+		$this->assertSame(
+			1,
+			preg_match(
+				'/if ! output="\$\(php -l "\$file" 2>&1\)"; then\s+echo "\$output"\s+failures=\$\(\(failures \+ 1\)\)/',
+				$lint
+			),
+			'php -l failures must be captured, echoed with the offending file name, and counted'
+		);
+
+		// Any counted failure exits 1 — the pipeline fails.
+		$this->assertSame(
+			1,
+			preg_match(
+				'/if \[ "\$failures" -gt 0 \]; then\s+echo "::error::\$failures of \$\{\#files\[@\]\} PHP files failed the syntax check"\s+exit 1/',
+				$lint
+			),
+			'Any counted syntax failure must exit 1 and fail the pipeline'
+		);
+	}
 }
