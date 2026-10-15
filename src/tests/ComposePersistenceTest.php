@@ -88,7 +88,7 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 		// The dbm service block, bounded by the next service definition
 		$this->assertSame(
 			1,
-			preg_match('/^  dbm:\s*$(.*?)^  pma:/ms', $config, $m),
+			preg_match('/^  dbm:\s*$(.*?)^  cron:/ms', $config, $m),
 			"compose.yml has no recognizable 'dbm' service block"
 		);
 		$dbmBlock = $m[1];
@@ -117,7 +117,6 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 		// Dedicated: no service other than dbm references the db data volume
 		$boundaries = array(
 			'app' => '^  dbm:',
-			'pma' => '^  cron:',
 			'cron' => '^networks:',
 		);
 		foreach ($boundaries as $service => $boundary) {
@@ -177,8 +176,7 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 
 		// Dedicated: no service other than app references the dataroot volume
 		$boundaries = array(
-			'dbm' => '^  pma:',
-			'pma' => '^  cron:',
+			'dbm' => '^  cron:',
 			'cron' => '^networks:',
 		);
 		foreach ($boundaries as $service => $boundary) {
@@ -236,7 +234,7 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 		// lifecycle
 		$this->assertSame(
 			1,
-			preg_match('/^  dbm:\s*$(.*?)^  pma:/ms', $config, $m),
+			preg_match('/^  dbm:\s*$(.*?)^  cron:/ms', $config, $m),
 			"compose.yml has no recognizable 'dbm' service block"
 		);
 		$this->assertSame(
