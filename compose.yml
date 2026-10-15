@@ -106,26 +106,6 @@ services:
     networks:
       - appnet
 
-  pma:
-    # Pinned (Story S1.2 Step 6): the floating phpmyadmin/phpmyadmin tag
-    # resolved to 5.2.3 at pin time — confirmed via the image's own
-    # /var/www/html/package.json ("version": "5.2.3"). Bump the tag
-    # deliberately, never float
-    image: phpmyadmin/phpmyadmin:5.2.3
-    container_name: ${PMA_CONTAINER_NAME}
-    ports:
-      - "${PMA_HOST_PORT}:80"
-    env_file:
-      # This passes variables from .env to the container
-      - .env
-    depends_on:
-      dbm:
-        # Start phpMyAdmin only once MySQL is really ready
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - appnet
-
   cron:
     # Pinned base image (Story S1.2 Step 3): alpine:latest resolved to
     # 3.23.3 at pin time — confirmed via

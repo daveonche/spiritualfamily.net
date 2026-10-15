@@ -2,7 +2,8 @@
 
 Deploy the production stack from the repository's `compose.yml` — the single
 source of truth for the app, dbm, and cron services. The development-only
-`pma` service is excluded from production.
+`pma` service lives in `compose.dev.yml`, so Coolify never parses it into
+the production deployment.
 
 ## Scope
 
@@ -28,7 +29,7 @@ migration (Step 7), and re-deploy reproducibility (Step 8).
 2. Select this repository and branch as the source.
 3. Set the Compose file path to `compose.yml`.
 4. Let Coolify parse the file: it lists the services the file defines —
-   app, dbm, cron, and pma.
+   app, dbm, and cron.
 
 Exact menu labels vary between Coolify versions; choose the deployment type
 that deploys a Compose file as a stack of services.
@@ -40,23 +41,22 @@ that deploys a Compose file as a stack of services.
 | app | Elgg web server | Built from `docker/app/Dockerfile` via the `PHP_VERSION` build arg | Yes |
 | dbm | MariaDB database | Pinned `mariadb:10.11.18` | Yes |
 | cron | Scheduled tasks | Pinned `alpine:3.23.3` | Yes |
-| pma | phpMyAdmin — development-only database administration | Pinned `phpmyadmin/phpmyadmin:5.2.3` | No — exclude |
 
 The three production services form one startable stack through the
 `depends_on` chain in `compose.yml`: app starts only once dbm passes its
 healthcheck, and cron starts after app. All three restart automatically
 (`restart: unless-stopped`) on the shared `appnet` network.
 
-## Exclude the pma service
+## Development-only services
 
-`pma` is a development-only database administration UI. It is a leaf
-service: it depends on dbm, but nothing depends on it — so excluding it from
-production breaks nothing.
+`pma` (phpMyAdmin) is a development-only database administration UI. It is
+defined in `compose.dev.yml` rather than `compose.yml`, so it never appears
+in the parsed service list and is never deployed to production. Developers
+run it by merging the override file:
 
-1. In the parsed service list, locate `pma`.
-2. Disable it so Coolify does not deploy it (per-service toggle in the
-   Compose-based application).
-3. Confirm the remaining deployed services are exactly app, dbm, and cron.
+```bash
+docker compose -f compose.yml -f compose.dev.yml up -d
+```
 
 ## Deploy the stack
 
@@ -73,6 +73,7 @@ production breaks nothing.
 
 - [ ] The application in Coolify lists exactly the app, dbm, and cron
   services as one stack.
-- [ ] `pma` is not deployed and not running in the production stack.
+- [ ] `pma` appears nowhere in the production deployment — it is defined
+  only in `compose.dev.yml`.
 - [ ] The services started in dependency order (app after dbm healthy, cron
   after app).
