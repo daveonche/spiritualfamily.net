@@ -159,8 +159,7 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 		// cron block ends at the top-level networks key)
 		$boundaries = array(
 			'app' => '^  dbm:',
-			'dbm' => '^  pma:',
-			'pma' => '^  cron:',
+			'dbm' => '^  cron:',
 			'cron' => '^networks:',
 		);
 		$blocks = array();
@@ -191,8 +190,9 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 		// half of this Must Support item. The app reference is explicitly
 		// tagged via its version interpolation + -composer2 suffix (the
 		// exact default is pinned in Step 1's ComposeImageBuildTest); the
-		// dbm/pma/cron exact values and their documentation recording are
-		// asserted in their own steps' tests (db: Step 5).
+		// dbm/cron exact values and their documentation recording are
+		// asserted in their own steps' tests (db: Step 5); pma's pin is
+		// asserted against compose.dev.yml below.
 		$this->assertSame(
 			1,
 			preg_match('/^    image:\s*"sfn\/elgg_webserver:\$\{PHP_VERSION:-[^}]+\}-composer2"/m', $blocks['app']),
@@ -201,7 +201,6 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 
 		$staticPins = array(
 			'dbm' => 'mariadb',
-			'pma' => 'phpmyadmin\/phpmyadmin',
 			'cron' => 'alpine',
 		);
 		foreach ($staticPins as $service => $image) {
@@ -216,5 +215,31 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 				"compose.yml '$service' service floats the \"latest\" tag"
 			);
 		}
+
+		// The dev-only pma service (compose.dev.yml, Story S1.6) keeps its
+		// pinned image and appnet attachment
+		$devFile = $this->repoDir() . '/compose.dev.yml';
+		$this->assertFileExists($devFile);
+		$devConfig = preg_replace('/^\s*#.*$/m', '', file_get_contents($devFile));
+		$this->assertSame(
+			1,
+			preg_match('/^  pma:\s*$(.*)$/ms', $devConfig, $m),
+			'compose.dev.yml has no recognizable pma service block'
+		);
+		$this->assertSame(
+			1,
+			preg_match('/^    image:\s*phpmyadmin\/phpmyadmin:([^\s"]+)$/m', $m[1], $m2),
+			"compose.dev.yml 'pma' service image is not pinned to an explicit tag"
+		);
+		$this->assertNotSame(
+			'latest',
+			$m2[1],
+			"compose.dev.yml 'pma' service floats the \"latest\" tag"
+		);
+		$this->assertSame(
+			1,
+			preg_match('/^    networks:\s*$(?:\s+-\s+appnet\s*$)/ms', $m[1]),
+			"compose.dev.yml 'pma' service does not attach to the shared appnet network"
+		);
 	}
 }

@@ -74,8 +74,8 @@ class VersionPairAgnosticBuildTest extends \PHPUnit_Framework_TestCase
 		// Strip comment lines — prose may cite versions; configuration may not
 		$config = preg_replace('/^\s*#.*$/m', '', $contents);
 
-		// Scope to the app service block: the dbm/pma/cron image pins are
-		// deliberate separate pins (Steps 5/6/3 scope), not the runtime input
+		// Scope to the app service block: the dbm/cron image pins are
+		// deliberate separate pins (Steps 5/3 scope), not the runtime input
 		$this->assertSame(
 			1,
 			preg_match('/^  app:\s*$(.*?)^  dbm:/ms', $config, $block),

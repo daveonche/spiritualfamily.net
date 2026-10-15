@@ -160,11 +160,17 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 		$this->assertFileExists($composeFile);
 		$config = $this->composeConfig();
 
+		// The dev-only override file — pma lives there since Story S1.6;
+		// mounted read-only into the app container for test verification
+		$devFile = $this->repoDir() . '/compose.dev.yml';
+		$this->assertFileExists($devFile);
+		$devConfig = preg_replace('/^\s*#.*$/m', '', file_get_contents($devFile));
+
 		// Service => regex bounding its block by the next service definition
+		// (pma is verified against compose.dev.yml below)
 		$serviceBlocks = array(
 			'app' => '/^  app:\s*$(.*?)^  dbm:/ms',
-			'dbm' => '/^  dbm:\s*$(.*?)^  pma:/ms',
-			'pma' => '/^  pma:\s*$(.*?)^  cron:/ms',
+			'dbm' => '/^  dbm:\s*$(.*?)^  cron:/ms',
 		);
 		$blocks = array();
 		foreach ($serviceBlocks as $svc => $pattern) {
@@ -183,7 +189,7 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			);
 		}
 
-		// Credential variables never appear in the definition — they
+		// Credential variables never appear in the definitions — they
 		// reach containers only through .env
 		$credentialVars = array(
 			'MYSQL_ROOT_PASSWORD',
@@ -194,8 +200,8 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 		foreach ($credentialVars as $var) {
 			$this->assertSame(
 				0,
-				preg_match_all('/\b' . $var . '\b/', $config),
-				"compose.yml must not reference $var — it flows through .env only"
+				preg_match_all('/\b' . $var . '\b/', $config . "\n" . $devConfig),
+				"the Compose definitions must not reference $var — it flows through .env only"
 			);
 		}
 
@@ -219,11 +225,9 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			'PHP_VERSION',
 			'APP_CONTAINER_NAME',
 			'MYSQL_CONTAINER_NAME',
-			'PMA_CONTAINER_NAME',
 			'CRON_CONTAINER_NAME',
 			'APP_HOST',
 			'APP_HOST_PORT',
-			'PMA_HOST_PORT',
 			'WWW_ROOT',
 			'WWW_DATA',
 			'WWW_CACHE',
@@ -244,6 +248,26 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 				1,
 				preg_match_all('/\$\{' . $var . '[:}]/', $config),
 				"compose.yml must reference $var via interpolation, not a committed literal"
+			);
+		}
+
+		// The dev-only pma service follows the same injection rules:
+		// settings via env_file: .env, values via ${VAR} interpolation
+		$this->assertSame(
+			1,
+			preg_match('/^  pma:\s*$(.*)$/ms', $devConfig, $m),
+			'compose.dev.yml has no recognizable pma service block'
+		);
+		$this->assertSame(
+			1,
+			preg_match('/^    env_file:\s*-\s+\.env\s*$/m', $m[1]),
+			'compose.dev.yml service pma must receive settings via env_file: .env'
+		);
+		foreach (array('PMA_CONTAINER_NAME', 'PMA_HOST_PORT') as $var) {
+			$this->assertGreaterThanOrEqual(
+				1,
+				preg_match_all('/\$\{' . $var . '[:}]/', $devConfig),
+				"compose.dev.yml must reference $var via interpolation, not a committed literal"
 			);
 		}
 	}
@@ -459,6 +483,15 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 		$compose = $this->composeConfig();
 		preg_match_all('/\$\{([A-Z][A-Z0-9_]*)/', $compose, $m);
 		$required = $m[1];
+
+		// 1b. Every ${VAR} reference in comment-stripped compose.dev.yml —
+		//    the dev-only override (pma lives there since Story S1.6) is
+		//    part of the stack the template must serve
+		$devFile = $this->repoDir() . '/compose.dev.yml';
+		$this->assertFileExists($devFile);
+		$devConfig = preg_replace('/^\s*#.*$/m', '', file_get_contents($devFile));
+		preg_match_all('/\$\{([A-Z][A-Z0-9_]*)/', $devConfig, $mDev);
+		$required = array_merge($required, $mDev[1]);
 
 		// 2. Every getenv("VAR") read in comment-stripped settings.php
 		$settings = $this->stripComments(file_get_contents($this->settingsFile()));

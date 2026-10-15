@@ -39,6 +39,9 @@ services:
       # Mount committed orchestration/config files read-only so unit tests
       # can verify them (Story S1.2 Steps 2–6 tests)
       - ./compose.yml:/var/www/compose.yml:ro
+      # Dev-only override (Story S1.6 pma move) — mounted so unit tests can
+      # verify the pma service definition and its pins
+      - ./compose.dev.yml:/var/www/compose.dev.yml:ro
       - ./crontab:/var/www/crontab:ro
       - ./.env.example:/var/www/.env.example:ro
       # .gitignore — verifies the .env ignore rule (Story S1.2 Step 6 test)

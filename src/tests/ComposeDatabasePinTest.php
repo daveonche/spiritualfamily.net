@@ -54,7 +54,7 @@ class ComposeDatabasePinTest extends \PHPUnit_Framework_TestCase
 		// The dbm service block, bounded by the next service definition
 		$this->assertSame(
 			1,
-			preg_match('/^  dbm:\s*$(.*?)^  pma:/ms', $config, $m),
+			preg_match('/^  dbm:\s*$(.*?)^  cron:/ms', $config, $m),
 			"compose.yml has no recognizable 'dbm' service block"
 		);
 		$dbmBlock = $m[1];

@@ -87,18 +87,19 @@ class BaselineFreshCheckoutTest extends \PHPUnit_Framework_TestCase
 	 * committed Compose stack (service set and app image), otherwise a fresh
 	 * checkout cannot be taken to a running baseline by following the doc.
 	 *
-	 * compose.yml is not mounted into the test container (only ./src and
-	 * ./docs are), so the committed stack is pinned here and the procedure
-	 * doc is asserted against it. compose.yml lives in git at the repo root
-	 * next to this test; any stack change must update both together.
+	 * The committed stack is pinned here and the procedure doc is asserted
+	 * against it. compose.yml lives in git at the repo root next to this
+	 * test; any stack change must update both together.
 	 */
 	public function testFreshCheckoutProcedureMatchesCommittedStack()
 	{
 		$doc = $this->procedureDocContents();
 
-		// Committed stack (compose.yml at this pin): services app, dbm, pma,
+		// Committed stack (compose.yml at this pin): services app, dbm,
 		// cron; app image built/tagged sfn/elgg_webserver:7.4-composer2.
-		$committedServices = array('app', 'dbm', 'pma', 'cron');
+		// The dev-only pma service lives in compose.dev.yml (Story S1.6),
+		// outside the production stack this procedure documents.
+		$committedServices = array('app', 'dbm', 'cron');
 		$committedAppImage = 'sfn/elgg_webserver:7.4-composer2';
 
 		// The procedure must expect exactly the committed service set...
