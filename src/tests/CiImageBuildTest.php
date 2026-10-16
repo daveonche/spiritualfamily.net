@@ -117,7 +117,11 @@ class CiImageBuildTest extends \PHPUnit_Framework_TestCase
 		);
 
 		// Builds from the committed build recipe: docker build with the
-		// docker/app build context as the final argument.
+		// Dockerfile selected via -f and the repository root as the build
+		// context (Story S1.6: the Dockerfile COPYs src/ and php/ from
+		// the repo root — the images carry their runtime content, so the
+		// context is the repository root, matching compose.yml's build
+		// section).
 		$this->assertSame(
 			1,
 			preg_match('/docker build\b/', $job),
@@ -125,8 +129,13 @@ class CiImageBuildTest extends \PHPUnit_Framework_TestCase
 		);
 		$this->assertSame(
 			1,
-			preg_match('/^\s+docker\/app\s*$/m', $job),
-			"The image-build job's docker build does not use the committed docker/app build context"
+			preg_match('/^\s+-f\s+docker\/app\/Dockerfile/m', $job),
+			"The image-build job's docker build does not select the committed docker/app/Dockerfile"
+		);
+		$this->assertSame(
+			1,
+			preg_match('/^\s+\.\s*$/m', $job),
+			"The image-build job's docker build does not use the repository root as the build context"
 		);
 
 		// BuildKit explicitly enabled: the Dockerfile's RUN heredocs
@@ -204,11 +213,12 @@ class CiImageBuildTest extends \PHPUnit_Framework_TestCase
 			"The image-build job does not run its steps with 'set -euo pipefail' — a failed build could be swallowed"
 		);
 
-		// The build command's final line ends at the docker/app context —
-		// no '|| true'-style suffix could mask a failed build's exit code.
+		// The build command's final line is the bare repository-root
+		// context — no '|| true'-style suffix could mask a failed build's
+		// exit code.
 		$this->assertSame(
 			1,
-			preg_match('/^\s+docker\/app\s*$/m', $job),
+			preg_match('/^\s+\.\s*$/m', $job),
 			"The image-build job's docker build does not end as a bare final command — a suppression suffix would mask a failed build"
 		);
 

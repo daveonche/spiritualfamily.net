@@ -471,8 +471,14 @@ jobs:
           # change cannot silently flip it off.
           export DOCKER_BUILDKIT=1
           echo "Building with PHP_VERSION=${php_version} (compose.yml default: PHP_VERSION=7.4)"
+          # Build context is the repository root (Story S1.6): the
+          # Dockerfile COPYs src/ and php/ from the repo root — the images
+          # carry their runtime content (the production definition has no
+          # repo bind mounts) — so the Dockerfile is selected with -f and
+          # the context is `.`, matching compose.yml's build section.
           docker build \
             --build-arg "PHP_VERSION=${php_version}" \
             --tag "sfn/elgg_webserver:${php_version}-composer2" \
-            docker/app
+            -f docker/app/Dockerfile \
+            .
           echo "Image build validation passed (PHP_VERSION=${php_version})."
