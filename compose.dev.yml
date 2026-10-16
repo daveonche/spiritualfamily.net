@@ -10,6 +10,29 @@
 # compose.yml (e.g., Coolify — see docs/deployment/coolify.md).
 
 services:
+  # Dev-only repo bind mounts (Story S1.6): the production definition
+  # carries no bind mounts — the images bake their runtime content — so
+  # local development re-adds them here: live-editable web root and PHP
+  # ini, plus the read-only repo files the in-container test suite
+  # verifies (docs, docker/, compose files, crontab, .env.example,
+  # .gitignore, CI workflow). Always run merged with compose.yml; Compose
+  # merges volumes by mount target, so these add to the named data
+  # volumes rather than replacing them.
+  app:
+    volumes:
+      - ./php/:/usr/local/etc/php/conf.d/
+      - ./src:/var/www/html
+      - ./docs:/var/www/docs:ro
+      - ./docker:/var/www/docker:ro
+      - ./compose.yml:/var/www/compose.yml:ro
+      - ./compose.dev.yml:/var/www/compose.dev.yml:ro
+      - ./crontab:/var/www/crontab:ro
+      - ./.env.example:/var/www/.env.example:ro
+      - ./.gitignore:/var/www/.gitignore:ro
+      - ./.github/workflows/ci.yml:/var/www/.github/workflows/ci.yml:ro
+  cron:
+    volumes:
+      - ./crontab:/tmp/app-cron:ro
   pma:
     # Development-only database administration UI. Moved here from
     # compose.yml (Story S1.6) so production deployments that parse only

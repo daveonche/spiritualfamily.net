@@ -22,8 +22,9 @@ docs/
 **/tests/
 phpunit.xml*
 
-# Composer specific
-**/vendor/
+# Composer specific (Story S1.6: src/vendor is tracked in git and is
+# baked into the app image by COPY src/ — it must not be excluded from
+# the repository-root build context)
 composer.phar
 
 # Elgg specific
@@ -47,3 +48,7 @@ Desktop.ini
 # Misc
 phpcbf-fixed.diff
 startup.sh
+
+# Story S1.6: local log output never enters the repository-root build
+# context
+.log

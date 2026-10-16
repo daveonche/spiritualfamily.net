@@ -3,8 +3,14 @@ services:
     # The app server — locally built: upstream PHP 7.4 webserver + Composer 2
     # (docker/app/Dockerfile) so composer.json/composer.lock work runs in the
     # orchestration.
+    # Build context is the repository root (Story S1.6): the production
+    # definition carries no repo bind mounts — Coolify v4.4.6 runs `up`
+    # without the cloned repository present, so repo-relative bind
+    # sources resolve to empty directories; the images carry their
+    # runtime content, baked at build from the committed repo
     build:
-      context: ./docker/app
+      context: .
+      dockerfile: docker/app/Dockerfile
       # PHP runtime version (Story S1.2; default recorded in
       # docs/baseline/baseline.md) — flows into docker/app/Dockerfile;
       # override via environment (shell export or .env) to build any
@@ -25,36 +31,15 @@ services:
       # overrides via Coolify env (Story S1.6)
       MAIL_SMTP_HOST: "${MAIL_SMTP_HOST:-host.docker.internal}"
       MAIL_SMTP_PORT: "${MAIL_SMTP_PORT:-1025}"
+    # Only the three persistent data volumes (Story S1.6): the web root,
+    # PHP ini overrides, and every repo file the old dev/test mounts
+    # provided are baked into the image at build; the repo-relative bind
+    # mounts live on in compose.dev.yml for local development
     volumes:
-      - ./php/:/usr/local/etc/php/conf.d/
-      # Mount source code files — literal target: Coolify's compose parser
-      # validates storage paths and rejects ${VAR} in the volume-target
-      # position (coolify.io/docs → Docker Compose → Storage)
-      - ./src:/var/www/html
-      # Mount repo-root docs read-only so unit tests can verify baseline
-      # documentation (docs stays a sibling of the web root under /var/www
-      # — the baseline tests resolve it that way)
-      - ./docs:/var/www/docs:ro
-      # Mount repo-root docker/ read-only so unit tests can verify the
-      # committed Dockerfile (Story S1.2 Step 1 test)
-      - ./docker:/var/www/docker:ro
-      # Mount committed orchestration/config files read-only so unit tests
-      # can verify them (Story S1.2 Steps 2–6 tests)
-      - ./compose.yml:/var/www/compose.yml:ro
-      # Dev-only override (Story S1.6 pma move) — mounted so unit tests can
-      # verify the pma service definition and its pins
-      - ./compose.dev.yml:/var/www/compose.dev.yml:ro
-      - ./crontab:/var/www/crontab:ro
-      - ./.env.example:/var/www/.env.example:ro
-      # .gitignore — verifies the .env ignore rule (Story S1.2 Step 6 test)
-      - ./.gitignore:/var/www/.gitignore:ro
-      # Mount the CI workflow read-only so unit tests can verify the
-      # pipeline definition (Story S1.5 Step 1 test)
-      - ./.github/workflows/ci.yml:/var/www/.github/workflows/ci.yml:ro
-      # Persist dataroot — literal target; .env's WWW_DATA (read via
-      # getenv in settings.php) must stay identical to this path
+      # Persist dataroot — .env's WWW_DATA (read via getenv in
+      # settings.php) must stay identical to this path
       - fs-dataroot:/var/www/dataroot
-      # Persist cacheroot — literal target; .env's WWW_CACHE must match
+      # Persist cacheroot — .env's WWW_CACHE must match
       - fs-cacheroot:/var/www/cacheroot
       # Persist assetroot
       - fs-assetroot:/var/www/assetroot
@@ -113,11 +98,14 @@ services:
       - appnet
 
   cron:
-    # Pinned base image (Story S1.2 Step 3): alpine:latest resolved to
-    # 3.23.3 at pin time — confirmed via
-    # `docker run --rm alpine:latest cat /etc/alpine-release`; bump the
-    # tag deliberately, never float
-    image: alpine:3.23.3
+    # Locally built (Story S1.6): the committed crontab is baked into the
+    # image (docker/cron/Dockerfile) — the production definition carries
+    # no repo bind mounts. Tag carries the pinned alpine base version
+    # (Story S1.2 Step 3 pin); bump deliberately, never float
+    build:
+      context: .
+      dockerfile: docker/cron/Dockerfile
+    image: "sfn/elgg_cron:3.23.3"
     container_name: ${CRON_CONTAINER_NAME}
     environment:
       - HOST=${APP_HOST}
@@ -130,8 +118,6 @@ services:
       - WEEKLY_TOKEN=${APP_CRON_WEEKLY}
       - MONTHLY_TOKEN=${APP_CRON_MONTHLY}
       - YEARLY_TOKEN=${APP_CRON_YEARLY}
-    volumes:
-      - ./crontab:/tmp/app-cron:ro
     # 1. Replace tokens and write to the active BusyBox spool location
     # 2. Set strict permissions (required by BusyBox cron)
     # 3. Create 'cron.update' to force the daemon to reload the new file immediately

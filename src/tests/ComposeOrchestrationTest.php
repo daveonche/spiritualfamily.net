@@ -116,11 +116,15 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 		);
 		$cronBlock = $cronBlock[1];
 
-		// The committed crontab is mounted read-only into the service
+		// The committed crontab is baked into the cron image (Story S1.6:
+		// the production definition carries no repo bind mounts) at the
+		// entrypoint's spool source path
+		$cronDockerfile = $this->repoDir() . '/docker/cron/Dockerfile';
+		$this->assertFileExists($cronDockerfile);
 		$this->assertSame(
 			1,
-			preg_match('/- \.\/crontab:\/tmp\/app-cron:ro/', $cronBlock),
-			'compose.yml cron service does not mount the committed crontab read-only'
+			preg_match('/^COPY\s+crontab\s+\/tmp\/app-cron\s*$/m', file_get_contents($cronDockerfile)),
+			'docker/cron/Dockerfile must bake the committed crontab at the entrypoint source path /tmp/app-cron'
 		);
 
 		// The committed entrypoint replaces every crontab placeholder from
@@ -189,9 +193,10 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 		// Explicit, non-floating image references — the reproducibility
 		// half of this Must Support item. The app reference is explicitly
 		// tagged via its version interpolation + -composer2 suffix (the
-		// exact default is pinned in Step 1's ComposeImageBuildTest); the
-		// dbm/cron exact values and their documentation recording are
-		// asserted in their own steps' tests (db: Step 5); pma's pin is
+		// exact default is pinned in Step 1's ComposeImageBuildTest); dbm
+		// keeps its pinned upstream tag (exact value + baseline recording
+		// asserted in ComposeDatabasePinTest); cron is the locally built
+		// image with the crontab baked in (Story S1.6); pma's pin is
 		// asserted against compose.dev.yml below.
 		$this->assertSame(
 			1,
@@ -199,22 +204,38 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 			'compose.yml app service image is not an explicitly tagged reference'
 		);
 
-		$staticPins = array(
-			'dbm' => 'mariadb',
-			'cron' => 'alpine',
+		// dbm: pinned upstream image
+		$this->assertSame(
+			1,
+			preg_match('/^    image:\s*mariadb:([^\s"]+)$/m', $blocks['dbm'], $m),
+			"compose.yml 'dbm' service image is not pinned to an explicit tag"
 		);
-		foreach ($staticPins as $service => $image) {
-			$this->assertSame(
-				1,
-				preg_match('/^    image:\s*' . $image . ':([^\s"]+)$/m', $blocks[$service], $m),
-				"compose.yml '$service' service image is not pinned to an explicit tag"
-			);
-			$this->assertNotSame(
-				'latest',
-				$m[1],
-				"compose.yml '$service' service floats the \"latest\" tag"
-			);
-		}
+		$this->assertNotSame(
+			'latest',
+			$m[1],
+			"compose.yml 'dbm' service floats the \"latest\" tag"
+		);
+
+		// cron: locally built image (crontab baked — Story S1.6), tagged
+		// with the pinned alpine base version; the base pin itself is
+		// asserted on docker/cron/Dockerfile below
+		$this->assertSame(
+			1,
+			preg_match('/^    image:\s*"sfn\/elgg_cron:([^\s"]+)"/m', $blocks['cron'], $m),
+			"compose.yml 'cron' service image is not the pinned locally built tag"
+		);
+		$this->assertNotSame(
+			'latest',
+			$m[1],
+			"compose.yml 'cron' service floats the \"latest\" tag"
+		);
+		$cronDockerfile = $this->repoDir() . '/docker/cron/Dockerfile';
+		$this->assertFileExists($cronDockerfile);
+		$this->assertSame(
+			1,
+			preg_match('/^FROM\s+alpine:3\.23\.3\s*$/m', file_get_contents($cronDockerfile)),
+			"docker/cron/Dockerfile must pin its alpine base image"
+		);
 
 		// The dev-only pma service (compose.dev.yml, Story S1.6) keeps its
 		// pinned image and appnet attachment

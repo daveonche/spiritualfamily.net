@@ -97,3 +97,16 @@ else
 fi
 msmtp --version
 EOF
+
+# Application source (Story S1.6): the production definition carries no
+# repo bind mounts (Coolify v4.4.6 runs `up` without the cloned
+# repository present, so repo-relative bind sources resolve to empty
+# directories), so the image itself carries the web root: the committed
+# src/ tree — composer.json, composer.lock, the tracked pinned vendor/
+# (fresh_checkout.md: a fresh clone runs without composer install), and
+# elgg-config — plus the php/ ini overrides (mail.ini → msmtp). Build
+# context is the repository root (compose.yml build.context), so these
+# paths are repo-relative. No composer step here: the tracked tree is
+# the pin; dependency changes land as committed vendor/ updates.
+COPY src/ /var/www/html/
+COPY php/ /usr/local/etc/php/conf.d/
