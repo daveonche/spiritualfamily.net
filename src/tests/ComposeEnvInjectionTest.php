@@ -228,11 +228,6 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			'CRON_CONTAINER_NAME',
 			'APP_HOST',
 			'APP_HOST_PORT',
-			'WWW_ROOT',
-			'WWW_DATA',
-			'WWW_CACHE',
-			'WWW_ASSET',
-			'WWW_DOCS',
 			'APP_CRON_MINUTE',
 			'APP_CRON_FIVEMINUTE',
 			'APP_CRON_FIFTEENMIN',
@@ -250,6 +245,15 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 				"compose.yml must reference $var via interpolation, not a committed literal"
 			);
 		}
+
+		// Volume targets must be literal absolute paths: Coolify's compose
+		// parser validates storage paths and rejects ${VAR} interpolation
+		// in the target position
+		$this->assertSame(
+			0,
+			preg_match('/^\s+-\s+\S+:\$\{/m', $blocks['app'] . "\n" . $blocks['dbm']),
+			'compose.yml volume targets must be literal paths — Coolify rejects interpolated volume targets'
+		);
 
 		// The dev-only pma service follows the same injection rules:
 		// settings via env_file: .env, values via ${VAR} interpolation
@@ -361,11 +365,8 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			'PHP_VERSION'   => '7.4',
 			'APP_HOST_PORT' => '3000',
 			'PMA_HOST_PORT' => '3001',
-			'WWW_ROOT'      => '/var/www/html',
 			'WWW_DATA'      => '/var/www/dataroot',
 			'WWW_CACHE'     => '/var/www/cacheroot',
-			'WWW_ASSET'     => '/var/www/assetroot',
-			'WWW_DOCS'      => '/var/www/docs',
 			'MYSQL_HOST'    => 'dbm',
 			'PMA_HOST'      => 'dbm',
 			'ELGG_TIMEZONE' => 'UTC',

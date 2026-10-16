@@ -27,12 +27,14 @@ services:
       MAIL_SMTP_PORT: "${MAIL_SMTP_PORT:-1025}"
     volumes:
       - ./php/:/usr/local/etc/php/conf.d/
-      # Mount source code files
-      - ./src:${WWW_ROOT}
+      # Mount source code files — literal target: Coolify's compose parser
+      # validates storage paths and rejects ${VAR} in the volume-target
+      # position (coolify.io/docs → Docker Compose → Storage)
+      - ./src:/var/www/html
       # Mount repo-root docs read-only so unit tests can verify baseline
-      # documentation (WWW_DOCS must keep docs a sibling of WWW_ROOT under
-      # the same parent — the baseline tests resolve it that way)
-      - ./docs:${WWW_DOCS:-/var/www/docs}:ro
+      # documentation (docs stays a sibling of the web root under /var/www
+      # — the baseline tests resolve it that way)
+      - ./docs:/var/www/docs:ro
       # Mount repo-root docker/ read-only so unit tests can verify the
       # committed Dockerfile (Story S1.2 Step 1 test)
       - ./docker:/var/www/docker:ro
@@ -49,12 +51,13 @@ services:
       # Mount the CI workflow read-only so unit tests can verify the
       # pipeline definition (Story S1.5 Step 1 test)
       - ./.github/workflows/ci.yml:/var/www/.github/workflows/ci.yml:ro
-      # Persist dataroot
-      - fs-dataroot:${WWW_DATA:-/var/www/dataroot}
-      # Persist cacheroot
-      - fs-cacheroot:${WWW_CACHE:-/var/www/cacheroot}
+      # Persist dataroot — literal target; .env's WWW_DATA (read via
+      # getenv in settings.php) must stay identical to this path
+      - fs-dataroot:/var/www/dataroot
+      # Persist cacheroot — literal target; .env's WWW_CACHE must match
+      - fs-cacheroot:/var/www/cacheroot
       # Persist assetroot
-      - fs-assetroot:${WWW_ASSET:-/var/www/assetroot}
+      - fs-assetroot:/var/www/assetroot
     extra_hosts:
       # Map custom host to host-gateway 
       - "${APP_HOST}:host-gateway"

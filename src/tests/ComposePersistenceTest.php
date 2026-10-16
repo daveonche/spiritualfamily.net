@@ -63,10 +63,12 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 		$envExample = $this->repoDir() . '/.env.example';
 		$this->assertFileExists($envExample);
 		$env = file_get_contents($envExample);
+		// WWW_DATA/WWW_CACHE stay documented (settings.php reads them via
+		// getenv); assetroot has no env consumer — its path is pinned by
+		// the literal compose.yml mount target
 		foreach (array(
 			'WWW_DATA'  => '/var/www/dataroot',
 			'WWW_CACHE' => '/var/www/cacheroot',
-			'WWW_ASSET' => '/var/www/assetroot',
 		) as $var => $path) {
 			$this->assertSame(
 				1,
@@ -153,11 +155,12 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 
 		// The application data directory (Elgg dataroot) is a named-volume
 		// mount at the dataroot target — not a host bind and not an
-		// anonymous volume; the target enters via the WWW_DATA variable
-		// with the dataroot default (documented in .env.example)
+		// anonymous volume; the target is the literal image-provisioned
+		// path (Coolify rejects ${VAR} volume targets), which .env's
+		// WWW_DATA — read via getenv in settings.php — must match
 		$this->assertSame(
 			1,
-			preg_match('/^\s+- fs-dataroot:\$\{WWW_DATA:-\/var\/www\/dataroot\}\s*$/m', $appBlock),
+			preg_match('/^\s+- fs-dataroot:\/var\/www\/dataroot\s*$/m', $appBlock),
 			"compose.yml app service does not mount the fs-dataroot named volume at the dataroot target"
 		);
 
@@ -254,7 +257,7 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 		);
 
 		// app: every data-bearing mount (dataroot, cacheroot, assetroot) is
-		// a named-volume mount at its variable-driven target
+		// a named-volume mount at its literal image-provisioned target
 		$this->assertSame(
 			1,
 			preg_match('/^  app:\s*$(.*?)^  dbm:/ms', $config, $m),
@@ -267,9 +270,9 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 		);
 		$appVolumes = $m2[1];
 		$dataMounts = array(
-			'fs-dataroot'  => '\$\{WWW_DATA:-\/var\/www\/dataroot\}',
-			'fs-cacheroot' => '\$\{WWW_CACHE:-\/var\/www\/cacheroot\}',
-			'fs-assetroot' => '\$\{WWW_ASSET:-\/var\/www\/assetroot\}',
+			'fs-dataroot'  => '\/var\/www\/dataroot',
+			'fs-cacheroot' => '\/var\/www\/cacheroot',
+			'fs-assetroot' => '\/var\/www\/assetroot',
 		);
 		foreach ($dataMounts as $volume => $target) {
 			$this->assertSame(
