@@ -152,3 +152,37 @@ inventory, as expected for a live site.
   on first-volume initialization). Root was reset to the `.env` value via a
   temporary `--skip-grant-tables` container; authentication then verified
   against `MYSQL_ROOT_PASSWORD`.
+
+## Production Environment Injection (Story S1.6 Step 3)
+
+Story S1.6 Step 3 supplies every production secret exclusively through the
+deployment platform's environment variable settings. The committed
+`.env.example` remains the authoritative variable inventory: the platform
+settings must account for every variable it documents, while the repository
+keeps only placeholder values and documented non-secret defaults. The table
+below records the per-variable treatment for the production settings; the
+`pma` variables are development-only and stay out of the production stack
+(Step 1).
+
+| Variable(s) | Treatment in the platform settings |
+| :--- | :--- |
+| `PHP_VERSION` | Plain setting — pinned to `7.4` (build arg and image tag; see Pinned Versions) |
+| `APP_CONTAINER_NAME`, `MYSQL_CONTAINER_NAME`, `CRON_CONTAINER_NAME` | Plain settings — operator-chosen container names |
+| `APP_HOST` | Plain setting — the production domain; also feeds the cron service's `HOST` and, in Step 4, entry routing |
+| `APP_HOST_PORT` | Plain setting — as the platform's entry routing requires (finalized in Step 4) |
+| `WWW_DATA`, `WWW_CACHE` | Plain settings — must equal the volume mount targets `/var/www/dataroot` and `/var/www/cacheroot` |
+| `MYSQL_HOST` | Plain setting — `dbm` |
+| `ELGG_TIMEZONE` | Plain setting — `UTC` |
+| `MYSQL_DATABASE`, `ELGG_DB_PREFIX` | Platform settings — credential material supplied only via the platform (the production database name already appears in the dump-restore record above) |
+| `MYSQL_ROOT_PASSWORD`, `MYSQL_USER`, `MYSQL_PASSWORD` | Secrets — platform settings only, never committed |
+| `APP_CRON_MINUTE` … `APP_CRON_YEARLY` (9 tokens) | Secrets — platform settings only, never committed |
+| `MAIL_SMTP_HOST`, `MAIL_SMTP_PORT` | Platform settings — accounted for now; the production relay override is Step 5 |
+| `PMA_HOST`, `PMA_HOST_PORT`, `PMA_CONTAINER_NAME` | Development-only — not set in production (`pma` excluded per Step 1) |
+| `COMPOSE_PROJECT_NAME` | Optional |
+
+Guard test: `src/tests/ProductionSecretHygieneTest.php` asserts that `.env`
+stays matched by a `.gitignore` pattern (and is never re-included), that every
+credential-material variable is documented in `.env.example` with its
+`changeme` placeholder, and that no template value deviates from the
+placeholder except the documented non-secret defaults — so real secret values
+can never enter the repository.
