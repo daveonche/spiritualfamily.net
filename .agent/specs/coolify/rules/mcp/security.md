@@ -1,0 +1,36 @@
+# MCP › Security
+
+Source: coollabsio/coolify-docs `content/docs/mcp/security.mdx` @ main `3b7c416`.
+
+## Scope
+
+- MCP gives an AI client access to Coolify data and, when permitted, lifecycle operations — treat the token as a password.
+
+## Use least privilege
+
+| Need | Permission |
+| --- | --- |
+| Inspect resources | `read` |
+| Read supported sensitive data or log summaries | `read:sensitive` |
+| Deploy, start, stop, restart, or cancel | `deploy` |
+| Change the instance MCP setting | `root` token for the enable/disable API |
+
+- Do not use a `root` token for normal MCP access.
+
+## Team scope
+
+- A token belongs to one team; MCP cannot use that token to read another team's resources.
+- Team owners can disable MCP for their team without disabling the instance endpoint.
+
+## Protect client configuration
+
+- Store tokens in the client's secret storage.
+- Do not commit MCP configuration containing a token.
+- Do not paste tokens into prompts or chat transcripts.
+- Restrict access to the machine and user account running the client.
+- Revoke the token immediately if exposed.
+
+## Response boundaries
+
+- MCP responses never return environment values or file contents.
+- Log and deployment summaries can still contain operational data; redaction is best effort.

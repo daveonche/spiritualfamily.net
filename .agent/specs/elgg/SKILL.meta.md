@@ -47,8 +47,8 @@ procedure live in `SKILL.md`; nothing here duplicates them.
 
 ## Version
 
-- Current Version: 1.0.0
-- Last Updated: 2026-10-07
+- Current Version: 1.0.1
+- Last Updated: 2026-10-17
 - Stability: Stable
 
 ## Sync / Validation Checklist

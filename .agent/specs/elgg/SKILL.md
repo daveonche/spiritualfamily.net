@@ -41,7 +41,7 @@ below govern what it contains.
    `composer.json` or `composer.lock`.
 3. Before using any `rules/` topic, run the documentation freshness
    check: compare the distilled version recorded in
-   `references/source-listing-7.1.json` against the latest stable
+   `references/source-listing-7.1.1.json` against the latest stable
    Elgg release. If a newer stable release exists, always prompt the
    user to update to that release's source listing JSON (e.g.,
    `references/source-listing-<new>.json`) and refresh the affected
@@ -89,8 +89,8 @@ details.
 - `references/upgrade-notes/` — per-version change list
   (`<from>-to-<to>.md`) that drives updates to `rules/`; load the notes
   for each boundary crossed.
-- `references/source-listing-7.1.json` — provenance manifest for the 7.1
-  distillation pass; machine-readable, not loaded for guidance.
+- `references/source-listing-7.1.1.json` — provenance manifest for the
+  7.1.1 distillation pass; machine-readable, not loaded for guidance.
 
 ## Language pack
 
@@ -107,7 +107,7 @@ PHP), load `.agent/specs/php-best-practices/SKILL.md` via `/read-only`.
 - `references/upgrade-notes/` drives `rules/` updates: when a note
   changes, update the affected rule files in the same change.
 - `rules/` topics apply only to the latest stable version recorded in
-  `references/source-listing-7.1.json`; run the freshness check
+  `references/source-listing-7.1.1.json`; run the freshness check
   (Before advising, step 3) before relying on any rule, and route
   legacy versions through `references/upgrade-notes/` to upgrade
   first (Before advising, step 4).

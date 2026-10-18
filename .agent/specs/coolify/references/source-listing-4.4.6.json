@@ -1,0 +1,434 @@
+[
+  {
+    "name": "api",
+    "path": "content/docs/api",
+    "sha": "a5561346bc3eb5d332d3cf89d61dd4724714c73c",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/api?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/api",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/a5561346bc3eb5d332d3cf89d61dd4724714c73c",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/api?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/a5561346bc3eb5d332d3cf89d61dd4724714c73c",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/api"
+    }
+  },
+  {
+    "name": "applications",
+    "path": "content/docs/applications",
+    "sha": "336ec5a4ea2ba671f6f756cbb67019d94abb62e2",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/applications?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/applications",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/336ec5a4ea2ba671f6f756cbb67019d94abb62e2",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/applications?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/336ec5a4ea2ba671f6f756cbb67019d94abb62e2",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/applications"
+    }
+  },
+  {
+    "name": "choose-your-path.mdx",
+    "path": "content/docs/choose-your-path.mdx",
+    "sha": "786306349bdb7e011ca6d96846459603e088e9cc",
+    "size": 3718,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/choose-your-path.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/choose-your-path.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/786306349bdb7e011ca6d96846459603e088e9cc",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/choose-your-path.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/choose-your-path.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/786306349bdb7e011ca6d96846459603e088e9cc",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/choose-your-path.mdx"
+    }
+  },
+  {
+    "name": "cli",
+    "path": "content/docs/cli",
+    "sha": "7323938ee905ed67458eb05ab5b2b700b80237ad",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/cli?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/cli",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/7323938ee905ed67458eb05ab5b2b700b80237ad",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/cli?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/7323938ee905ed67458eb05ab5b2b700b80237ad",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/cli"
+    }
+  },
+  {
+    "name": "concepts.mdx",
+    "path": "content/docs/concepts.mdx",
+    "sha": "88a132c2e53dce4b01a45c088da213008f0e408a",
+    "size": 4240,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/concepts.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/concepts.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/88a132c2e53dce4b01a45c088da213008f0e408a",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/concepts.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/concepts.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/88a132c2e53dce4b01a45c088da213008f0e408a",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/concepts.mdx"
+    }
+  },
+  {
+    "name": "contribute",
+    "path": "content/docs/contribute",
+    "sha": "b756058773400e969b2cff3cde72b18ad2ace74a",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/contribute?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/contribute",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/b756058773400e969b2cff3cde72b18ad2ace74a",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/contribute?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/b756058773400e969b2cff3cde72b18ad2ace74a",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/contribute"
+    }
+  },
+  {
+    "name": "core",
+    "path": "content/docs/core",
+    "sha": "86f567e345fc0eb1615d64a8761c5892cba7f282",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/core?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/core",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/86f567e345fc0eb1615d64a8761c5892cba7f282",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/core?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/86f567e345fc0eb1615d64a8761c5892cba7f282",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/core"
+    }
+  },
+  {
+    "name": "databases",
+    "path": "content/docs/databases",
+    "sha": "d1398f9ead9f684c71a708c69c3754a9d89fbb70",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/databases?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/databases",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/d1398f9ead9f684c71a708c69c3754a9d89fbb70",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/databases?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/d1398f9ead9f684c71a708c69c3754a9d89fbb70",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/databases"
+    }
+  },
+  {
+    "name": "deploy-your-first-app.mdx",
+    "path": "content/docs/deploy-your-first-app.mdx",
+    "sha": "f1c996a72daf102a6a8a529fb7e95415b81720aa",
+    "size": 15774,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/deploy-your-first-app.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/deploy-your-first-app.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/f1c996a72daf102a6a8a529fb7e95415b81720aa",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/deploy-your-first-app.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/deploy-your-first-app.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/f1c996a72daf102a6a8a529fb7e95415b81720aa",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/deploy-your-first-app.mdx"
+    }
+  },
+  {
+    "name": "deploy-your-first-database.mdx",
+    "path": "content/docs/deploy-your-first-database.mdx",
+    "sha": "d2c7caa3986dc08051b37e6dbc7d7e9887c14146",
+    "size": 16826,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/deploy-your-first-database.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/deploy-your-first-database.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/d2c7caa3986dc08051b37e6dbc7d7e9887c14146",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/deploy-your-first-database.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/deploy-your-first-database.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/d2c7caa3986dc08051b37e6dbc7d7e9887c14146",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/deploy-your-first-database.mdx"
+    }
+  },
+  {
+    "name": "deploy-your-first-service.mdx",
+    "path": "content/docs/deploy-your-first-service.mdx",
+    "sha": "8e60f89e58e5022c7e080a532754b249cb311167",
+    "size": 16827,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/deploy-your-first-service.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/deploy-your-first-service.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/8e60f89e58e5022c7e080a532754b249cb311167",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/deploy-your-first-service.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/deploy-your-first-service.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/8e60f89e58e5022c7e080a532754b249cb311167",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/deploy-your-first-service.mdx"
+    }
+  },
+  {
+    "name": "index.mdx",
+    "path": "content/docs/index.mdx",
+    "sha": "ce5db7cdc1fac6b41183982184939006e38277fd",
+    "size": 4142,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/index.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/index.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/ce5db7cdc1fac6b41183982184939006e38277fd",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/index.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/index.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/ce5db7cdc1fac6b41183982184939006e38277fd",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/index.mdx"
+    }
+  },
+  {
+    "name": "integrations",
+    "path": "content/docs/integrations",
+    "sha": "f36e2c79a266d20e66caeb77d87fa84be6f51881",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/integrations?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/integrations",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/f36e2c79a266d20e66caeb77d87fa84be6f51881",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/integrations?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/f36e2c79a266d20e66caeb77d87fa84be6f51881",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/integrations"
+    }
+  },
+  {
+    "name": "knowledge-base",
+    "path": "content/docs/knowledge-base",
+    "sha": "8e0c1adf5d9663efaeaf3fadb11641f1f913f216",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/knowledge-base?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/knowledge-base",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/8e0c1adf5d9663efaeaf3fadb11641f1f913f216",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/knowledge-base?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/8e0c1adf5d9663efaeaf3fadb11641f1f913f216",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/knowledge-base"
+    }
+  },
+  {
+    "name": "mcp",
+    "path": "content/docs/mcp",
+    "sha": "4201b0f19700cb575fef5db657e5b6e3a6fc237f",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/mcp?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/mcp",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/4201b0f19700cb575fef5db657e5b6e3a6fc237f",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/mcp?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/4201b0f19700cb575fef5db657e5b6e3a6fc237f",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/mcp"
+    }
+  },
+  {
+    "name": "meta.json",
+    "path": "content/docs/meta.json",
+    "sha": "2353c4e7fdca0119eb6a0537ba9d8db0595f236b",
+    "size": 729,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/meta.json?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/meta.json",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/2353c4e7fdca0119eb6a0537ba9d8db0595f236b",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/meta.json",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/meta.json?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/2353c4e7fdca0119eb6a0537ba9d8db0595f236b",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/meta.json"
+    }
+  },
+  {
+    "name": "offers.mdx",
+    "path": "content/docs/offers.mdx",
+    "sha": "821248056a60274de11de49400290ba66b535f98",
+    "size": 1794,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/offers.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/offers.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/821248056a60274de11de49400290ba66b535f98",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/offers.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/offers.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/821248056a60274de11de49400290ba66b535f98",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/offers.mdx"
+    }
+  },
+  {
+    "name": "screenshots.mdx",
+    "path": "content/docs/screenshots.mdx",
+    "sha": "37c73685aa42c79f06d0f7a5d50a792b04c97d51",
+    "size": 2654,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/screenshots.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/screenshots.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/37c73685aa42c79f06d0f7a5d50a792b04c97d51",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/screenshots.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/screenshots.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/37c73685aa42c79f06d0f7a5d50a792b04c97d51",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/screenshots.mdx"
+    }
+  },
+  {
+    "name": "services",
+    "path": "content/docs/services",
+    "sha": "b0c63ab46e248bf42a5b10811211cda56561b59d",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/services?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/services",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/b0c63ab46e248bf42a5b10811211cda56561b59d",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/services?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/b0c63ab46e248bf42a5b10811211cda56561b59d",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/services"
+    }
+  },
+  {
+    "name": "sponsors.mdx",
+    "path": "content/docs/sponsors.mdx",
+    "sha": "e6a45315ce17b2a5aea287631397c7058cf4fdfc",
+    "size": 187,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/sponsors.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/sponsors.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/e6a45315ce17b2a5aea287631397c7058cf4fdfc",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/sponsors.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/sponsors.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/e6a45315ce17b2a5aea287631397c7058cf4fdfc",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/sponsors.mdx"
+    }
+  },
+  {
+    "name": "start-with-cloud.mdx",
+    "path": "content/docs/start-with-cloud.mdx",
+    "sha": "edbf0ce74c2b948ba429c5a905a432eb744e90a1",
+    "size": 14748,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/start-with-cloud.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/start-with-cloud.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/edbf0ce74c2b948ba429c5a905a432eb744e90a1",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/start-with-cloud.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/start-with-cloud.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/edbf0ce74c2b948ba429c5a905a432eb744e90a1",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/start-with-cloud.mdx"
+    }
+  },
+  {
+    "name": "start-with-self-hosted.mdx",
+    "path": "content/docs/start-with-self-hosted.mdx",
+    "sha": "04307fb24b6c16e2545f7f43ec5435867c055746",
+    "size": 32619,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/start-with-self-hosted.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/start-with-self-hosted.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/04307fb24b6c16e2545f7f43ec5435867c055746",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/start-with-self-hosted.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/start-with-self-hosted.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/04307fb24b6c16e2545f7f43ec5435867c055746",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/start-with-self-hosted.mdx"
+    }
+  },
+  {
+    "name": "support.mdx",
+    "path": "content/docs/support.mdx",
+    "sha": "9d566f17c704ffebe886e7f44a9ed17173ec80f5",
+    "size": 330,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/support.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/support.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/9d566f17c704ffebe886e7f44a9ed17173ec80f5",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/support.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/support.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/9d566f17c704ffebe886e7f44a9ed17173ec80f5",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/support.mdx"
+    }
+  },
+  {
+    "name": "team.mdx",
+    "path": "content/docs/team.mdx",
+    "sha": "b6b6c7059b5d36a2b796a48feae097988ab8ccd9",
+    "size": 192,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/team.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/team.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/b6b6c7059b5d36a2b796a48feae097988ab8ccd9",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/team.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/team.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/b6b6c7059b5d36a2b796a48feae097988ab8ccd9",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/team.mdx"
+    }
+  },
+  {
+    "name": "troubleshoot",
+    "path": "content/docs/troubleshoot",
+    "sha": "39d9782e7b037db0530f7667e9034f62676b8832",
+    "size": 0,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/troubleshoot?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/troubleshoot",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/39d9782e7b037db0530f7667e9034f62676b8832",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/troubleshoot?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/trees/39d9782e7b037db0530f7667e9034f62676b8832",
+      "html": "https://github.com/coollabsio/coolify-docs/tree/main/content/docs/troubleshoot"
+    }
+  },
+  {
+    "name": "usage.mdx",
+    "path": "content/docs/usage.mdx",
+    "sha": "af1ced99f0606ceb95792102c8c706940aef91f6",
+    "size": 3610,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/usage.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/usage.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/af1ced99f0606ceb95792102c8c706940aef91f6",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/usage.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/usage.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/af1ced99f0606ceb95792102c8c706940aef91f6",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/usage.mdx"
+    }
+  },
+  {
+    "name": "videos.mdx",
+    "path": "content/docs/videos.mdx",
+    "sha": "8cddbc9ade8a6bcd6bb4be3f414bd2e9f24efc00",
+    "size": 2800,
+    "url": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/videos.mdx?ref=main",
+    "html_url": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/videos.mdx",
+    "git_url": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/8cddbc9ade8a6bcd6bb4be3f414bd2e9f24efc00",
+    "download_url": "https://raw.githubusercontent.com/coollabsio/coolify-docs/main/content/docs/videos.mdx",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/coollabsio/coolify-docs/contents/content/docs/videos.mdx?ref=main",
+      "git": "https://api.github.com/repos/coollabsio/coolify-docs/git/blobs/8cddbc9ade8a6bcd6bb4be3f414bd2e9f24efc00",
+      "html": "https://github.com/coollabsio/coolify-docs/blob/main/content/docs/videos.mdx"
+    }
+  }
+]
