@@ -12,12 +12,12 @@ versions.
 
 This guide covers creating the production application in Coolify from the
 committed `compose.yml`, starting the app, dbm, and cron services as one
-stack, and HTTPS entry routing to the app service (Step 4). The remaining
-deployment concerns are handled by their own steps in
-`docs/analysis/S1.6-story-steps.md`: version-pin verification (Step 2),
-environment/secret injection (Step 3), production email (Step 5), the
-deploy runbook (Step 6), the database migration (Step 7), and re-deploy
-reproducibility (Step 8).
+stack, HTTPS entry routing to the app service (Step 4), and production
+email over the real relay (Step 5). The remaining deployment concerns are
+handled by their own steps in `docs/analysis/S1.6-story-steps.md`:
+version-pin verification (Step 2), environment/secret injection (Step 3),
+the deploy runbook (Step 6), the database migration (Step 7), and
+re-deploy reproducibility (Step 8).
 
 ## Prerequisites
 
@@ -80,7 +80,7 @@ Auto-created by Coolify (fill in the values where noted):
 | `PHP_VERSION` | `7.4` |
 | `APP_HOST` | production hostname, no scheme |
 | `APP_CRON_MINUTE` … `APP_CRON_YEARLY` (9 tokens) | left empty — Elgg 2.3 does not consume cron tokens; fill with real random strings once the upgrade reaches the latest Elgg version |
-| `MAIL_SMTP_HOST` / `MAIL_SMTP_PORT` | leave empty until Step 5 (production relay) |
+| `MAIL_SMTP_HOST` / `MAIL_SMTP_PORT` | production relay values in Step 5 — see Production email below (empty until then) |
 
 Add manually (mark the four `MYSQL_*` credentials as secrets):
 
@@ -94,6 +94,7 @@ Add manually (mark the four `MYSQL_*` credentials as secrets):
 | `ELGG_TIMEZONE` | `UTC` |
 | `WWW_DATA` | `/var/www/dataroot` — must match the compose mount target |
 | `WWW_CACHE` | `/var/www/cacheroot` — must match |
+| `MAIL_SMTP_AUTH` / `MAIL_SMTP_USER` / `MAIL_SMTP_PASSWORD` | Step 5 relay authentication — `on` plus the relay mailbox credentials; mark the password as a secret (see Production email below) |
 
 The full secrets-injection treatment is Step 3 of the story steps.
 
@@ -168,6 +169,69 @@ fallback that bypasses domain routing; it does not participate in HTTPS
 entry routing. Note a fixed host port prevents rolling updates — if those
 become needed, move the mapping to `compose.dev.yml` (development-only).
 
+## Production email (Step 5)
+
+Outgoing mail flows PHP `mail()` → the image's `msmtp-sendmail` wrapper →
+msmtp → the SMTP relay named by the `MAIL_SMTP_*` variables. The relay is
+the cPanel mail service hosting the `spiritualfamily.online` mailboxes —
+a split setup: the domain's A record stays on the VPS (website via
+Coolify), while MX/SPF/DKIM point at the shared cPanel server (mail).
+
+Prerequisites (cPanel side, one-time):
+
+1. Add `spiritualfamily.online` as an addon domain on the shared cPanel
+   account. Keep DNS at the current provider and add only the mail
+   records there — do not let the A record point at the shared server.
+2. Create the mailboxes, including `noreply@spiritualfamily.online` —
+   the site's sender identity (From/envelope-from for Elgg mail).
+3. Run cPanel's **Email Deliverability** tool for the domain and add the
+   SPF and DKIM records it shows to the DNS zone.
+
+Coolify settings (Environment Variables tab; redeploy afterwards so the
+running containers receive them):
+
+| Variable | Value |
+| :--- | :--- |
+| `MAIL_SMTP_HOST` | the cPanel submission hostname (e.g. `mail.spiritualfamily.online`) |
+| `MAIL_SMTP_PORT` | `587` — STARTTLS submission, matching the wrapper's `--tls=on` |
+| `MAIL_SMTP_AUTH` | `on` |
+| `MAIL_SMTP_USER` | `noreply@spiritualfamily.online` |
+| `MAIL_SMTP_PASSWORD` | that mailbox's password — mark as secret |
+
+The wrapper adds authentication and STARTTLS only when `MAIL_SMTP_AUTH=on`
+and both credential variables are non-empty; without them it keeps the
+plaintext development behaviour (MailHog), so development needs no changes.
+
+Confirm the injected values inside the running app container — they must
+be the production values, not the dev defaults:
+
+```bash
+docker exec <app container> printenv MAIL_SMTP_HOST MAIL_SMTP_PORT MAIL_SMTP_AUTH
+```
+
+End-to-end trigger — the identical transport Elgg uses (`mail()` →
+`sendmail_path` → wrapper → msmtp → relay), including the `-f`
+envelope-from Elgg passes via `mail()` additional parameters:
+
+```bash
+docker exec <app container> php -r 'mail("you@example.com", "S1.6 Step 5 relay check", "Delivered via the production relay.", "From: noreply@spiritualfamily.online\r\n", "-f noreply@spiritualfamily.online");'
+```
+
+Confirm arrival in a real inbox. A real Elgg-generated email (e.g. user
+validation) is re-checked after Step 7 restores the users.
+
+Troubleshooting:
+
+- **Certificate mismatch** — msmtp verifies the relay certificate; use
+  the exact outgoing hostname/port shown in cPanel's **Connect Devices →
+  Mail Client Manual Settings** (it carries the certificate cPanel
+  issues).
+- **Authentication failures** — the username is the full mailbox address;
+  re-check the password against a webmail login.
+- **Accepted but not delivered** — confirm SPF/DKIM were added before
+  testing, check the cPanel mail logs, and look in the recipient's spam
+  folder.
+
 ## Gotchas
 
 - **MariaDB initializes once.** The `MYSQL_*` accounts are created only
@@ -189,10 +253,10 @@ become needed, move the mapping to `compose.dev.yml` (development-only).
   `MAIL_SMTP_HOST`/`MAIL_SMTP_PORT` empty (or absent), the Compose
   interpolation defaults apply in the app container
   (`${MAIL_SMTP_HOST:-host.docker.internal}`, port `1025`) — the
-  development capture endpoint. Until Step 5 supplies the production
-  relay, outgoing mail fails; that is expected and harmless while the
-  database is still empty (nothing triggers email before the Step 7
-  restore).
+  development capture endpoint. While they stay empty — before the
+  production relay is set (Production email (Step 5) above) — outgoing
+  mail fails; that is expected and harmless while the database is still
+  empty (nothing triggers email before the Step 7 restore).
 
 ## Verify
 
@@ -205,3 +269,4 @@ become needed, move the mapping to `compose.dev.yml` (development-only).
 - [ ] `https://<production domain>` loads in a browser with a valid
   certificate and no warnings (Step 4).
 - [ ] The production domain resolves to the deployed stack (Step 4).
+- [ ] A triggered email is delivered through the real relay (Step 5).

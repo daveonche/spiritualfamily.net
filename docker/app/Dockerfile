@@ -66,8 +66,10 @@ EOF
 # stock /usr/sbin/sendmail cannot deliver from inside the container, so
 # PHP mail() fails silently and uservalidationbyemail never reaches the
 # dev MailHog extension. Install msmtp; the repo-mounted php/mail.ini
-# points sendmail_path at it with host/port from the environment
-# (compose.yml app.environment defaults; .env.example documents both).
+# points sendmail_path at the msmtp-sendmail wrapper (copied below),
+# which assembles the msmtp invocation from the environment: host/port
+# always, authentication/TLS when MAIL_SMTP_AUTH=on (compose.yml
+# app.environment defaults; .env.example documents all).
 # The base image's package manager is not pinned knowledge, so both
 # common families are handled — exactly one branch runs.
 RUN <<EOF
@@ -97,6 +99,14 @@ else
 fi
 msmtp --version
 EOF
+
+# Authenticated submission (Story S1.6 Step 5): the sendmail wrapper that
+# php/mail.ini points at. It assembles the msmtp invocation from the
+# environment — host/port always, auth/TLS only when MAIL_SMTP_AUTH=on —
+# so the production credentials stay in the platform settings and never
+# enter the image.
+COPY docker/app/msmtp-sendmail.sh /usr/local/bin/msmtp-sendmail
+RUN chmod 0755 /usr/local/bin/msmtp-sendmail
 
 # Application source (Story S1.6): the production definition carries no
 # repo bind mounts (Coolify v4.4.6 runs `up` without the cloned
