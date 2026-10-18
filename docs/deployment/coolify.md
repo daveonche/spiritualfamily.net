@@ -11,12 +11,13 @@ versions.
 ## Scope
 
 This guide covers creating the production application in Coolify from the
-committed `compose.yml` and starting the app, dbm, and cron services as one
-stack. The remaining deployment concerns are handled by their own steps in
+committed `compose.yml`, starting the app, dbm, and cron services as one
+stack, and HTTPS entry routing to the app service (Step 4). The remaining
+deployment concerns are handled by their own steps in
 `docs/analysis/S1.6-story-steps.md`: version-pin verification (Step 2),
-environment/secret injection (Step 3), HTTPS entry routing via Domains
-(Step 4), production email (Step 5), the deploy runbook (Step 6), the
-database migration (Step 7), and re-deploy reproducibility (Step 8).
+environment/secret injection (Step 3), production email (Step 5), the
+deploy runbook (Step 6), the database migration (Step 7), and re-deploy
+reproducibility (Step 8).
 
 ## Prerequisites
 
@@ -85,7 +86,7 @@ Add manually (mark the four `MYSQL_*` credentials as secrets):
 
 | Variable | Value |
 | :--- | :--- |
-| `APP_HOST_PORT` | a free port on the server |
+| `APP_HOST_PORT` | a free port on the server — feeds the `ports` host mapping in `compose.yml` (direct-HTTP fallback; it bypasses domain routing — see HTTPS entry routing below) |
 | `APP_CONTAINER_NAME` / `MYSQL_CONTAINER_NAME` / `CRON_CONTAINER_NAME` | unique names |
 | `MYSQL_ROOT_PASSWORD` / `MYSQL_DATABASE` / `MYSQL_USER` / `MYSQL_PASSWORD` | real secrets |
 | `MYSQL_HOST` | `dbm` |
@@ -140,6 +141,33 @@ Git-based Docker Compose applications do not use the application-level
 healthcheck page — healthchecks come from the Compose definition itself
 (dbm's gates startup).
 
+## HTTPS entry routing (Step 4)
+
+Inbound HTTPS terminates at Coolify's proxy in front of the app container;
+the proxy forwards the request to the app service over the internal Docker
+network. TLS is never terminated inside the app container.
+
+1. Open the application → **Domains** page — domains are managed there,
+   not as a comma-separated list under General.
+2. Add the production domain:
+   - Protocol: `https`
+   - Domain: the production hostname, no scheme (matches `APP_HOST`)
+   - Port: `80` — a domain port selects the app container's internal
+     port; it does not publish a host port
+   - Service: `app` — Compose applications attach domains per service
+3. **Save changes**, then redeploy the application so the proxy picks up
+   the new domain.
+4. The proxy obtains the Let's Encrypt certificate via the default ACME
+   HTTP challenge, which requires reachable public port 80 — satisfied by
+   this deployment's topology (DNS → server IP → Coolify's proxy). No
+   DNS-challenge proxy configuration is needed for a single non-wildcard
+   domain.
+
+The `${APP_HOST_PORT}:80` mapping in `compose.yml` is a direct-HTTP
+fallback that bypasses domain routing; it does not participate in HTTPS
+entry routing. Note a fixed host port prevents rolling updates — if those
+become needed, move the mapping to `compose.dev.yml` (development-only).
+
 ## Gotchas
 
 - **MariaDB initializes once.** The `MYSQL_*` accounts are created only
@@ -166,3 +194,6 @@ healthcheck page — healthchecks come from the Compose definition itself
   only in `compose.dev.yml`.
 - [ ] The services started in dependency order (app after dbm healthy, cron
   after app).
+- [ ] `https://<production domain>` loads in a browser with a valid
+  certificate and no warnings (Step 4).
+- [ ] The production domain resolves to the deployed stack (Step 4).
