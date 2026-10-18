@@ -231,6 +231,10 @@ Troubleshooting:
 - **Accepted but not delivered** — confirm SPF/DKIM were added before
   testing, check the cPanel mail logs, and look in the recipient's spam
   folder.
+- **Direct mail() tests need `-f`** — msmtp exits 78 ("envelope-from
+  address is missing") when `mail()` is called without the `-f`
+  additional parameter. Elgg always supplies it (see the trigger above);
+  direct `php -r` checks must pass it too.
 
 ## Gotchas
 
