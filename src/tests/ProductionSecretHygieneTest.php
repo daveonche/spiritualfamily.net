@@ -72,9 +72,9 @@ class ProductionSecretHygieneTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Credential-material variables (Story S1.6 Step 3 inventory): supplied
-     * exclusively via the platform's environment settings, never committed
-     * with real values.
+     * Credential-material variables (Story S1.6 Step 3 inventory plus the
+     * Step 5 relay credentials): supplied exclusively via the platform's
+     * environment settings, never committed with real values.
      *
      * @return string[]
      */
@@ -95,6 +95,8 @@ class ProductionSecretHygieneTest extends \PHPUnit_Framework_TestCase
             'APP_CRON_WEEKLY',
             'APP_CRON_MONTHLY',
             'APP_CRON_YEARLY',
+            'MAIL_SMTP_USER',
+            'MAIL_SMTP_PASSWORD',
         ];
     }
 
@@ -119,6 +121,7 @@ class ProductionSecretHygieneTest extends \PHPUnit_Framework_TestCase
             'PMA_HOST',
             'MAIL_SMTP_HOST',
             'MAIL_SMTP_PORT',
+            'MAIL_SMTP_AUTH',
         ];
     }
 
