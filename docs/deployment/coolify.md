@@ -73,13 +73,13 @@ The committed `.env.example` documents every variable. Enter all values
 unquoted — Coolify substitutes them literally, so a quoted value would put
 quote characters into the substituted path.
 
-Auto-created by Coolify (fill in the values):
+Auto-created by Coolify (fill in the values where noted):
 
 | Variable | Value |
 | :--- | :--- |
 | `PHP_VERSION` | `7.4` |
 | `APP_HOST` | production hostname, no scheme |
-| `APP_CRON_MINUTE` … `APP_CRON_YEARLY` (9 tokens) | real random strings — they authenticate the cron URLs |
+| `APP_CRON_MINUTE` … `APP_CRON_YEARLY` (9 tokens) | left empty — Elgg 2.3 does not consume cron tokens; fill with real random strings once the upgrade reaches the latest Elgg version |
 | `MAIL_SMTP_HOST` / `MAIL_SMTP_PORT` | leave empty until Step 5 (production relay) |
 
 Add manually (mark the four `MYSQL_*` credentials as secrets):
@@ -185,6 +185,14 @@ become needed, move the mapping to `compose.dev.yml` (development-only).
   without `composer install`); the container's writable layer is
   ephemeral, and the base image disables `putenv()`, which Composer
   requires.
+- **Empty mail variables fall back to the dev defaults.** With
+  `MAIL_SMTP_HOST`/`MAIL_SMTP_PORT` empty (or absent), the Compose
+  interpolation defaults apply in the app container
+  (`${MAIL_SMTP_HOST:-host.docker.internal}`, port `1025`) — the
+  development capture endpoint. Until Step 5 supplies the production
+  relay, outgoing mail fails; that is expected and harmless while the
+  database is still empty (nothing triggers email before the Step 7
+  restore).
 
 ## Verify
 
