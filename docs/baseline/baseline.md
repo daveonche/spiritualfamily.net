@@ -186,3 +186,12 @@ credential-material variable is documented in `.env.example` with its
 `changeme` placeholder, and that no template value deviates from the
 placeholder except the documented non-secret defaults — so real secret values
 can never enter the repository.
+
+### Step 3 Manual Verification (2026-10-18)
+
+| Check | Result |
+| :--- | :--- |
+| Coolify environment-variable walk | Passed — every `.env.example` variable accounted for in the platform settings; the four `MYSQL_*` credentials marked as secrets; all values entered unquoted; no `PMA_*` variables present; build config unchanged (Base Directory `/`, Docker Compose Location `compose.yml` only) |
+| Deferred values | `APP_CRON_*` tokens and `MAIL_SMTP_HOST`/`MAIL_SMTP_PORT` present but intentionally empty (recorded in the table above) |
+| Guard test | Full suite green, including `ProductionSecretHygieneTest` |
+| Repository value scan | No production secret committed. The scan flagged `MYSQL_USER`, `MYSQL_PASSWORD`, and `ELGG_DB_PREFIX`; classified as false positives — the local `.env` holds generic dev values for these variables, and the hits are substring matches inside tracked prose/vendor text (`.agent/` tooling docs for the first two; Elgg core's default `elgg_` prefix throughout `src/vendor/` for the third). `MYSQL_ROOT_PASSWORD` scanned clean. Production values exist only in the Coolify settings and were never typed into a tracked file |
