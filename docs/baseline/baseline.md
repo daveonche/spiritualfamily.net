@@ -175,8 +175,8 @@ below records the per-variable treatment for the production settings; the
 | `ELGG_TIMEZONE` | Plain setting — `UTC` |
 | `MYSQL_DATABASE`, `ELGG_DB_PREFIX` | Platform settings — credential material supplied only via the platform (the production database name already appears in the dump-restore record above) |
 | `MYSQL_ROOT_PASSWORD`, `MYSQL_USER`, `MYSQL_PASSWORD` | Secrets — platform settings only, never committed |
-| `APP_CRON_MINUTE` … `APP_CRON_YEARLY` (9 tokens) | Secrets — platform settings only, never committed |
-| `MAIL_SMTP_HOST`, `MAIL_SMTP_PORT` | Platform settings — accounted for now; the production relay override is Step 5 |
+| `APP_CRON_MINUTE` … `APP_CRON_YEARLY` (9 tokens) | Secrets — platform settings only, never committed; left empty for now — Elgg 2.3 does not consume cron tokens, so the empty values are inert; fill with real random strings once the upgrade reaches the latest Elgg version (S1.7 verifies the cron intervals end-to-end) |
+| `MAIL_SMTP_HOST`, `MAIL_SMTP_PORT` | Platform settings — accounted for now, left empty; the production relay override is Step 5. With them empty the Compose interpolation defaults apply in the app container (`${MAIL_SMTP_HOST:-host.docker.internal}`, port `1025` — the development capture endpoint), so outgoing mail fails until Step 5; expected and harmless while the database is still empty |
 | `PMA_HOST`, `PMA_HOST_PORT`, `PMA_CONTAINER_NAME` | Development-only — not set in production (`pma` excluded per Step 1) |
 | `COMPOSE_PROJECT_NAME` | Optional |
 
