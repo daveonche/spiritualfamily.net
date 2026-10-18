@@ -48,15 +48,15 @@ FROM coldtrick/elgg_webserver:${PHP_VERSION}
 # Layer the Composer 2 phar onto the PHP 7.4 webserver image, plus a
 # `composer` wrapper: the base image's php.ini restricts open_basedir to
 # the web root, dataroot, /tmp and the cache/asset roots, so the phar at
-# /usr/local/bin cannot run directly. The wrapper runs PHP with the
-# restriction disabled for the composer CLI only; the web SAPI's
-# restriction stays untouched.
+# /usr/local/bin cannot run directly, and it disables putenv(), which
+# Composer requires. The wrapper runs PHP with both restrictions cleared
+# for the composer CLI only; the web SAPI's restrictions stay untouched.
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer.phar
 
 RUN <<EOF
 printf '%s\n' \
     '#!/bin/sh' \
-    'exec php -d open_basedir= /usr/local/bin/composer.phar "$@"' \
+    'exec php -d open_basedir= -d disable_functions= /usr/local/bin/composer.phar "$@"' \
     > /usr/local/bin/composer
 chmod 0755 /usr/local/bin/composer
 composer --version

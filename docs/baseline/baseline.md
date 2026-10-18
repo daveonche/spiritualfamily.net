@@ -31,8 +31,10 @@ Environment note (2026-09-19): the app image layers Composer 2.x (2.10.3 at
 time of recording) onto the upstream PHP 7.4 webserver image via
 `docker/app/Dockerfile`, confirmed via `docker compose exec app composer --version`,
 so manifest and lock-file work runs inside the orchestration. The web SAPI's
-`open_basedir` restriction is unchanged; the Composer CLI wrapper disables it
-for the CLI only.
+`open_basedir` restriction is unchanged; the Composer CLI wrapper clears
+`open_basedir` and `disable_functions` for the CLI only — the base image
+disables `putenv()`, which Composer requires (recorded 2026-10-18 after a
+container rebuild wiped the writable-layer patch that had masked it).
 
 Environment template (Story S1.2 Step 6): every environment-specific setting
 is injected via environment variables — Compose interpolation and
