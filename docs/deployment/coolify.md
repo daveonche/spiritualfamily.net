@@ -173,26 +173,55 @@ become needed, move the mapping to `compose.dev.yml` (development-only).
 
 Outgoing mail flows PHP `mail()` → the image's `msmtp-sendmail` wrapper →
 msmtp → the SMTP relay named by the `MAIL_SMTP_*` variables. The relay is
-the cPanel mail service hosting the `spiritualfamily.online` mailboxes —
-a split setup: the domain's A record stays on the VPS (website via
-Coolify), while MX/SPF/DKIM point at the shared cPanel server (mail).
+the NamesPro shared hosting's mail cluster (StackCP, the 20i hosting
+platform — hostnames under `stackmail.com`) hosting the
+`spiritualfamily.online` mailboxes — a split setup: the domain is
+registered at Namecheap with authoritative DNS there, the apex A record
+stays on the VPS (website via Coolify), and only the mail records (MX,
+SPF, optional DKIM) are added at Namecheap pointing at the stackmail
+cluster.
 
-Prerequisites (cPanel side, one-time):
+Prerequisites (one-time):
 
-1. Add `spiritualfamily.online` as an addon domain on the shared cPanel
-   account. Keep DNS at the current provider and add only the mail
-   records there — do not let the A record point at the shared server.
-2. Create the mailboxes, including `noreply@spiritualfamily.online` —
-   the site's sender identity (From/envelope-from for Elgg mail).
-3. Run cPanel's **Email Deliverability** tool for the domain and add the
-   SPF and DKIM records it shows to the DNS zone.
+1. Add `spiritualfamily.online` as a domain in the NamesPro hosting
+   control panel (StackCP). This auto-creates the platform's default
+   zone — A/AAAA at the hosting web servers, `MX mx.stackmail.com`, SPF
+   `v=spf1 include:spf.stackmail.com a mx -all`, and `imap`/`mail`/
+   `pop3`/`smtp` CNAMEs into `stackmail.com`. Those records are not live
+   while Namecheap's DNS is authoritative (confirm the domain uses
+   Namecheap BasicDNS under Domain List → Manage → Nameservers); the
+   mail-relevant values are replicated at Namecheap in step 3.
+2. Create the mailbox in StackCP → Mail, including
+   `noreply@spiritualfamily.online` — the site's sender identity
+   (From/envelope-from for Elgg mail). Store the mailbox password in the
+   secret manager; it becomes `MAIL_SMTP_PASSWORD` and is never
+   committed.
+3. Add the mail records at Namecheap (Domain List → Manage → Advanced
+   DNS), leaving the existing records untouched — the apex A record
+   (→ VPS) is the website path:
+
+| Type | Host | Value | Purpose |
+| :--- | :--- | :--- | :--- |
+| MX | `@` | `mx.stackmail.com` | inbound mail to the mailboxes |
+| TXT | `@` | `v=spf1 include:spf.stackmail.com a mx -all` | SPF — authorizes the stackmail relay for the domain |
+| TXT | `<selector>._domainkey` | the DKIM record StackCP publishes for the domain, if any | DKIM signing |
+
+Set the MX priority to the value StackCP shows for the domain (typically
+`10`). Do not enable Namecheap's Email Forwarding (it would point MX at
+Namecheap's own servers, away from the cluster) and do not copy the
+StackCP A/AAAA records. The zone's `imap`/`mail`/`pop3`/`smtp` CNAMEs
+are client-config conveniences and are not replicated — the relay
+connects to `smtp.stackmail.com` directly (see the settings table
+below). If StackCP publishes no DKIM record, SPF alone is acceptable to
+start — the trigger test below shows whether more is needed (spam
+placement).
 
 Coolify settings (Environment Variables tab; redeploy afterwards so the
 running containers receive them):
 
 | Variable | Value |
 | :--- | :--- |
-| `MAIL_SMTP_HOST` | the cPanel submission hostname (e.g. `mail.spiritualfamily.online`) |
+| `MAIL_SMTP_HOST` | `smtp.stackmail.com` — the cluster's submission hostname; connect to it directly rather than via the `smtp.spiritualfamily.online` CNAME, because the cluster's TLS certificate is issued for the stackmail hostname and msmtp verifies the certificate against the host it connects to |
 | `MAIL_SMTP_PORT` | `587` — STARTTLS submission, matching the wrapper's `--tls=on` |
 | `MAIL_SMTP_AUTH` | `on` |
 | `MAIL_SMTP_USER` | `noreply@spiritualfamily.online` |
@@ -222,15 +251,18 @@ validation) is re-checked after Step 7 restores the users.
 
 Troubleshooting:
 
-- **Certificate mismatch** — msmtp verifies the relay certificate; use
-  the exact outgoing hostname/port shown in cPanel's **Connect Devices →
-  Mail Client Manual Settings** (it carries the certificate cPanel
-  issues).
+- **Certificate mismatch** — msmtp verifies the relay certificate; the
+  cluster's certificate is issued for the stackmail hostnames, so
+  connect to `smtp.stackmail.com` directly (see the settings table).
+  Pre-check from the VPS before redeploying:
+  `openssl s_client -connect smtp.stackmail.com:587 -starttls smtp -brief`.
 - **Authentication failures** — the username is the full mailbox address;
-  re-check the password against a webmail login.
-- **Accepted but not delivered** — confirm SPF/DKIM were added before
-  testing, check the cPanel mail logs, and look in the recipient's spam
-  folder.
+  re-check the password against a StackCP webmail login.
+- **Accepted but not delivered** — confirm the MX/SPF records were added
+  at Namecheap and have propagated before testing, check the StackCP
+  mail logs/webmail, and look in the recipient's spam folder. If mail
+  lands in spam, add the DKIM record StackCP publishes for the domain
+  (prerequisite step 3) and retest.
 - **Direct mail() tests need `-f`** — msmtp exits 78 ("envelope-from
   address is missing") when `mail()` is called without the `-f`
   additional parameter. Elgg always supplies it (see the trigger above);
