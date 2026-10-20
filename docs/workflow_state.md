@@ -2,8 +2,8 @@
 Last updated: 2026-10-20
 
 ## Active Workflow
-- Phase 4A implementation of Story S1.6 (Coolify deployment) — Step 5 verified end-to-end (production email delivered via smtp.stackmail.com; Step 2 tag cross-check passed); next: Step 6 deploy runbook with pre-deploy database backup
+- Phase 4A implementation of Story S1.6 (Coolify deployment) — Step 6 implemented (runbook committed; suite green 83/1016); next: manual backup/restorability verification, then Step 7
 
-- Command: #implement-step S1.6 6
-- Last completed: S1.6 Step 5 verified: relay smtp.stackmail.com:587 STARTTLS auth noreply@; MX/SPF/DKIM(s1) at Namecheap; sendmail.ini shadowing fixed (3cd8189); trigger email delivered to Gmail; Step 2 pins cross-checked in production; baseline.md Step 2/5 records + coolify.md troubleshooting added.
-- Reload to resume: /read-only .agent/workflows/code/implementation/SKILL.md docs/analysis/S1.6-story-steps.md docs/sprints/sprint_1_stories.md compose.yml docs/baseline/baseline.md docs/deployment/coolify.md
+- Command: #implement-step S1.6 7
+- Last completed: S1.6 Step 6: deploy_runbook.md (backup+restorability gate, deploy, verify, rollback, run log) committed ab7b09c/3bb9a75; AGENTS.md dev-stack/test commands e56eee7; ComposeEnvInjectionTest MAIL_SMTP drift fixed 5e161be; suite OK 83 tests/1016 assertions.
+- Reload to resume: /read-only .agent/workflows/code/implementation/SKILL.md docs/analysis/S1.6-story-steps.md docs/sprints/sprint_1_stories.md compose.yml docs/baseline/baseline.md docs/deployment/coolify.md docs/deployment/deploy_runbook.md AGENTS.md
