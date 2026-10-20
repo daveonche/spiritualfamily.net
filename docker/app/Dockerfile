@@ -120,3 +120,11 @@ RUN chmod 0755 /usr/local/bin/msmtp-sendmail
 # the pin; dependency changes land as committed vendor/ updates.
 COPY src/ /var/www/html/
 COPY php/ /usr/local/etc/php/conf.d/
+
+# The base image ships conf.d/sendmail.ini (sendmail_path pointing at the
+# stock sendmail). PHP loads conf.d alphabetically and the last value wins,
+# so that file shadows the repo's mail.ini (m < s) and mail() keeps handing
+# messages to the stock sendmail — accepted into a local queue nothing
+# drains (observed in production 2026-10-20: mail() returns true, messages
+# vanish). Remove it so the msmtp relay config is the only sendmail_path.
+RUN rm -f /usr/local/etc/php/conf.d/sendmail.ini
