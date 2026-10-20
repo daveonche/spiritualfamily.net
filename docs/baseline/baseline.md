@@ -197,3 +197,63 @@ can never enter the repository.
 | Deferred values | `APP_CRON_*` tokens and `MAIL_SMTP_HOST`/`MAIL_SMTP_PORT` present but intentionally empty (recorded in the table above) |
 | Guard test | Full suite green, including `ProductionSecretHygieneTest` |
 | Repository value scan | No production secret committed. The scan flagged `MYSQL_USER`, `MYSQL_PASSWORD`, and `ELGG_DB_PREFIX`; classified as false positives — the local `.env` holds generic dev values for these variables, and the hits are substring matches inside tracked prose/vendor text (`.agent/` tooling docs for the first two; Elgg core's default `elgg_` prefix throughout `src/vendor/` for the third). `MYSQL_ROOT_PASSWORD` scanned clean. Production values exist only in the Coolify settings and were never typed into a tracked file |
+
+## Production Deployment Version Cross-Check (Story S1.6 Step 2)
+
+The Coolify-deployed production stack was cross-checked against the pins
+above (manual verification: inspect each service's version reference in the
+platform, then confirm the running versions).
+
+| Check | Result |
+| :--- | :--- |
+| Verification date | 2026-10-20 |
+| app image | `sfn/elgg_webserver:7.4-composer2`, built by Coolify from `PHP_VERSION=7.4` — matches the pin |
+| app runtime | `php -v` → 7.4.27 — matches the pinned PHP runtime |
+| dbm image | `mariadb:10.11.18` — matches the pin |
+| dbm runtime | `mariadbd --version` → `10.11.18-MariaDB-ubu2204` — the suffix is a build variant, not part of the pin (see Pinned Versions) |
+| cron image | `sfn/elgg_cron:3.23.3` — matches the pin |
+| cron base | `/etc/alpine-release` → 3.23.3 — matches the pin |
+| Floating tags | None — the deployed definition's three image references are the pinned tags; no `latest`-style or major-only tags |
+
+Coolify container names carry a `-<uuid>-<build-timestamp>` suffix (e.g.
+`app-obil4cynrvnh20c89kwszntz-20261020T165514`); the other containers on the
+host (coolify-*, phpmyadmin, umami, filebrowser) are separate instance-level
+resources, not part of this application's deployed definition.
+
+## Production Email (Story S1.6 Step 5)
+
+Outgoing production mail is delivered through the NamesPro shared hosting's
+mail cluster (StackCP, the 20i platform — hostnames under `stackmail.com`),
+submitted authenticated from the app container. The domain is registered at
+Namecheap with authoritative DNS there; the apex A record stays on the VPS
+(website via Coolify) and only the mail records point at the cluster. Full
+procedure: `docs/deployment/coolify.md` → Production email.
+
+| Item | Result |
+| :--- | :--- |
+| Verification date | 2026-10-20 |
+| Relay | `smtp.stackmail.com:587`, STARTTLS, authenticated as `noreply@spiritualfamily.online` (mailbox password only in the Coolify secret settings) |
+| DNS at Namecheap | MX `10 mx.stackmail.com.`; SPF TXT `v=spf1 include:spf.stackmail.com a mx -all`; DKIM TXT `s1._domainkey` (selector `s1`, service type `*`, non-strict) — all verified via `dig` |
+| Coolify settings | `MAIL_SMTP_HOST=smtp.stackmail.com`, `MAIL_SMTP_PORT=587`, `MAIL_SMTP_AUTH=on`, `MAIL_SMTP_USER=noreply@spiritualfamily.online`, `MAIL_SMTP_PASSWORD` (secret) — confirmed inside the running container via `printenv` |
+| TLS pre-check | `openssl s_client -connect smtp.stackmail.com:587 -starttls smtp -brief` → `Verification: OK` (`CN=*.stackmail.com`) |
+| End-to-end trigger | `mail()` with the `-f` envelope-from delivered to a Gmail inbox (2026-10-20); no NDRs |
+| Dev regression | Local MailHog capture received the same trigger through the dev defaults after the wiring fix |
+
+### Silent-loss incident and fix (2026-10-20)
+
+The first triggers (2026-10-19/20) returned `bool(true)` but never arrived —
+two stacked causes, both repo-side:
+
+1. Production ran a stale app image built before the Step 5 wrapper commits
+   (`sendmail_path` still the stock binary, wrapper absent).
+2. After the redeploy, the base image's `conf.d/sendmail.ini` shadowed the
+   repo's `mail.ini`: PHP loads conf.d alphabetically and the last value
+   wins (`m` < `s`), so `mail()` kept handing messages to the stock
+   sendmail's local queue, from which nothing drains.
+
+Fix: the app image removes `conf.d/sendmail.ini` after the ini COPY
+(`docker/app/Dockerfile`, commit `3cd8189`). Verified: `sendmail_path` →
+`/usr/local/bin/msmtp-sendmail -t` in the rebuilt production container, and
+delivery confirmed end-to-end. Follow-up: publish the DMARC record via the
+StackCP wizard (`_dmarc` TXT, `v=DMARC1; p=none;`) — monitor-only, it
+completes the SPF/DKIM/DMARC triad.

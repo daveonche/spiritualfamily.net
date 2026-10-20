@@ -263,6 +263,16 @@ Troubleshooting:
   mail logs/webmail, and look in the recipient's spam folder. If mail
   lands in spam, add the DKIM record StackCP publishes for the domain
   (prerequisite step 3) and retest.
+- **`mail()` returns true but nothing is relayed** — confirm the wrapper
+  is wired in the running container:
+  `docker exec <app container> php -r 'var_dump(ini_get("sendmail_path"));'`
+  must print `/usr/local/bin/msmtp-sendmail -t`. The base image ships
+  `conf.d/sendmail.ini`, whose `sendmail_path` shadows the repo's
+  `mail.ini` (PHP loads conf.d alphabetically and the last value wins);
+  the app image removes that file (see `docker/app/Dockerfile`). A stale
+  image built before that fix silently hands `mail()` to the stock
+  sendmail's local queue — redeploy to rebuild (observed in production
+  2026-10-20).
 - **Direct mail() tests need `-f`** — msmtp exits 78 ("envelope-from
   address is missing") when `mail()` is called without the `-f`
   additional parameter. Elgg always supplies it (see the trigger above);
