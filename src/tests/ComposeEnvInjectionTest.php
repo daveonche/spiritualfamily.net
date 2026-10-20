@@ -372,6 +372,9 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			'ELGG_TIMEZONE' => 'UTC',
 			'MAIL_SMTP_HOST'=> 'host.docker.internal',
 			'MAIL_SMTP_PORT'=> '1025',
+			// Empty = plaintext development behaviour (MailHog); the wrapper
+			// adds auth/TLS only when this is "on" (Story S1.6 Step 5)
+			'MAIL_SMTP_AUTH'=> '',
 		);
 
 		// Credential variables must be exactly the changeme placeholder
@@ -501,7 +504,16 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 
 		// 3. Image-consumed env_file variables not statically derivable
 		//    from committed files
-		$required = array_merge($required, array('MYSQL_ROOT_PASSWORD', 'PMA_HOST'));
+		$required = array_merge($required, array(
+			'MYSQL_ROOT_PASSWORD',
+			'PMA_HOST',
+			// msmtp-sendmail wrapper (docker/app/msmtp-sendmail.sh), consumed
+			// from the container environment via env_file: .env — Story S1.6
+			// Step 5 production relay
+			'MAIL_SMTP_AUTH',
+			'MAIL_SMTP_USER',
+			'MAIL_SMTP_PASSWORD',
+		));
 
 		$required = array_values(array_unique($required));
 
