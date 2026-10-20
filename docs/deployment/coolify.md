@@ -17,7 +17,9 @@ email over the real relay (Step 5). The remaining deployment concerns are
 handled by their own steps in `docs/analysis/S1.6-story-steps.md`:
 version-pin verification (Step 2), environment/secret injection (Step 3),
 the deploy runbook (Step 6), the database migration (Step 7), and
-re-deploy reproducibility (Step 8).
+re-deploy reproducibility (Step 8). The runbook itself — the repeatable
+deploy sequence with the mandatory pre-deploy database backup — is
+`docs/deployment/deploy_runbook.md`.
 
 ## Prerequisites
 
