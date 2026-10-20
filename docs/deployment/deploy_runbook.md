@@ -108,7 +108,32 @@ Fix the backup first.
 docker ps --format 'table {{.Names}}\t{{.Status}}'
 ```
 
-## Step 4 — Post-deploy verification
+## Step 4 — Production database migration (first deployment only)
+
+Restore the production dump into the deployed dbm service's production
+database — the same strip-and-import procedure as Step 2, targeting the
+production database name instead of the scratch database. The dump source
+is the phpMyAdmin-exported production dump (git-ignored local path, see
+`docs/baseline/baseline.md`, Production Dump Restore Verification).
+
+```bash
+gunzip -c <production dump>.sql.gz | grep -vE '^(CREATE DATABASE|USE )' | docker exec -i "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
+```
+
+Confirm the production schema holds the full dump — 36 tables:
+
+```bash
+docker exec "$DBM" mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = '$MYSQL_DATABASE'"
+```
+
+Then run the baseline-sync comparison queries and record the figures in
+`docs/baseline/baseline.md` (Production Database Migration section): the
+datalists `version`/`installed` values, the site row, and the entity-type
+counts, compared against the baseline inventory. If any exact-match check
+fails, **stop** — do not proceed to post-deploy verification; restore the
+Step 1 backup per Rollback and investigate.
+
+## Step 5 — Post-deploy verification
 
 - [ ] All three containers running (app, dbm, cron)
 - [ ] Pinned versions match the baseline: `php -v` → 7.4.27 in the app

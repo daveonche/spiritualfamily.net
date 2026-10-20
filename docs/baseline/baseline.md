@@ -220,6 +220,24 @@ Coolify container names carry a `-<uuid>-<build-timestamp>` suffix (e.g.
 host (coolify-*, phpmyadmin, umami, filebrowser) are separate instance-level
 resources, not part of this application's deployed definition.
 
+## Production Database Migration (Story S1.6 Step 7)
+
+The production dump was restored into the deployed dbm service's production
+database following `docs/deployment/deploy_runbook.md` (Step 4), after the
+Step 1 backup and Step 2 restorability check. Figures compared against the
+baseline inventory (2026-09-18) and the dump-restore record (2026-09-25).
+
+| Check | Baseline | Migrated dbm | Result |
+| :--- | ---: | ---: | :--- |
+| Table count | 36 | <fill in> | <match/drift> |
+| Datalists `version` | 2016092300 | <fill in> | <match/drift> |
+| Datalists `installed` | 1483761119 | <fill in> | <match/drift> |
+| Site row | GUID 1, SpiritualFamily.Net, `https://spiritualfamily.net/` | <fill in> | <match/drift> |
+| object entities | 87217 (2026-09-25 dump) | <fill in> | <match/drift> |
+| user entities | 1136 | <fill in> | <match/drift> |
+| group entities | 289 | <fill in> | <match/drift> |
+| site entities | 1 | <fill in> | <match/drift> |
+
 ## Production Email (Story S1.6 Step 5)
 
 Outgoing production mail is delivered through the NamesPro shared hosting's
