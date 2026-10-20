@@ -465,10 +465,12 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 	 *
 	 * The required-variable set is derived dynamically from the stack
 	 * itself — every ${VAR} reference in compose.yml plus every getenv()
-	 * read in settings.php — and completed with the two image-consumed
+	 * read in settings.php — and completed with the image-consumed
 	 * env_file variables no committed file statically references (the
-	 * MariaDB entrypoint's MYSQL_ROOT_PASSWORD and the phpMyAdmin image's
-	 * PMA_HOST; both documented in .env.example sections). Forward
+	 * MariaDB entrypoint's MYSQL_ROOT_PASSWORD, the phpMyAdmin image's
+	 * PMA_HOST, and the msmtp-sendmail wrapper's MAIL_SMTP_AUTH/
+	 * MAIL_SMTP_USER/MAIL_SMTP_PASSWORD — all documented in .env.example
+	 * sections). Forward
 	 * completeness: every required variable is an active KEY= line in
 	 * .env.example. Reverse drift guard: every active .env.example key is
 	 * required by the stack, so template entries the stack no longer uses
