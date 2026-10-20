@@ -73,6 +73,12 @@ the same procedure as the migration-readiness check recorded in
 `docs/baseline/baseline.md` (Production Dump Restore Verification). The
 live database is not touched.
 
+Before the Step 7 migration the production database is empty, so its dump
+restores 0 tables — expected, and not a failure. The pre-migration
+restorability gate is the S1.3 production-dump restore check (recorded in
+`docs/baseline/baseline.md`); from the first post-migration deploy onward,
+this check must show the full 36-table schema.
+
 Native `mariadb-dump` output contains no `CREATE DATABASE`/`USE` redirect
 lines, but the phpMyAdmin-exported production dump does (baseline finding):
 strip them unconditionally so the procedure is safe for either dump source,
@@ -127,7 +133,7 @@ gunzip -c <production dump>.sql.gz | grep -vE '^(CREATE DATABASE|USE )' | docker
 Confirm the production schema holds the full dump — 36 tables:
 
 ```bash
-docker exec "$DBM" mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = '$MYSQL_DATABASE'"
+docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = \"$MYSQL_DATABASE\""'
 ```
 
 Then run the baseline-sync comparison queries and record the figures in
