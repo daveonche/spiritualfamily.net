@@ -21,6 +21,10 @@ sequence only.
 - Credentials come from the containers' own environment (injected by the
   platform); no secret is typed on a command line or stored in the
   repository.
+- Any `mariadb`/`mariadb-dump` invocation referencing `$MYSQL_ROOT_PASSWORD`
+  must be wrapped in `docker exec … sh -c '…'` so the variable resolves
+  inside the container — expanded by the host shell it is empty and
+  authentication fails (`Access denied … using password: NO`).
 
 ## Pre-deploy checks
 
@@ -75,21 +79,21 @@ strip them unconditionally so the procedure is safe for either dump source,
 then import:
 
 ```bash
-docker exec "$DBM" mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e 'CREATE DATABASE backup_verify'
-gunzip -c "$(ls -t ~/sfn-backups/sfn-elgg-*.sql.gz | head -n 1)" | grep -vE '^(CREATE DATABASE|USE )' | docker exec -i "$DBM" mariadb -u root -p"$MYSQL_ROOT_PASSWORD" backup_verify
+docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE backup_verify"'
+gunzip -c "$(ls -t ~/sfn-backups/sfn-elgg-*.sql.gz | head -n 1)" | grep -vE '^(CREATE DATABASE|USE )' | docker exec -i "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" backup_verify'
 ```
 
 Confirm the scratch database holds the full schema — 36 tables, matching
 the production dump's 36 `CREATE TABLE` statements:
 
 ```bash
-docker exec "$DBM" mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = 'backup_verify'"
+docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = \"backup_verify\""'
 ```
 
 Drop the scratch database:
 
 ```bash
-docker exec "$DBM" mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e 'DROP DATABASE backup_verify'
+docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "DROP DATABASE backup_verify"'
 ```
 
 If the import errors or the table count is wrong, **stop** — do not deploy.
