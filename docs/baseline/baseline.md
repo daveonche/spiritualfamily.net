@@ -229,14 +229,19 @@ baseline inventory (2026-09-18) and the dump-restore record (2026-09-25).
 
 | Check | Baseline | Migrated dbm | Result |
 | :--- | ---: | ---: | :--- |
-| Table count | 36 | <fill in> | <match/drift> |
-| Datalists `version` | 2016092300 | <fill in> | <match/drift> |
-| Datalists `installed` | 1483761119 | <fill in> | <match/drift> |
-| Site row | GUID 1, SpiritualFamily.Net, `https://spiritualfamily.net/` | <fill in> | <match/drift> |
-| object entities | 87217 (2026-09-25 dump) | <fill in> | <match/drift> |
-| user entities | 1136 | <fill in> | <match/drift> |
-| group entities | 289 | <fill in> | <match/drift> |
-| site entities | 1 | <fill in> | <match/drift> |
+| Table count | 36 | 36 | match |
+| Datalists `version` | 2016092300 | 2016092300 | exact match |
+| Datalists `installed` | 1483761119 | 1483761119 | exact match |
+| Site row | GUID 1, SpiritualFamily.Net, `https://spiritualfamily.net/` | identical | exact match |
+| object entities | 87217 (2026-09-25 dump) | 87217 | exact match |
+| user entities | 1136 | 1136 | exact match |
+| group entities | 289 | 289 | exact match |
+| site entities | 1 | 1 | exact match |
+
+Production table prefix: `elggjr_` (the `ELGG_DB_PREFIX` platform setting);
+the entity counts come from the `elggjr_entities` base table. The dump's
+`system_log` archive tables (`elggjr_system_log_<timestamp>`) are part of
+the 36-table count and restore as-is.
 
 ## Production Email (Story S1.6 Step 5)
 
