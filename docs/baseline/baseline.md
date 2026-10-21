@@ -280,3 +280,32 @@ Fix: the app image removes `conf.d/sendmail.ini` after the ini COPY
 delivery confirmed end-to-end. Follow-up: publish the DMARC record via the
 StackCP wizard (`_dmarc` TXT, `v=DMARC1; p=none;`) — monitor-only, it
 completes the SPF/DKIM/DMARC triad.
+
+## Production Re-Deploy Reproducibility (Story S1.6 Step 8)
+
+One clean re-deploy performed per `docs/deployment/deploy_runbook.md`
+(Step 6): the Coolify application resource was deleted and re-created
+purely from the repository's `compose.yml` and the recorded platform
+settings, then deployed. Persistent volumes survived the tear-down; the
+migrated production data was never touched.
+
+**Intentional change (not drift):** the production domain moved from
+`spiritualfamily.net` to `spiritualfamily.online` at this re-deploy —
+`APP_HOST` and the Coolify Domains entry now carry
+`spiritualfamily.online`, and the site entity's stored URL was updated to
+`https://spiritualfamily.online/`. Future baseline comparisons must expect
+the new URL, not the `https://spiritualfamily.net/` value recorded in the
+earlier tables above.
+
+| Check | Prior deployment | Re-deployed stack | Result |
+| :--- | :--- | :--- | :--- |
+| Verification date | 2026-10-20 | <date> | <pending> |
+| app image / runtime | `sfn/elgg_webserver:7.4-composer2`, PHP 7.4.27 | <fill> | <pending> |
+| dbm image / runtime | `mariadb:10.11.18`, `10.11.18-MariaDB-ubu2204` | <fill> | <pending> |
+| cron image / base | `sfn/elgg_cron:3.23.3`, alpine 3.23.3 | <fill> | <pending> |
+| Floating tags | None | <fill> | <pending> |
+| Environment settings | per Step 3 walk | <fill> | <pending> |
+| Table count / datalists | 36 / `2016092300`, `1483761119` | <fill> | <pending> |
+| Entity counts (object/user/group/site) | 87217 / 1136 / 289 / 1 | <fill> | <pending> |
+| Site row | GUID 1, URL `https://spiritualfamily.online/` (updated) | <fill> | <pending> |
+| HTTPS | valid certificate, no warnings | <fill> | <pending> |

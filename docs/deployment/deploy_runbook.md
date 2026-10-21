@@ -171,6 +171,55 @@ Step 1 backup per Rollback and investigate.
 gunzip -c ~/sfn-backups/sfn-elgg-<timestamp>.sql.gz | grep -vE '^(CREATE DATABASE|USE )' | docker exec -i "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 ```
 
+## Step 6 — Clean re-deploy (reproducibility verification)
+
+One-time verification for Story S1.6 Step 8: the stack is torn down and
+re-deployed from the repository alone, then compared against the prior
+deployment. Reused whenever reproducibility needs re-proving.
+
+**Tear down** — delete the Coolify application resource entirely (full
+re-creation, the strongest "repository alone" proof). The persistent
+volumes (`fs-dbmdata`, `fs-dataroot`, `fs-cacheroot`) are instance-level
+resources and survive the deletion — the migrated production data is not
+touched. Record the current platform settings first (environment variables
+per `docs/deployment/coolify.md`, Domains entry) so the re-created
+application can be configured identically.
+
+**Re-create and deploy** — follow `docs/deployment/coolify.md` from
+"Create the application": Git-repository application, Docker Compose build
+strategy (Base Directory `/`, Docker Compose Location `compose.yml`), the
+recorded environment variables (secrets from the platform settings, never
+re-typed from anywhere else), and the Domains entry. Deploy.
+
+**Update the site URL in the database** — the site entity's stored URL is
+the production domain; it was changed from `https://spiritualfamily.net/`
+to `https://spiritualfamily.online/` at this re-deploy (deliberate change,
+recorded in `docs/baseline/baseline.md`). `$CONFIG->wwwroot` is
+overwritten from the database on every boot, so this single update covers
+it:
+
+```bash
+docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "UPDATE elggjr_sites_entity SET url = \"https://spiritualfamily.online/\" WHERE guid = 1"'
+```
+
+**Compare against the prior deployment** — everything must be identical
+except the recorded site-URL change:
+
+- Versions: `php -v` → 7.4.27, `mariadbd --version` →
+  `10.11.18-MariaDB-ubu2204`, `/etc/alpine-release` → 3.23.3; image tags
+  `sfn/elgg_webserver:7.4-composer2`, `mariadb:10.11.18`,
+  `sfn/elgg_cron:3.23.3`; no floating tags.
+- Configuration: the environment-variable walk matches the Step 3 record
+  in `docs/baseline/baseline.md`; build config Base Directory `/`,
+  Docker Compose Location `compose.yml`.
+- Data intact: 36 tables, datalists `version`/`installed` unchanged, site
+  row GUID 1 (URL now `https://spiritualfamily.online/`), entity counts
+  unchanged.
+- Site loads at `https://spiritualfamily.online/` with a valid certificate.
+
+Record the result in `docs/baseline/baseline.md` (Production Re-Deploy
+Reproducibility section) and add a Run log row below.
+
 ## Run log
 
 One row per production deploy:
