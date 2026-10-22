@@ -210,18 +210,29 @@ strategy (Base Directory `/`, Docker Compose Location `compose.yml`), the
 recorded environment variables (secrets from the platform settings, never
 re-typed from anywhere else), and the Domains entry. Before deploying,
 re-attach the recorded volumes: the re-created application has a new UUID,
-so Compose expects `<new-uuid>_fs-dbmdata` and siblings — rename each
-recorded volume to the new prefix while the stack is stopped:
+so Compose expects `<new-uuid>_fs-dbmdata` and siblings. Docker has no
+volume rename — recreate each volume under the new prefix and copy the
+data across with a helper container while the stack is stopped (`cp -a`
+preserves ownership; each command prints both sides' file counts and byte
+totals, which must match; the originals stay untouched until post-deploy
+verification passes):
 
 ```bash
-docker volume rename <old-prefix>_fs-dbmdata <new-uuid>_fs-dbmdata
-docker volume rename <old-prefix>_fs-dataroot <new-uuid>_fs-dataroot
-docker volume rename <old-prefix>_fs-cacheroot <new-uuid>_fs-cacheroot
+docker volume create <new-uuid>_fs-dbmdata
+docker volume create <new-uuid>_fs-dataroot
+docker volume create <new-uuid>_fs-cacheroot
+docker run --rm -v <old-prefix>_fs-dbmdata:/from -v <new-uuid>_fs-dbmdata:/to alpine:3.23.3 sh -c 'cp -a /from/. /to/ && echo "from: $(find /from -type f | wc -l) files, $(du -sb /from | cut -f1) bytes" && echo "to: $(find /to -type f | wc -l) files, $(du -sb /to | cut -f1) bytes"'
+docker run --rm -v <old-prefix>_fs-dataroot:/from -v <new-uuid>_fs-dataroot:/to alpine:3.23.3 sh -c 'cp -a /from/. /to/ && echo "from: $(find /from -type f | wc -l) files, $(du -sb /from | cut -f1) bytes" && echo "to: $(find /to -type f | wc -l) files, $(du -sb /to | cut -f1) bytes"'
+docker run --rm -v <old-prefix>_fs-cacheroot:/from -v <new-uuid>_fs-cacheroot:/to alpine:3.23.3 sh -c 'cp -a /from/. /to/ && echo "from: $(find /from -type f | wc -l) files, $(du -sb /from | cut -f1) bytes" && echo "to: $(find /to -type f | wc -l) files, $(du -sb /to | cut -f1) bytes"'
 ```
 
-The rename must happen before the first start: if the new stack starts on
-an empty `fs-dbmdata`, MariaDB initializes a fresh database there and the
-migrated data is orphaned. Then deploy.
+The copy must happen before the first start: if the new stack starts on an
+empty `fs-dbmdata`, MariaDB initializes a fresh database there and the
+migrated data is orphaned. If the new stack was already started once
+(premature deploy), its fresh volumes exist and `fs-dbmdata` was
+initialized — stop the stack, remove its containers, delete the three
+`<new-uuid>_fs-…` volumes (verify the prefix against the volume listing
+before deleting), recreate them empty, and copy as above. Then deploy.
 
 **Update the site URL in the database** — the site entity's stored URL is
 the production domain; it was changed from `https://spiritualfamily.net/`
