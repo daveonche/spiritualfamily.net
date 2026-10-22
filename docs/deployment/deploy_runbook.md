@@ -86,6 +86,9 @@ then import:
 
 ```bash
 docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE backup_verify"'
+```
+
+```bash
 gunzip -c "$(ls -t ~/sfn-backups/sfn-elgg-*.sql.gz | head -n 1)" | grep -vE '^(CREATE DATABASE|USE )' | docker exec -i "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" backup_verify'
 ```
 
