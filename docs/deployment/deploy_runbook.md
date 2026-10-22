@@ -266,3 +266,5 @@ One row per production deploy:
 | Date | Commit | Backup file | Restorability check | Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | 2026-10-20 | initial S1.6 deployment (Steps 1–5) | n/a — pre-runbook | n/a | baseline deployed; production email verified |
+| 2026-10-21 | n/a — data migration only (runbook Steps 1–2, 4; no code deploy) | `sfn-elgg-20261020T191947.sql.gz` (pre-migration, empty DB) + `spirihf6_elgg114.sql.gz` (source dump) | 0-table empty-dump check; gate = S1.3 restore check | Step 7: production dump restored into dbm; baseline-sync exact match |
+| 2026-10-22 | `8593c88` | `sfn-elgg-20261022T175255.sql.gz` | passed — 36 tables | clean re-deploy (S1.6 Step 8); premature deploy recovered via volume re-attach; domain → `spiritualfamily.online` |
