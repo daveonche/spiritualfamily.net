@@ -181,15 +181,35 @@ deployment. Reused whenever reproducibility needs re-proving.
 re-creation, the strongest "repository alone" proof). The persistent
 volumes (`fs-dbmdata`, `fs-dataroot`, `fs-cacheroot`) are instance-level
 resources and survive the deletion — the migrated production data is not
-touched. Record the current platform settings first (environment variables
+touched; decline any "delete volumes" option the delete confirmation
+offers. Record the current platform settings first (environment variables
 per `docs/deployment/coolify.md`, Domains entry) so the re-created
-application can be configured identically.
+application can be configured identically, and record the host volume
+names — Compose prefixes named volumes with the application's UUID (the
+Compose project name), so the names carry the old application's UUID:
+
+```bash
+docker volume ls --format '{{.Name}}' | grep -E 'fs-(dbmdata|dataroot|cacheroot)'
+```
 
 **Re-create and deploy** — follow `docs/deployment/coolify.md` from
 "Create the application": Git-repository application, Docker Compose build
 strategy (Base Directory `/`, Docker Compose Location `compose.yml`), the
 recorded environment variables (secrets from the platform settings, never
-re-typed from anywhere else), and the Domains entry. Deploy.
+re-typed from anywhere else), and the Domains entry. Before deploying,
+re-attach the recorded volumes: the re-created application has a new UUID,
+so Compose expects `<new-uuid>_fs-dbmdata` and siblings — rename each
+recorded volume to the new prefix while the stack is stopped:
+
+```bash
+docker volume rename <old-prefix>_fs-dbmdata <new-uuid>_fs-dbmdata
+docker volume rename <old-prefix>_fs-dataroot <new-uuid>_fs-dataroot
+docker volume rename <old-prefix>_fs-cacheroot <new-uuid>_fs-cacheroot
+```
+
+The rename must happen before the first start: if the new stack starts on
+an empty `fs-dbmdata`, MariaDB initializes a fresh database there and the
+migrated data is orphaned. Then deploy.
 
 **Update the site URL in the database** — the site entity's stored URL is
 the production domain; it was changed from `https://spiritualfamily.net/`
