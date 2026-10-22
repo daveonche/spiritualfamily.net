@@ -142,9 +142,14 @@ docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT CO
 Then run the baseline-sync comparison queries and record the figures in
 `docs/baseline/baseline.md` (Production Database Migration section): the
 datalists `version`/`installed` values, the site row, and the entity-type
-counts, compared against the baseline inventory. If any exact-match check
-fails, **stop** — do not proceed to post-deploy verification; restore the
-Step 1 backup per Rollback and investigate.
+counts, compared against the baseline inventory:
+
+```bash
+docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = \"$MYSQL_DATABASE\"; SELECT name, value FROM elggjr_datalists WHERE name IN (\"version\",\"installed\"); SELECT guid, name, url FROM elggjr_sites_entity; SELECT type, COUNT(*) AS entity_count FROM elggjr_entities GROUP BY type ORDER BY type;"'
+```
+
+If any exact-match check fails, **stop** — do not proceed to post-deploy
+verification; restore the Step 1 backup per Rollback and investigate.
 
 ## Step 5 — Post-deploy verification
 
