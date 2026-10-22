@@ -286,26 +286,33 @@ completes the SPF/DKIM/DMARC triad.
 One clean re-deploy performed per `docs/deployment/deploy_runbook.md`
 (Step 6): the Coolify application resource was deleted and re-created
 purely from the repository's `compose.yml` and the recorded platform
-settings, then deployed. Persistent volumes survived the tear-down; the
-migrated production data was never touched.
+settings, then deployed. The re-created application's first start happened
+before the volume re-attach (premature deploy): it initialized fresh empty
+volumes and was stopped, and the migrated data was re-attached per the
+runbook's premature-deploy recovery — the fresh volumes deleted, the
+originals copied into new-prefix volumes with a helper container (file
+counts and byte totals verified identical on all three). The old-prefix
+volumes stayed in place as the fallback until this verification passed.
+The migrated production data was never touched.
 
 **Intentional change (not drift):** the production domain moved from
 `spiritualfamily.net` to `spiritualfamily.online` at this re-deploy —
 `APP_HOST` and the Coolify Domains entry now carry
 `spiritualfamily.online`, and the site entity's stored URL was updated to
-`https://spiritualfamily.online/`. Future baseline comparisons must expect
-the new URL, not the `https://spiritualfamily.net/` value recorded in the
-earlier tables above.
+`https://spiritualfamily.online/` (applied ahead of the tear-down; the
+volume copy carried it into the re-deployed stack). Future baseline
+comparisons must expect the new URL, not the `https://spiritualfamily.net/`
+value recorded in the earlier tables above.
 
 | Check | Prior deployment | Re-deployed stack | Result |
 | :--- | :--- | :--- | :--- |
-| Verification date | 2026-10-20 | <date> | <pending> |
-| app image / runtime | `sfn/elgg_webserver:7.4-composer2`, PHP 7.4.27 | <fill> | <pending> |
-| dbm image / runtime | `mariadb:10.11.18`, `10.11.18-MariaDB-ubu2204` | <fill> | <pending> |
-| cron image / base | `sfn/elgg_cron:3.23.3`, alpine 3.23.3 | <fill> | <pending> |
-| Floating tags | None | <fill> | <pending> |
-| Environment settings | per Step 3 walk | <fill> | <pending> |
-| Table count / datalists | 36 / `2016092300`, `1483761119` | <fill> | <pending> |
-| Entity counts (object/user/group/site) | 87217 / 1136 / 289 / 1 | <fill> | <pending> |
-| Site row | GUID 1, URL `https://spiritualfamily.online/` (updated) | <fill> | <pending> |
-| HTTPS | valid certificate, no warnings | <fill> | <pending> |
+| Verification date | 2026-10-20 | 2026-10-22 | match |
+| app image / runtime | `sfn/elgg_webserver:7.4-composer2`, PHP 7.4.27 | `sfn/elgg_webserver:7.4-composer2` (rebuilt by Coolify), `php -v` → 7.4.27 | match |
+| dbm image / runtime | `mariadb:10.11.18`, `10.11.18-MariaDB-ubu2204` | `mariadb:10.11.18`, `mariadbd --version` → `10.11.18-MariaDB-ubu2204` | match |
+| cron image / base | `sfn/elgg_cron:3.23.3`, alpine 3.23.3 | `sfn/elgg_cron:3.23.3`, `/etc/alpine-release` → 3.23.3 | match |
+| Floating tags | None | None — the same three pinned image references | match |
+| Environment settings | per Step 3 walk | re-created from the recorded settings; `MYSQL_*` credentials proven by the successful boot (app connects to dbm, migrated data served) | match |
+| Table count / datalists | 36 / `2016092300`, `1483761119` | 36 / `2016092300`, `1483761119` | exact match |
+| Entity counts (object/user/group/site) | 87217 / 1136 / 289 / 1 | 87217 / 1136 / 289 / 1 | exact match |
+| Site row | GUID 1, URL `https://spiritualfamily.online/` (updated) | GUID 1, SpiritualFamily.Net, `https://spiritualfamily.online/` | exact match |
+| HTTPS | valid certificate, no warnings | valid certificate at `https://spiritualfamily.online/`, no warnings | match |
