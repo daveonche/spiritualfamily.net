@@ -200,6 +200,10 @@ Compose project name), so the names carry the old application's UUID:
 docker volume ls --format '{{.Name}}' | grep -E 'fs-(dbmdata|dataroot|cacheroot)'
 ```
 
+docker run --rm -v obil4cynrvnh20c89kwszntz_fs-dataroot:/from -v z7fqpfbtv8s4uu8rbbvlt98v_fs-dataroot:/to alpine:3.23.3 sh -c 'cp -a /from/. /to/ && echo "from: $(find /from -type f | wc -l) files, $(du -sb /from | cut -f1) bytes" && echo "to:   $(find /to -type f | wc -l) files, $(du -sb /to | cut -f1) bytes"'
+
+docker run --rm -v obil4cynrvnh20c89kwszntz_fs-cacheroot:/from -v z7fqpfbtv8s4uu8rbbvlt98v_fs-cacheroot:/to alpine:3.23.3 sh -c 'cp -a /from/. /to/ && echo "from:$(find /from -type f | wc -l) files, $(du -sb /from | cut -f1) bytes" && echo "to:   $(find /to -type f | wc -l) files, $(du -sb /to | cut -f1) bytes"'
+
 **Re-create and deploy** — follow `docs/deployment/coolify.md` from
 "Create the application": Git-repository application, Docker Compose build
 strategy (Base Directory `/`, Docker Compose Location `compose.yml`), the
