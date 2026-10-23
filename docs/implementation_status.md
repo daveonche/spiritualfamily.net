@@ -24,7 +24,6 @@ Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/co
 
 ### B. Partially Implemented Features
 
-- CI pipeline (S1.5): `.github/workflows/ci.yml` exists and enforces the commit-msg hook on every pushed/PR commit (pinned checkout action SHA, read-only permissions, subjects validated via `.githooks/commit-msg`). Remaining per the S1.5 acceptance criteria: `composer validate`, `composer install` from lock, PHP syntax lint, `composer.json` ↔ `composer.lock` consistency enforcement, and Docker image build validation using the version build args.
 - Cron execution of Elgg hooks (S1.7): `crontab` triggers all nine Elgg cron intervals and `compose.yml` renders/runs the spool file. Remaining: end-to-end verification of garbagecollector and uservalidationbyemail runs, confirming the invocation path per the AC (the crontab currently uses `wget` against HTTP `/cron/*` URLs, not a CLI entry point), and cron log rotation (replacing dropped logrotate, REQ-FR-PU-7).
 - Logging &amp; environment management (S1.8): the documented `.env` template AC is met (`.env.example`, `src/tests/ComposeEnvInjectionTest.php`). Remaining: per-environment Elgg logging with registered error/exception handlers, secrets-handling rules documentation, and container log routing/rotation.
 
