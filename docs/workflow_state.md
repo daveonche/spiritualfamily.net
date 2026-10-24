@@ -2,7 +2,7 @@
 Last updated: 2026-10-24
 
 ## Active Workflow
-- $workflows-post-scaffolding-chain — Phase 3 entry: story analysis for S1.7 (Cron and Scheduled Tasks Wiring)
-- Last completed: Phase 1 status analysis saved 2026-10-23 (41d6d2f, e112648); next-step pointer corrected 2026-10-24; Phase 2 exited — continue Sprint 1, no new sprint file
-- Command: $planning-story-analysis S1.7
-- Reload to resume: .agent/workflows/planning/story-analysis/SKILL.md docs/sprints/sprint_1_stories.md docs/implementation_status.md docs/requirements/core_requirements.md docs/tech_stack.md
+- $workflows-post-scaffolding-chain — Phase 4: implementation of S1.7 (Cron and Scheduled Tasks Wiring)
+- Last completed: S1.7 story analysis approved and saved to docs/analysis/S1.7-story-steps.md (2026-10-24); 5 steps defined, prerequisites chained from Step 1
+- Command: #implement-step S1.7 1
+- Reload to resume: .agent/workflows/code/implementation/SKILL.md docs/analysis/S1.7-story-steps.md docs/sprints/sprint_1_stories.md
