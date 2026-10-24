@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Cron image (Story S1.6): the production definition carries no repo bind
 # mounts (Coolify v4.4.6 runs `up` without the cloned repository present,
 # so repo-relative bind sources resolve to empty directories), so the
