@@ -49,4 +49,4 @@ Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/co
   - Sequential major-version upgrades with backup-then-upgrade-then-deploy per step, then plugin provisioning/activation/theme, then runbook
   - Rationale: strictly ordered per REQ-FR-PU-5; feature restoration only after Elgg 7.1.0 is reached
 
-Next workflow step: `$planning-sprint-story`
+Next workflow step: `$planning-story-analysis S1.7`
