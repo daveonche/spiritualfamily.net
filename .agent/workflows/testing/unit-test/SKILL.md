@@ -239,6 +239,8 @@ Test implementation for Step [number] is complete. To proceed:
 IMPORTANT: Each story step must have its own dedicated tests. Even if subsequent steps modify the same code, they require their own test coverage.
 ```
 
+When Step [number] is the story's final step (all steps implemented and tested), also instruct the user to append a status line under the story heading in the sprint story file (e.g., `- Status: Completed <date>`), so sprint state is readable in place by Phase 1's Mid-Sprint Entry check. Saving requires `/code` mode: have the user switch to `/code`, apply the append, and return to `/ask`.
+
 ## Status Command
 When `$testing-unit-test-status` is seen, use status template from references.
 

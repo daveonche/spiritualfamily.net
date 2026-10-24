@@ -17,6 +17,7 @@ You are a code implementation analyst. Your task is to examine a codebase and de
 - Stay in `/ask` mode during analysis. Switch to `/code` mode only when saving the approved report.
 - Use `/read-only` or `/add` to load missing source, config, or script files before continuing analysis.
 - STEP 1 context verification is user-confirmed (Critical Rule 3): fill the ✓/✗ response only from files the user named or that were added this session, never from transcript recall. Default locations (`docs/requirements/`, `docs/sprints/`, `docs/tech_stack.md`) are stated expectations; only ask for actual paths when a default is missing or the user indicates the locations changed.
+- The report's `Next workflow step:` footer is conditional on sprint state: `$planning-story-analysis S<X.Y>` (first open story) when the latest sprint still has open stories; `$planning-sprint-story` only when every story in it is fully implemented.
 
 ## Workflow Checklist
 
@@ -26,7 +27,7 @@ You are a code implementation analyst. Your task is to examine a codebase and de
 - [ ] Implementation status analysis is presented and approved
 - [ ] Report path and filename are confirmed
 - [ ] Approved report is saved in `/code` mode
-- [ ] Saved report ends with `Next workflow step: $planning-sprint-story`
+- [ ] Saved report ends with the sprint-state-appropriate handoff (`$planning-story-analysis S<X.Y>` when open, `$planning-sprint-story` when closed)
 
 First, ensure correct mode by saying EXACTLY:
 "To proceed with implementation status analysis:
@@ -85,6 +86,13 @@ Priority 2 - [Category Name]:
 
 [Continue until all remaining features are prioritized]
 
+SPRINT STATE (from the latest sprint story file loaded in STEP 1):
+Latest sprint file: [path]
+- [S<X.Y>]: [Open/Closed] — [basis: which acceptance criteria are Partially Implemented or Not Yet Implemented]
+Sprint state: [OPEN|CLOSED]
+
+A story is Closed only when every acceptance criterion maps to Completed features; any Partially Implemented or Not Yet Implemented criterion leaves it Open.
+
 [STEP 3] After presenting analysis:
 Ask: "Please review this implementation status analysis. Reply with:
 - 'approved' to proceed with saving
@@ -109,7 +117,9 @@ If changes are requested:
    1. Enter command: /code
    2. Then say: 'Write the approved implementation status report to <file path>', using the file path chosen in step 1
    3. After saving, enter command: /ask 
-   4. Then use command: $planning-sprint-story to proceed with Phase 2: Sprint Story Generation"
+   4. Then use the handoff matching the sprint state in the report:
+      - Sprint OPEN: $planning-story-analysis S<X.Y> on the first open story (Phase 2 is skipped)
+      - Sprint CLOSED: $planning-sprint-story to proceed with Phase 2: Sprint Story Generation"
 
    If a status report already exists at the chosen path, compare against the existing file and update only the sections that have changed. Do not overwrite historical records unless explicitly requested.
 
@@ -118,13 +128,16 @@ After the file is written, perform these validation checks:
 2. Verify that each feature cites at least one source file.
 3. Verify that the report contains a Priority Order for Next Implementation Phase section.
 4. Verify that only changed sections were modified when updating an existing report.
-5. If any validation check fails, fix the report and re-run the checks before continuing.
+5. Verify that the report's `Next workflow step:` footer matches the sprint state determined in the analysis.
+6. If any validation check fails, fix the report and re-run the checks before continuing.
 
-The saved report must end with:
+The saved report must end with exactly one of:
 
-   Next workflow step: `$planning-sprint-story`
+   Next workflow step: `$planning-story-analysis S<X.Y>`   (sprint OPEN — S<X.Y> is the first open story)
 
-Example Implementation Status Report:
+   Next workflow step: `$planning-sprint-story`             (sprint CLOSED)
+
+Example Implementation Status Report (example shows a closed sprint):
 ```markdown
 # Implementation Status Report
 

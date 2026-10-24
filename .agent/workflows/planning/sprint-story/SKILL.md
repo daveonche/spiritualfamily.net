@@ -31,6 +31,9 @@ Do not proceed until user replies with "ready". DO NOT proceed with STEP 1 below
 - Do not proceed past any `[STOP]` point without the required user input. If input is invalid or unexpected, re-prompt with the original question.
 - All examples in this prompt are illustrative only. Base every analysis, technology mapping, and story on the actual documents loaded in context, never on the sample technologies, versions, or filenames shown in examples.
 - Story IDs must follow `S<sprint_number>.<story_number>`, with story numbering restarting at 1 within each sprint.
+- Before generating stories, confirm the previous sprint is closed. If it still has open stories, do not generate a story set; direct the user to `$planning-story-analysis S<X.Y>` on the first open story instead.
+- If the user wants to add scope to the currently open sprint instead of opening a new one, generate the additional story with the next sequential ID in that sprint (S<N.k+1>) and append it to the existing sprint story file; do not restart numbering or overwrite the file.
+- If the implementation status report shows no remaining features and the user provides no new priorities, do not generate stories; report that the backlog is empty and end the workflow.
 
 [STEP 1] Verify the four essential context items with the user. Do not assess the context yourself - ask the user to answer Y/N for each item:
 1. Project requirements list
@@ -59,6 +62,13 @@ What sprint number should I use for story generation?
 [STOP]
 Wait for user to provide sprint number before proceeding
 
+Then verify the previous sprint is closed. Ask:
+"Is the previous sprint (the one whose stories you provided) fully implemented and unit tested? (Y/N)"
+
+[STOP]
+- If N: the sprint is still open. Do not generate stories. Say: "Sprint <N> still has open stories. Resume with $planning-story-analysis S<X.Y> on the first open story instead." End this workflow.
+- If Y: proceed to STEP 3.
+
 [STEP 3] Once sprint number is provided and all documents are available, perform technical analysis:
 1. Map dependencies between features
 2. Identify next implementable features based on technical dependencies
@@ -83,7 +93,7 @@ Recommended story count for sprint: 3 stories
 ```
 
 [STOP]
-Present analysis and wait for user approval or revision requests. If changes requested, update and present again until approved
+Present analysis and wait for user approval or revision requests. If changes requested, update and present again until approved. If the analysis finds no implementable features (backlog empty and no new priorities), do not generate stories; report that the backlog is empty and end this workflow
 
 [STEP 4] Generate user stories following this format:
 
@@ -96,6 +106,8 @@ Example story format (illustrative only - generate stories from the actual proje
 ```
 Story S2.1: Set up Local Storage
 As a developer, I want to implement local storage functionality so that journal entries can be persisted between sessions.
+
+Scope: backend
 
 Acceptance Criteria:
 - A journal entry can be created, edited, deleted, and retrieved
@@ -118,7 +130,7 @@ Sprint Technical Rationale: These stories follow the minimal dependency chain ne
 [STEP 5] Self-validate the generated stories BEFORE presenting them for user review. Check each item:
 1. Every story ID matches the `S<sprint_number>.<story_number>` format and uses the sprint number from STEP 2
 2. Story numbers are sequential and start at 1 within the sprint (no gaps, no duplicates)
-3. Every story contains all required sections: title line, As a/I want/so that statement, Acceptance Criteria, Dependencies, Developer Notes
+3. Every story contains all required sections: title line, As a/I want/so that statement, Scope (`UI`, `mobile`, or `backend` — drives the conditional Frontend Design / Mobile App Design phases), Acceptance Criteria, Dependencies, Developer Notes
 4. Every dependency listed references a real story ID from this sprint or a previously provided sprint
 5. A sprint-level rationale is present after all stories
 
@@ -159,7 +171,7 @@ Say EXACTLY:
 [STOP]
 Wait for the user to switch to `/code` mode and reply with: `save to file`
 
-Only after the user replies `save to file` in code mode, write the generated sprint stories to the selected file path. DO NOT attempt to save the file directly at any other time.
+Only after the user replies `save to file` in code mode, write the generated sprint stories to the selected file path: create the file for a new sprint, or append the additional story to the existing file when adding scope to the currently open sprint (see Gotchas). DO NOT attempt to save the file directly at any other time.
 
 ## Progress Checklist
 
@@ -168,6 +180,7 @@ Track workflow state with this checklist. Update it as each step completes, and 
 - [ ] Mode check completed (user replied "ready")
 - [ ] STEP 1: Required context items verified
 - [ ] STEP 2: Sprint number provided
+- [ ] Previous sprint verified closed (or workflow redirected to story analysis)
 - [ ] STEP 3: Technical dependency analysis approved
 - [ ] STEP 4: User stories generated
 - [ ] STEP 5: Self-validation passed

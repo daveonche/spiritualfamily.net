@@ -69,9 +69,10 @@
 - Regular test status checks
 - Support for manual test execution
 - Load references on demand and review them when core workflow changes
+- Append the per-story status line at the story's final step so sprint state stays readable in place
 
 ## Version
 
-- Current Version: 1.1.1
-- Last Updated: 2026-09-26
+- Current Version: 1.2.0
+- Last Updated: 2026-10-24
 - Stability: Experimental

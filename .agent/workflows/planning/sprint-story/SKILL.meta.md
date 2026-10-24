@@ -70,9 +70,10 @@
 - Ensure stories are atomic and implementable
 - Cross-reference with implementation status report
 - Use `#generate-sprint-stories-status` or ask the user for the last completed step when resuming
+- Verify the previous sprint is closed before generating a new story set; if it is still open, redirect to `$planning-story-analysis S<X.Y>` on the first open story
 
 ## Version
 
-- Current Version: 1.2.1
-- Last Updated: 2026-09-26
+- Current Version: 1.3.0
+- Last Updated: 2026-10-24
 - Stability: Experimental

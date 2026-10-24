@@ -51,7 +51,7 @@ Each phase depends on the output of the previous phase. Use this table to choose
 | Phase 2: Sprint Story Generation | Updated implementation status | Sprint stories |
 | Frontend Design (conditional) | A UI/frontend story from Phase 2; framework detection | Approved design direction and file inventory |
 | Mobile App Design (conditional) | A mobile app story from Phase 2; framework detection; tech stack naming a mobile client | Approved mobile design direction and file inventory |
-| Phase 3: Story Analysis `S<X.Y>` | A sprint story ID from Phase 2 | Analyzed story steps and acceptance criteria |
+| Phase 3: Story Analysis `S<X.Y>` | A sprint story ID from Phase 2 or from the open sprint's story file (Mid-Sprint Entry) | Analyzed story steps and acceptance criteria |
 | Phase 4A: Implementation `S<X.Y>` | Analyzed story from Phase 3 | Implemented code changes |
 | Phase 4B: Unit Testing `S<X.Y>` | Implemented code from Phase 4A | Unit tests and validation results |
 | Dependency Management | Detection of a new dependency during Phase 4A | Dependency plan and integration steps |
@@ -72,7 +72,7 @@ Each phase depends on the output of the previous phase. Use this table to choose
 ### Chain Completion Checklist
 
 - [ ] Phase 1: Implementation status is current.
-- [ ] Phase 2: Sprint stories are generated from the current status.
+- [ ] Phase 2: Sprint stories are generated from the current status, OR the Mid-Sprint Entry path was taken (latest sprint still open; Phase 2 skipped).
 - [ ] Conditional Frontend Design completed for each UI story before its story analysis.
 - [ ] Conditional Mobile App Design completed for each mobile app story before its story analysis.
 - [ ] Phase 3: At least one story is analyzed with actionable steps and acceptance criteria.
@@ -82,7 +82,7 @@ Each phase depends on the output of the previous phase. Use this table to choose
 
 ### Gotchas
 
-- `S<X.Y>` story IDs must come from Phase 2; do not guess them.
+- `S<X.Y>` story IDs must come from Phase 2 or, on the Mid-Sprint Entry path, from the open sprint's story file; do not guess them.
 - `$architecture-frontend-design` is conditional: activate it only when Phase 2 generated a UI/frontend story, and run it before that story's Phase 3 analysis.
 - `$architecture-mobile-app-design` is conditional: activate it only when Phase 2 generated a mobile app story (or the tech stack includes a mobile app client), and run it before that story's Phase 3 analysis.
 - In this chain, use the frontend design prompt for its planning steps only ([STEP 1]-[STEP 3A], including the design-artifact save); Phase 4A implements the analyzed steps following the approved plan.
@@ -91,14 +91,31 @@ Each phase depends on the output of the previous phase. Use this table to choose
 - `$code-dependency-management` is conditional and should be activated only when a new dependency is identified during Phase 4A.
 - If you skip a phase, the next phase may not have the required input and should prompt you to run the missing phase first.
 
+### Mid-Sprint Entry (conditional)
+
+Phase 2 opens a new sprint and assumes the latest sprint is closed. Before following
+the default Phase 1 → Phase 2 sequence, determine sprint state from Phase 1's
+analysis of the latest sprint story file (already a required Phase 1 input):
+
+- **Sprint open** — any story in the latest sprint file has acceptance criteria that
+  are Partially Implemented or Not Yet Implemented: skip Phase 2. Enter Phase 3
+  directly on the first open story with `$planning-story-analysis S<X.Y>`. The
+  conditional Frontend Design / Mobile App Design gates still apply before that
+  story's analysis if it has UI/frontend or mobile app scope.
+- **Sprint closed** — every story in the latest sprint file is fully implemented and
+  unit tested: run the default Phase 1 → Phase 2 sequence to open the next sprint.
+
+Phase 1's report footer must match this state (see the Implementation Analysis
+prompt's handoff rule).
+
 [STOP - Wait for the user to run one of the phase commands above.]
 
 ## Workflow
 
 ```txt
 Phase 1: Implementation Status Analysis
-↓ [Outputs feed Phase 2]
-Phase 2: Sprint Story Generation
+↓ [Outputs feed Phase 2, or Phase 3 directly when the latest sprint is still open]
+Phase 2: Sprint Story Generation (skipped on Mid-Sprint Entry)
 ↓ [Outputs feed Phase 3; UI stories also feed Frontend Design; mobile app stories also feed Mobile App Design]
 Frontend Design (conditional, UI stories)
 ↓ [Approved design feeds Phase 3]
@@ -164,7 +181,7 @@ Produce an approved design direction and file inventory for a UI/frontend story 
 
 **Trigger (conditional):**
 
-- Phase 2 generated one or more sprint stories with UI/frontend scope
+- Phase 2 generated one or more sprint stories with UI/frontend scope (declared by the story's `Scope:` line; see Phase 2's story format)
 
 **Required Inputs:**
 
@@ -190,7 +207,7 @@ Produce an approved mobile design direction and file inventory for a mobile app 
 
 **Trigger (conditional):**
 
-- Phase 2 generated one or more sprint stories with mobile app scope (or the tech stack includes a mobile app client consuming the API backend)
+- Phase 2 generated one or more sprint stories with mobile app scope (declared by the story's `Scope:` line; see Phase 2's story format), or the tech stack includes a mobile app client consuming the API backend
 
 **Required Inputs:**
 
@@ -272,6 +289,11 @@ Generate and verify unit tests for the implemented story step, ensuring comprehe
 
 - Unit tests for the implemented step
 - Test results indicating pass/fail status
+- A per-story status line appended to the sprint story file once all of that story's steps pass (e.g., `- Status: Completed <date>` under the story heading), so sprint state is readable in place by Phase 1's Mid-Sprint Entry check
+
+**Failure Loop:**
+
+If unit tests fail, route the failure back to Phase 4A to fix the implementation; revise the test in Phase 4B only when the test itself is wrong. Re-run Phase 4B until all tests pass before moving to the next step or story.
 
 ## Workflow Chain Execution
 
@@ -294,6 +316,7 @@ Generate and verify unit tests for the implemented story step, ensuring comprehe
 
    - Must have all Phase 1 outputs available
    - Proceeds only when analysis outputs are complete
+   - Mid-sprint: if Phase 1's analysis shows the latest sprint still has open stories, do not run this step; continue with step 5 on the first open story (see Mid-Sprint Entry).
 
 3. **Generate Frontend Design (conditional, UI stories):**
 
@@ -339,6 +362,12 @@ Generate and verify unit tests for the implemented story step, ensuring comprehe
 
    - Requires implemented code changes for the step
    - Run after each implementation step, or as needed
+
+8. **Iterate to the next open story:**
+
+   After Phase 4B passes for a story, return to step 5 with the next open
+   story's `S<X.Y>` ID and repeat steps 5-7 until every story in the sprint
+   is implemented and unit tested.
 
 ## Chain Dependencies
 

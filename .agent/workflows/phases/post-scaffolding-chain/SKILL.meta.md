@@ -49,7 +49,8 @@
 ## Gotchas / Sync Notes
 
 - Chain integrity requires each phase's output to be available or approved before proceeding to the next phase; never auto-progress — always wait for the user to select a phase.
-- `S<X.Y>` story IDs must come from Phase 2; do not guess them.
+- `S<X.Y>` story IDs must come from Phase 2 or, on the Mid-Sprint Entry path, from the open sprint's story file; do not guess them.
+- Mid-Sprint Entry (conditional): when the latest sprint still has open stories, Phase 2 is skipped and the chain enters Phase 3 on the first open story; see SKILL.md.
 - `$architecture-frontend-design` is conditional: activate it only when Phase 2 generated a UI/frontend story, before that story's Phase 3 analysis; in this chain it runs its planning steps only.
 - `$architecture-mobile-app-design` is conditional: activate it only when Phase 2 generated a mobile app story (or the tech stack includes a mobile app client), before that story's Phase 3 analysis; in this chain it runs its planning steps only.
 - `$code-dependency-management` is conditional: activate it only when a new dependency is identified during Phase 4A.
@@ -60,8 +61,8 @@
 
 ## Version
 
-- Current Version: 1.9.0
-- Last Updated: 2026-10-05
+- Current Version: 1.10.0
+- Last Updated: 2026-10-24
 - Stability: Experimental
 
 ## Purpose

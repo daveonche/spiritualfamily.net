@@ -40,7 +40,7 @@
 
 - Previous: `$planning-scaffolding-sprint-story`
 - Current: `$planning-implementation-analysis`
-- Next: `$planning-sprint-story` (report ends with `Next workflow step: #generate-sprint-stories`)
+- Next: `$planning-sprint-story` (sprint closed) or `$planning-story-analysis S<X.Y>` on the first open story (sprint open; the report footer is conditional)
 
 ## Prompt Characteristics
 
@@ -73,14 +73,18 @@
   overwrite them.
 - Keep the analysis methodology, report template, and workflow steps
   authoritative in SKILL.md. Do not duplicate them here.
+- The report's `Next workflow step:` footer is conditional on sprint state
+  (sprint open → `$planning-story-analysis S<X.Y>`; sprint closed →
+  `$planning-sprint-story`); see the Mid-Sprint Entry path in the
+  post-scaffolding chain.
 - The sentinel line `<!-- sentinel: planning/implementation-analysis -->`
   must remain the final content line of SKILL.md; the orchestrator quotes
   it to detect truncated loads.
 
 ## Version
 
-- Current Version: 1.2.1
-- Last Updated: 2026-09-26
+- Current Version: 1.3.0
+- Last Updated: 2026-10-24
 - Stability: Experimental
 
 ## Purpose
