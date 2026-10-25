@@ -20,12 +20,16 @@
 #   yearly      0 0 1 1 *     yearly, Jan 1 at midnight
 #
 # Per-upgrade duty (re-verify at every core upgrade in the sequence):
-# re-derive the supported intervals from the new core's
-# elgg_get_cron_periods() (src/vendor/elgg/elgg/engine/lib/cron.php),
-# adjust this crontab and the pinned list in
+# re-derive the supported intervals from the vendored core itself — the
+# period => interval map in _elgg_cron_run()
+# (src/vendor/elgg/elgg/engine/lib/cron.php; 2.3.17 has no
+# elgg_get_cron_periods(), re-point at the new core's periods API when
+# one appears) — adjust this crontab and the pinned list in
 # src/tests/CronSanctionedEntryPointTest.php to match, then re-run the
 # guard suite — src/tests/CronScheduleCoverageTest.php cross-checks the
-# crontab and the pinned list against the core itself.
+# crontab and the pinned list against the core itself. The core's
+# deprecated 'reboot' period stays unscheduled: it is not a recurring
+# interval and has no cron schedule.
 * * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/minute?__elgg_mac={{MINUTE_PLACEHOLDER}}
 */5 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/fiveminute?__elgg_mac={{FIVEMINUTE_PLACEHOLDER}}
 */15 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/fifteenmin?__elgg_mac={{FIFTEENMIN_PLACEHOLDER}}
