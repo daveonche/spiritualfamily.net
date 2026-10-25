@@ -121,7 +121,7 @@ class CronScheduleCoverageTest extends \PHPUnit_Framework_TestCase
 	 */
 	private function pinnedSchedules()
 	{
-		$guardFile = dirname(__DIR__) . '/CronSanctionedEntryPointTest.php';
+		$guardFile = __DIR__ . '/CronSanctionedEntryPointTest.php';
 		$this->assertFileExists($guardFile, 'Step 1 guard test (CronSanctionedEntryPointTest) missing');
 		require_once $guardFile;
 
