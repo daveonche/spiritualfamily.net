@@ -7,10 +7,18 @@ class CronScheduleCoverageTest extends \PHPUnit_Framework_TestCase
 	 * version supports is scheduled at its defined frequency, and the
 	 * schedule set is re-verifiable whenever the platform version in the
 	 * upgrade sequence changes. The supported-interval list is derived from
-	 * the vendored Elgg core itself (elgg_get_cron_periods() in
-	 * engine/lib/cron.php) — never from the previous version's list — so a
-	 * core upgrade that changes the supported intervals fails this suite
-	 * until the crontab and the pinned schedule list are adjusted.
+	 * the vendored Elgg core itself — never from the previous version's
+	 * list — so a core upgrade that changes the supported intervals fails
+	 * this suite until the crontab and the pinned schedule list are
+	 * adjusted.
+	 *
+	 * Elgg 2.3.17 has no elgg_get_cron_periods() helper: the core registers
+	 * its periods via elgg_set_config('elgg_cron_periods', ...) in
+	 * _elgg_cron_init() and drives scheduled execution from the
+	 * period => interval map in _elgg_cron_run() (engine/lib/cron.php).
+	 * The map is parsed because it carries each period's defined frequency;
+	 * when a later core version grows a dedicated periods API, re-point
+	 * this parser at it.
 	 */
 
 	private function repoDir()
@@ -50,8 +58,8 @@ class CronScheduleCoverageTest extends \PHPUnit_Framework_TestCase
 
 	/**
 	 * The intervals the vendored core itself supports, derived from the
-	 * default period list inside elgg_get_cron_periods() — the same list the
-	 * core's HTTP cron endpoint validates /cron/<interval> requests against.
+	 * period => interval map inside _elgg_cron_run() — the map the core's
+	 * own scheduler (/cron/run) drives and /cron/<interval> serves.
 	 */
 	private function coreCronPeriods()
 	{
@@ -59,24 +67,33 @@ class CronScheduleCoverageTest extends \PHPUnit_Framework_TestCase
 
 		$this->assertSame(
 			1,
-			preg_match('~function elgg_get_cron_periods\(\)\s*\{(.*?)\n\}~s', $contents, $function),
-			'elgg_get_cron_periods() not found in the vendored core cron library — the core changed its cron API; re-derive the supported intervals from the new core'
+			preg_match('~function _elgg_cron_run\(\)\s*\{(.*?)\n\}~s', $contents, $function),
+			'_elgg_cron_run() not found in the vendored core cron library — the core changed its cron API; re-derive the supported intervals from the new core'
 		);
 
 		$this->assertSame(
 			1,
 			preg_match('~\$periods\s*=\s*(?:array\s*\(|\[)(.*?)(?:\)|\])~s', $function[1], $literal),
-			'Default cron period list not found inside elgg_get_cron_periods() — re-derive the supported intervals from the new core'
+			'Default cron period map not found inside _elgg_cron_run() — re-derive the supported intervals from the new core'
 		);
 
 		$periods = array();
-		if (preg_match_all("~'([a-z]+)'~", $literal[1], $strings)) {
-			$periods = $strings[1];
+		if (preg_match_all("~'([a-z]+)'\s*=>~", $literal[1], $keys)) {
+			$periods = $keys[1];
 		}
 		$this->assertNotEmpty(
 			$periods,
 			'No cron periods could be derived from the vendored core — re-derive the supported intervals from the new core'
 		);
+
+		// Reboot disposition: the core itself marks the period deprecated
+		// ("// reboot is deprecated and probably does not work") and it is
+		// not a recurring interval — no cron schedule exists for it. Step 2
+		// schedules every *recurring* interval, so 'reboot' is excluded
+		// here. If a future core drops it the filter becomes a no-op; any
+		// newly supported period still fails the comparisons until the
+		// crontab and pinned list are adjusted.
+		$periods = array_values(array_diff($periods, array('reboot')));
 
 		return $periods;
 	}
