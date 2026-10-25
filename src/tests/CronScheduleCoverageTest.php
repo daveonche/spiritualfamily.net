@@ -35,7 +35,10 @@ class CronScheduleCoverageTest extends \PHPUnit_Framework_TestCase
 
 	private function coreCronLibraryContents()
 	{
-		$path = $this->repoDir() . '/src/vendor/elgg/elgg/engine/lib/cron.php';
+		// src/ resolved relative to this file (src/tests/…), per
+		// BaselineVersionTest's pattern: works from the repo checkout and
+		// inside the container, where src/ is mounted at /var/www/html
+		$path = dirname(__DIR__) . '/vendor/elgg/elgg/engine/lib/cron.php';
 		$this->assertFileExists(
 			$path,
 			'Vendored Elgg core cron library missing at src/vendor/elgg/elgg/engine/lib/cron.php'
@@ -101,7 +104,7 @@ class CronScheduleCoverageTest extends \PHPUnit_Framework_TestCase
 	 */
 	private function pinnedSchedules()
 	{
-		$guardFile = $this->repoDir() . '/src/tests/CronSanctionedEntryPointTest.php';
+		$guardFile = dirname(__DIR__) . '/CronSanctionedEntryPointTest.php';
 		$this->assertFileExists($guardFile, 'Step 1 guard test (CronSanctionedEntryPointTest) missing');
 		require_once $guardFile;
 
