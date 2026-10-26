@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # msmtp-sendmail: sendmail-compatible wrapper around msmtp for the app
-# image's PHP mail() path — php/mail.ini points sendmail_path here.
+# image's PHP mail() path — docker/app/php/mail.ini points sendmail_path here.
 #
 # The msmtp invocation is assembled from the container environment:
 # - MAIL_SMTP_HOST / MAIL_SMTP_PORT — relay endpoint (required; compose.yml

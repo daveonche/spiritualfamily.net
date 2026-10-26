@@ -20,7 +20,7 @@ services:
   # volumes rather than replacing them.
   app:
     volumes:
-      - ./php/:/usr/local/etc/php/conf.d/
+      - ./docker/app/php/:/usr/local/etc/php/conf.d/
       - ./src:/var/www/html
       - ./docs:/var/www/docs:ro
       - ./docker:/var/www/docker:ro

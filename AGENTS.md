@@ -9,7 +9,7 @@ Operational conventions for AI assistants working in this repository.
 ├── .github/
 │   └── workflows/       CI pipeline (composer validate, lock install, PHP lint, image build)
 ├── docker/
-│   ├── app/             App webserver image (PHP runtime + Composer 2; bakes the src/ tree)
+│   ├── app/             App webserver image (PHP runtime + Composer 2; bakes the src/ tree and php/ ini overrides)
 │   └── cron/            Cron image (BusyBox crond; bakes the committed crontab)
 ├── docs/
 │   ├── analysis/        Story steps reports (S<X.Y>-story-steps.md)
@@ -22,7 +22,6 @@ Operational conventions for AI assistants working in this repository.
 │   ├── sprints/         Sprint story files (sprint_<n>_stories.md)
 │   ├── verification/    Verification records (e.g., the S1.7 cron cleanup run)
 │   └── vision/          Project vision
-├── php/                 PHP ini overrides baked into the app image (base, extensions, mail relay)
 └── src/
     ├── bin/             Operational shell scripts (install_preflight.sh: pre-install checks for the Elgg web installer)
     ├── elgg-config/     Elgg configuration (settings.php)

@@ -133,12 +133,6 @@
   - Create nested directory for the app server block config file
     `sudo mkdir -p /etc/nginx/conf.d/users/tlebravado/the-leadership-experience.com/`
 
-  - Copy the app configuration file to the nested directory
-    `sudo cp app.conf.example /etc/nginx/conf.d/users/tlebravado/the-leadership-experience.com/app.conf`
-
-    - Open and edit the port number (for the app service in docker compose) with vi or nano
-      `sudo nano /etc/nginx/conf.d/users/tlebravado/the-leadership-experience.com/app.conf`
-
     - Check for nginx syntax error and restart nginx
       `sudo nginx -t`
 

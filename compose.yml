@@ -26,7 +26,7 @@ services:
       # This passes variables from .env to the container
       - .env                                                  
     environment:
-      # Outgoing-mail relay for PHP mail() → msmtp (php/mail.ini): defaults
+      # Outgoing-mail relay for PHP mail() → msmtp (docker/app/php/mail.ini): defaults
       # target the Docker Desktop MailHog extension (SMTP 1025); production
       # overrides via Coolify env (Story S1.6)
       MAIL_SMTP_HOST: "${MAIL_SMTP_HOST:-host.docker.internal}"

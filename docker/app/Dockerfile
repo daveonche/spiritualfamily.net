@@ -65,7 +65,7 @@ EOF
 # Outgoing-mail relay (Story S1.4 Step 3 duty check): the base image's
 # stock /usr/sbin/sendmail cannot deliver from inside the container, so
 # PHP mail() fails silently and uservalidationbyemail never reaches the
-# dev MailHog extension. Install msmtp; the repo-mounted php/mail.ini
+# dev MailHog extension. Install msmtp; the repo's docker/app/php/mail.ini
 # points sendmail_path at the msmtp-sendmail wrapper (copied below),
 # which assembles the msmtp invocation from the environment: host/port
 # always, authentication/TLS when MAIL_SMTP_AUTH=on (compose.yml
@@ -101,7 +101,7 @@ msmtp --version
 EOF
 
 # Authenticated submission (Story S1.6 Step 5): the sendmail wrapper that
-# php/mail.ini points at. It assembles the msmtp invocation from the
+# docker/app/php/mail.ini points at. It assembles the msmtp invocation from the
 # environment — host/port always, auth/TLS only when MAIL_SMTP_AUTH=on —
 # so the production credentials stay in the platform settings and never
 # enter the image.
@@ -114,12 +114,12 @@ RUN chmod 0755 /usr/local/bin/msmtp-sendmail
 # directories), so the image itself carries the web root: the committed
 # src/ tree — composer.json, composer.lock, the tracked pinned vendor/
 # (fresh_checkout.md: a fresh clone runs without composer install), and
-# elgg-config — plus the php/ ini overrides (mail.ini → msmtp). Build
+# elgg-config — plus the docker/app/php/ ini overrides (mail.ini → msmtp). Build
 # context is the repository root (compose.yml build.context), so these
 # paths are repo-relative. No composer step here: the tracked tree is
 # the pin; dependency changes land as committed vendor/ updates.
 COPY src/ /var/www/html/
-COPY php/ /usr/local/etc/php/conf.d/
+COPY docker/app/php/ /usr/local/etc/php/conf.d/
 
 # The base image ships conf.d/sendmail.ini (sendmail_path pointing at the
 # stock sendmail). PHP loads conf.d alphabetically and the last value wins,

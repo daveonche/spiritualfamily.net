@@ -118,7 +118,7 @@ class CiImageBuildTest extends \PHPUnit_Framework_TestCase
 
 		// Builds from the committed build recipe: docker build with the
 		// Dockerfile selected via -f and the repository root as the build
-		// context (Story S1.6: the Dockerfile COPYs src/ and php/ from
+		// context (Story S1.6: the Dockerfile COPYs src/ and docker/app/php/ from
 		// the repo root — the images carry their runtime content, so the
 		// context is the repository root, matching compose.yml's build
 		// section).

@@ -291,7 +291,7 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 	 * Scope: src/elgg-config/settings.php, compose.yml, .env.example,
 	 * crontab, docker/app/Dockerfile. The vendored Elgg core
 	 * (src/vendor, git-ignored) is out of scope — thousands of unrelated
-	 * 'password' strings; php/*.ini are not mounted under /var/www in the
+	 * 'password' strings; docker/app/php/*.ini are not mounted under /var/www in the
 	 * container and carry no credentials. Comments are stripped first:
 	 * prose may say anything.
 	 */
