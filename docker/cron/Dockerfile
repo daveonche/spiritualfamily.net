@@ -9,3 +9,7 @@
 FROM alpine:3.23.3
 
 COPY docker/cron/crontab /tmp/app-cron
+# Log-rotation script (Story S1.7 Step 5): baked alongside the crontab —
+# the production definition carries no repo bind mounts
+COPY docker/cron/rotate-cron-log.sh /usr/local/bin/rotate-cron-log.sh
+RUN chmod 755 /usr/local/bin/rotate-cron-log.sh

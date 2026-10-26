@@ -93,14 +93,17 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 				1,
 				preg_match(
 					'#^(\S+\s+){5}wget\s+-qO-\s+--header "Host: \{\{HOST_PLACEHOLDER\}\}"'
-					. '\s+http://app:80/cron/' . $interval . '\?__elgg_mac=\{\{' . $token . '_PLACEHOLDER\}\}\s*$#m',
+					. '\s+http://app:80/cron/' . $interval . '\?__elgg_mac=\{\{' . $token . '_PLACEHOLDER\}\}'
+					. ' >> /var/log/cron/app-cron\.log 2>&1$#m',
 					$crontab
 				),
-				"crontab does not schedule the '$interval' interval as a wget against the app's cron endpoint with placeholder host and MAC token"
+				"crontab does not schedule the '$interval' interval as a wget against the app's cron endpoint with placeholder host and MAC token, appending to the scheduled-task output log"
 			);
 		}
 
-		// No scheduled commands beyond the nine intervals
+		// No scheduled commands beyond the nine intervals plus the Step 5
+		// daily log-rotation entry (which invokes no wget — guarded by
+		// CronLogRotationTest)
 		$this->assertSame(
 			9,
 			preg_match_all('/wget/m', $crontab),

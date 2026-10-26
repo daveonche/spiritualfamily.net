@@ -91,12 +91,14 @@ class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
 		// A scheduled line must hit the core's sanctioned HTTP cron endpoint:
 		// wget with the Host header override, /cron/<interval>, and the
 		// __elgg_mac MAC token placeholder — exactly as the 2.3.17 core
-		// documents for cron-driven processing
+		// documents for cron-driven processing — with the job output
+		// appended to the scheduled-task output log (Story S1.7 Step 5)
 		$schedule = preg_quote($this->expectedSchedules()[$interval], '~');
 		return '~^' . $schedule
 			. ' wget -qO- --header "Host: \{\{HOST_PLACEHOLDER\}\}" '
 			. 'http://app:80/cron/' . $interval
-			. '\?__elgg_mac=\{\{[A-Z]+_PLACEHOLDER\}\}$~';
+			. '\?__elgg_mac=\{\{[A-Z]+_PLACEHOLDER\}\}'
+			. ' >> /var/log/cron/app-cron\.log 2>&1$~';
 	}
 
 	private function exactScheduleLinePattern($interval, $token)
@@ -106,7 +108,8 @@ class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
 		return '~^' . $schedule
 			. ' wget -qO- --header "Host: \{\{HOST_PLACEHOLDER\}\}" '
 			. 'http://app:80/cron/' . preg_quote($interval, '~')
-			. '\?__elgg_mac=\{\{' . $token . '\}\}$~';
+			. '\?__elgg_mac=\{\{' . $token . '\}\}'
+			. ' >> /var/log/cron/app-cron\.log 2>&1$~';
 	}
 
 	public function supportedIntervalProvider()
@@ -123,6 +126,13 @@ class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
 		$scheduledIntervals = array();
 		foreach ($this->crontabLines() as $line) {
 			if ($line === '' || $line[0] === '#') {
+				continue;
+			}
+			// Story S1.7 Step 5: the daily log-rotation entry is a
+			// scheduled line but not an Elgg cron interval — it is
+			// guarded by CronLogRotationTest, not by this
+			// sanctioned-endpoint check
+			if (strpos($line, 'rotate-cron-log.sh') !== false) {
 				continue;
 			}
 			$matchedInterval = null;

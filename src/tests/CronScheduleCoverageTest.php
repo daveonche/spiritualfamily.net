@@ -105,6 +105,11 @@ class CronScheduleCoverageTest extends \PHPUnit_Framework_TestCase
 			if ($line === '' || $line[0] === '#') {
 				continue;
 			}
+			// Story S1.7 Step 5: the daily log-rotation entry is not an
+			// Elgg cron interval — guarded by CronLogRotationTest
+			if (strpos($line, 'rotate-cron-log.sh') !== false) {
+				continue;
+			}
 			$this->assertSame(
 				1,
 				preg_match('~http://app:80/cron/([a-z]+)\?~', $line, $matches),

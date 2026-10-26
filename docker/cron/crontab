@@ -30,14 +30,26 @@
 # crontab and the pinned list against the core itself. The core's
 # deprecated 'reboot' period stays unscheduled: it is not a recurring
 # interval and has no cron schedule.
-* * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/minute?__elgg_mac={{MINUTE_PLACEHOLDER}}
-*/5 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/fiveminute?__elgg_mac={{FIVEMINUTE_PLACEHOLDER}}
-*/15 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/fifteenmin?__elgg_mac={{FIFTEENMIN_PLACEHOLDER}}
-*/30 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/halfhour?__elgg_mac={{HALFHOUR_PLACEHOLDER}}
-0 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/hourly?__elgg_mac={{HOURLY_PLACEHOLDER}}
-0 0 * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/daily?__elgg_mac={{DAILY_PLACEHOLDER}}
-0 0 * * 0 wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/weekly?__elgg_mac={{WEEKLY_PLACEHOLDER}}
-0 0 1 * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/monthly?__elgg_mac={{MONTHLY_PLACEHOLDER}}
-0 0 1 1 * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/yearly?__elgg_mac={{YEARLY_PLACEHOLDER}}
+#
+# Scheduled-task output log (Story S1.7 Step 5): every interval line
+# appends its output to /var/log/cron/app-cron.log (the fs-cronlog
+# volume), and the daily rotation entry below copy-truncates that log
+# into gzip archives, pruning archives older than the retention window
+# — the duty of the dropped logrotate plugin (REQ-FR-PU-7). Guarded by
+# src/tests/CronLogRotationTest.php.
+* * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/minute?__elgg_mac={{MINUTE_PLACEHOLDER}} >> /var/log/cron/app-cron.log 2>&1
+*/5 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/fiveminute?__elgg_mac={{FIVEMINUTE_PLACEHOLDER}} >> /var/log/cron/app-cron.log 2>&1
+*/15 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/fifteenmin?__elgg_mac={{FIFTEENMIN_PLACEHOLDER}} >> /var/log/cron/app-cron.log 2>&1
+*/30 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/halfhour?__elgg_mac={{HALFHOUR_PLACEHOLDER}} >> /var/log/cron/app-cron.log 2>&1
+0 * * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/hourly?__elgg_mac={{HOURLY_PLACEHOLDER}} >> /var/log/cron/app-cron.log 2>&1
+0 0 * * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/daily?__elgg_mac={{DAILY_PLACEHOLDER}} >> /var/log/cron/app-cron.log 2>&1
+0 0 * * 0 wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/weekly?__elgg_mac={{WEEKLY_PLACEHOLDER}} >> /var/log/cron/app-cron.log 2>&1
+0 0 1 * * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/monthly?__elgg_mac={{MONTHLY_PLACEHOLDER}} >> /var/log/cron/app-cron.log 2>&1
+0 0 1 1 * wget -qO- --header "Host: {{HOST_PLACEHOLDER}}" http://app:80/cron/yearly?__elgg_mac={{YEARLY_PLACEHOLDER}} >> /var/log/cron/app-cron.log 2>&1
+
+# Daily rotation of the scheduled-task output log (Story S1.7 Step 5):
+# runs after the midnight Elgg jobs so their output lands in the
+# archived day; guarded by src/tests/CronLogRotationTest.php
+30 0 * * * /usr/local/bin/rotate-cron-log.sh
 
 # An empty line is required at the end
