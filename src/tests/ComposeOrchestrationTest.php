@@ -70,7 +70,7 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 	public function testCronScheduleAndCommandsLiveInCommittedConfiguration()
 	{
 		// --- Schedules and commands in the committed crontab ---
-		$crontabFile = $this->repoDir() . '/crontab';
+		$crontabFile = $this->repoDir() . '/docker/cron/crontab';
 		$this->assertFileExists($crontabFile);
 		$crontab = file_get_contents($crontabFile);
 
@@ -123,7 +123,7 @@ class ComposeOrchestrationTest extends \PHPUnit_Framework_TestCase
 		$this->assertFileExists($cronDockerfile);
 		$this->assertSame(
 			1,
-			preg_match('/^COPY\s+crontab\s+\/tmp\/app-cron\s*$/m', file_get_contents($cronDockerfile)),
+			preg_match('/^COPY\s+docker\/cron\/crontab\s+\/tmp\/app-cron\s*$/m', file_get_contents($cronDockerfile)),
 			'docker/cron/Dockerfile must bake the committed crontab at the entrypoint source path /tmp/app-cron'
 		);
 

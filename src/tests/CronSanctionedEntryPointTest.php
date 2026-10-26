@@ -18,13 +18,13 @@ class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
 
 	private function crontabFile()
 	{
-		return $this->repoDir() . '/crontab';
+		return $this->repoDir() . '/docker/cron/crontab';
 	}
 
 	private function crontabContents()
 	{
 		$path = $this->crontabFile();
-		$this->assertFileExists($path, 'Committed crontab missing at repository root');
+		$this->assertFileExists($path, 'Committed crontab missing at docker/cron/crontab');
 		$contents = file_get_contents($path);
 		$this->assertNotFalse($contents, 'Committed crontab is not readable');
 		return $contents;
@@ -165,7 +165,7 @@ class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
 	public function testCronImageBakesCommittedCrontab()
 	{
 		$this->assertContains(
-			'COPY crontab /tmp/app-cron',
+			'COPY docker/cron/crontab /tmp/app-cron',
 			$this->cronDockerfileContents(),
 			'The cron image must bake the committed crontab as the entrypoint spool source'
 		);

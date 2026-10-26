@@ -26,13 +26,13 @@ services:
       - ./docker:/var/www/docker:ro
       - ./compose.yml:/var/www/compose.yml:ro
       - ./compose.dev.yml:/var/www/compose.dev.yml:ro
-      - ./crontab:/var/www/crontab:ro
+      - ./docker/cron/crontab:/var/www/crontab:ro
       - ./.env.example:/var/www/.env.example:ro
       - ./.gitignore:/var/www/.gitignore:ro
       - ./.github/workflows/ci.yml:/var/www/.github/workflows/ci.yml:ro
   cron:
     volumes:
-      - ./crontab:/tmp/app-cron:ro
+      - ./docker/cron/crontab:/tmp/app-cron:ro
   pma:
     # Development-only database administration UI. Moved here from
     # compose.yml (Story S1.6) so production deployments that parse only

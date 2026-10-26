@@ -301,7 +301,7 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			'src/elgg-config/settings.php' => $this->settingsFile(),
 			'compose.yml'                  => $this->composeFile(),
 			'.env.example'                 => $this->repoDir() . '/.env.example',
-			'crontab'                      => $this->repoDir() . '/crontab',
+			'crontab'                      => $this->repoDir() . '/docker/cron/crontab',
 			'docker/app/Dockerfile'        => $this->repoDir() . '/docker/app/Dockerfile',
 		);
 

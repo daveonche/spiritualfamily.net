@@ -8,4 +8,4 @@
 # pin time; bump deliberately, never float.
 FROM alpine:3.23.3
 
-COPY crontab /tmp/app-cron
+COPY docker/cron/crontab /tmp/app-cron

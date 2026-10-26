@@ -29,13 +29,13 @@ class CronScheduleCoverageTest extends \PHPUnit_Framework_TestCase
 
 	private function crontabFile()
 	{
-		return $this->repoDir() . '/crontab';
+		return $this->repoDir() . '/docker/cron/crontab';
 	}
 
 	private function crontabContents()
 	{
 		$path = $this->crontabFile();
-		$this->assertFileExists($path, 'Committed crontab missing at repository root');
+		$this->assertFileExists($path, 'Committed crontab missing at docker/cron/crontab');
 		$contents = file_get_contents($path);
 		$this->assertNotFalse($contents, 'Committed crontab is not readable');
 		return $contents;
