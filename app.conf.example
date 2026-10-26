@@ -1,2 +1,0 @@
-#### Replace port 3000 with the specific domain's <APP_NAME>_HOST_PORT variable in .env ##
-set $CPANEL_APACHE_PROXY_PASS http://127.0.0.1:3000;
