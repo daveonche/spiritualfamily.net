@@ -22,9 +22,10 @@ Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/co
 - CI pipeline (S1.5): `.github/workflows/ci.yml` enforces the commit-msg hook on every pushed/PR commit and runs the `runtime` job (php:7.4.27-cli), `composer-validate`, `composer-install` from lock (with missing-lock guard), `composer-lock-consistency` (`composer validate --strict` with lock check enabled), `php-lint` (src/ excluding vendor), and `image-build` with base-image digest-pin verification. Tests: `src/tests/CiConventionsTest.php`, `src/tests/CiPinnedRuntimeTest.php`, `src/tests/CiManifestValidationTest.php`, `src/tests/CiLockInstallTest.php`, `src/tests/CiLockConsistencyTest.php`, `src/tests/CiPhpLintTest.php`, `src/tests/CiImageBuildTest.php`; the green-CI DoD is evidenced by the deploy runbook pre-deploy check (deploys proceeded 2026-10-20/22, `docs/deployment/deploy_runbook.md`).
 - Coolify production deployment of the Elgg 2.3 baseline (S1.6; REQ-DEPL-3, REQ-DEPL-4): `docs/deployment/coolify.md` documents the platform setup (HTTPS entry routing terminating at the web container, production email via real SMTP through Coolify environment settings, no dev-only Compose overrides in production); `docs/deployment/deploy_runbook.md` records the mandatory pre-deploy database backup sequence and the run log (2026-10-20/21/22); `docs/baseline/baseline.md` records the production version cross-check (2026-10-20), the secrets walk (2026-10-18), the production database migration exact-match (Step 7), production email end-to-end including the silent-loss fix (2026-10-20), and clean re-deploy reproducibility (2026-10-22). Tests: `src/tests/ProductionVersionPinTest.php`, `src/tests/ProductionSecretHygieneTest.php`; `docs/workflow_state.md` confirms all 8 story steps complete.
 
+- Cron and scheduled tasks wiring (S1.7; REQ-FR-PU-7): `crontab` schedules all nine Elgg cron intervals supported by Elgg 2.3.17 and `compose.yml` renders/runs the spool file; the sanctioned entry point is the core's documented HTTP cron endpoint invoked via `wget` (per `docs/analysis/S1.7-story-steps.md` Step 1; per-upgrade duty: move to the core CLI entry point when a later core version ships one), guarded by `src/tests/CronSanctionedEntryPointTest.php` and `src/tests/CronScheduleCoverageTest.php`; garbagecollector cleanup and uservalidationbyemail notification verified end-to-end with records in `docs/verification/` (`src/tests/CronCleanupVerificationTest.php`, `src/tests/CronValidationVerificationTest.php`); cron output log rotation with archive retention and prune replaces the dropped logrotate plugin (REQ-FR-PU-7), record `docs/verification/s1.7-logrotation-verification.md` (`src/tests/CronLogRotationTest.php`, `src/tests/CronLogRotationVerificationTest.php`); guard suite green 2026-10-26 at 117 tests / 1166 assertions.
+
 ### B. Partially Implemented Features
 
-- Cron execution of Elgg hooks (S1.7): `crontab` triggers all nine Elgg cron intervals and `compose.yml` renders/runs the spool file. Remaining: end-to-end verification of garbagecollector and uservalidationbyemail runs, confirming the invocation path per the AC (the crontab currently uses `wget` against HTTP `/cron/*` URLs, not a CLI entry point), and cron log rotation (replacing dropped logrotate, REQ-FR-PU-7).
 - Logging &amp; environment management (S1.8): the documented `.env` template AC is met (`.env.example`, `src/tests/ComposeEnvInjectionTest.php`). Remaining: per-environment Elgg logging with registered error/exception handlers, secrets-handling rules documentation, and container log routing/rotation.
 
 ### C. Not Yet Implemented Features
@@ -36,17 +37,12 @@ Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/co
 
 ## Priority Order for Next Implementation Phase
 
-- Priority 1 - Cron and scheduled tasks (S1.7):
-  - Replace the HTTP `wget` cron invocation with the core CLI entry point per the AC
-  - End-to-end garbagecollector and uservalidationbyemail verification; cron log rotation (replaces dropped logrotate, REQ-FR-PU-7)
-  - Rationale: next story in sequence (S1.4 and S1.6 dependencies complete); observability must exist before upgrade steps start surfacing deprecation notices
-
-- Priority 2 - Logging remainder (S1.8):
+- Priority 1 - Logging remainder (S1.8):
   - Per-environment Elgg logging with registered error/exception handlers, secrets-handling rules documentation, container log routing/rotation
   - Rationale: same observability rationale before the upgrade sequence begins
 
-- Priority 3 - Upgrade sequence and restoration (S1.9–S1.17):
+- Priority 2 - Upgrade sequence and restoration (S1.9–S1.17):
   - Sequential major-version upgrades with backup-then-upgrade-then-deploy per step, then plugin provisioning/activation/theme, then runbook
   - Rationale: strictly ordered per REQ-FR-PU-5; feature restoration only after Elgg 7.1.0 is reached
 
-Next workflow step: `$planning-story-analysis S1.7`
+Next workflow step: `$planning-story-analysis S1.8`
