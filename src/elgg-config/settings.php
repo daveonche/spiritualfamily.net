@@ -153,6 +153,44 @@ $CONFIG->dataroot = getenv("WWW_DATA") . "/";
 $CONFIG->cacheroot = getenv("WWW_CACHE") . "/";
 
 /**
+ * Logging verbosity
+ *
+ * Per-environment log verbosity (Story S1.8 Step 1): the value is read
+ * from the environment, never hard-coded. Valid values are the Elgg 2.3
+ * logger levels: OFF, INFO, NOTICE, WARNING, ERROR.
+ *
+ * WARNING (the committed template default) logs errors and deprecation
+ * notices — the early-warning signal for the next major-version upgrade —
+ * without NOTICE-level chatter. NOTICE is the verbose development value.
+ *
+ * When the variable is unset or invalid, $CONFIG->debug stays unset and
+ * the core logger keeps its built-in ERROR default (BootService applies
+ * $CONFIG->debug only when non-empty).
+ */
+$elggDebugLevel = getenv("ELGG_DEBUG_LEVEL");
+if ($elggDebugLevel !== false && in_array($elggDebugLevel, array('OFF', 'INFO', 'NOTICE', 'WARNING', 'ERROR'), true)) {
+	$CONFIG->debug = $elggDebugLevel;
+}
+
+/**
+ * Log file destination
+ *
+ * Per-environment log destination (Story S1.8 Step 1): Elgg 2.3 writes
+ * every log event through PHP's error_log() (exception handler, PHP
+ * error handler, and the default elgg_dump path), so the destination is
+ * the error_log ini setting.
+ *
+ * When ELGG_LOG_FILE is set, log events are appended to that file (it
+ * must live on a persistent volume — see compose.yml fs-dataroot).
+ * When unset (the committed template default), the SAPI default applies:
+ * in the container that is stdout, observable via `docker compose logs app`.
+ */
+$elggLogFile = getenv("ELGG_LOG_FILE");
+if ($elggLogFile !== false && $elggLogFile !== '') {
+	ini_set('error_log', $elggLogFile);
+}
+
+/**
  * Enable SendFile file serving
  *
  * After enabling X-Sendfile/X-Accel on your server, you can enable its support in Elgg. Set the

@@ -375,6 +375,12 @@ class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
 			// Empty = plaintext development behaviour (MailHog); the wrapper
 			// adds auth/TLS only when this is "on" (Story S1.6 Step 5)
 			'MAIL_SMTP_AUTH'=> '',
+			// Elgg log verbosity: WARNING surfaces errors + deprecation
+			// notices (Story S1.8 Step 1)
+			'ELGG_DEBUG_LEVEL' => 'WARNING',
+			// Empty = SAPI default log destination (container stdout); set
+			// to a fs-dataroot path for file logging (Story S1.8 Step 1)
+			'ELGG_LOG_FILE' => '',
 		);
 
 		// Credential variables must be exactly the changeme placeholder
