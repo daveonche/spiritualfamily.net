@@ -192,6 +192,31 @@ if ($elggLogFile !== false && $elggLogFile !== '') {
 }
 
 /**
+ * PHP error handling baseline (Story S1.8 Step 2)
+ *
+ * Elgg's sanctioned handlers — _elgg_php_error_handler and
+ * _elgg_php_exception_handler, registered by Elgg\BootService during
+ * boot — capture uncaught errors and exceptions into the application
+ * log. Every sink writes through PHP's error_log(), so their output
+ * follows the per-environment destination wired above (ELGG_LOG_FILE)
+ * and the severity filtering of ELGG_DEBUG_LEVEL. This baseline feeds
+ * those handlers completely and keeps the log the only observable
+ * channel:
+ *
+ * - error_reporting(E_ALL): every diagnostic — including deprecation
+ *   notices, the early-warning signal for the next major-version
+ *   upgrade — reaches the core handler (its elgglib.php gate checks
+ *   error_reporting()).
+ * - display_errors off: internal detail is never exposed in responses,
+ *   in either environment shape.
+ * - log_errors on: PHP-level errors outside the core handlers (early
+ *   bootstrap, fatal shutdowns) still land in the configured log.
+ */
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
+/**
  * Enable SendFile file serving
  *
  * After enabling X-Sendfile/X-Accel on your server, you can enable its support in Elgg. Set the

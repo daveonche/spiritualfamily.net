@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Step 1 tests for Story S1.8 — per-environment application logging
- * configuration.
+ * Step 1 and Step 2 tests for Story S1.8 — per-environment application
+ * logging configuration and the error/exception handler baseline.
  *
  * Verifies that log verbosity and destination are configurable per
  * environment through the committed environment-variable mechanism
@@ -19,6 +19,15 @@
  * - Every log sink writes through PHP's error_log() (exception handler
  *   elgglib.php:877, PHP error handler :980-1002, default dump path
  *   :1580) — the destination is the error_log ini setting.
+ * - The sanctioned handlers are registered by core itself:
+ *   Elgg\BootService calls set_error_handler('_elgg_php_error_handler')
+ *   and set_exception_handler('_elgg_php_exception_handler') during
+ *   boot (BootService.php:36-37; ElggInstaller.php:91-92 for the
+ *   installer path) — settings.php configures the PHP runtime around
+ *   them and registers no handlers of its own.
+ * - The PHP error handler gates on error_reporting() and logs at
+ *   WARNING severity (elgglib.php:993) — E_ALL feeds it everything;
+ *   ELGG_DEBUG_LEVEL keeps severity filtering per environment.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
  * un-namespaced \PHPUnit_Framework_TestCase.
@@ -185,5 +194,68 @@ class LoggingEnvironmentTest extends \PHPUnit_Framework_TestCase
 				".env.example must document $var's purpose in a comment alongside its definition"
 			);
 		}
+	}
+
+	/**
+	 * Must Support: "Uncaught errors and exceptions are captured into the
+	 * application log through handlers registered via the platform's
+	 * sanctioned mechanism"
+	 *
+	 * The sanctioned mechanism is Elgg core's own: Elgg\BootService
+	 * registers _elgg_php_error_handler / _elgg_php_exception_handler
+	 * during boot (vendored 2.3.17 BootService.php:36-37). settings.php
+	 * must not register ad-hoc handlers of its own — it must only feed
+	 * the core handlers a complete PHP error baseline.
+	 */
+	public function testSettingsPhpReliesOnCoreSanctionedHandlers()
+	{
+		$this->assertFileExists($this->settingsFile());
+		$contents = $this->settingsContents();
+
+		// settings.php registers no handlers of its own — the core
+		// BootService registration is the sanctioned mechanism
+		$this->assertSame(
+			0,
+			preg_match('/set_(?:error|exception)_handler\s*\(/', $contents),
+			'settings.php must not register ad-hoc error/exception handlers — Elgg\BootService registers the sanctioned core handlers'
+		);
+
+		// The PHP runtime feeds the core handlers every diagnostic,
+		// including deprecation notices
+		$this->assertSame(
+			1,
+			preg_match('/^error_reporting\(E_ALL\);\s*$/m', $contents),
+			'settings.php must set error_reporting(E_ALL) so every diagnostic — including deprecation notices — reaches the core handler'
+		);
+	}
+
+	/**
+	 * Must Support: "Handler output follows the per-environment logging
+	 * configuration from Step 1" + manual verification "Confirm
+	 * production logging does not expose more internal detail than
+	 * intended"
+	 *
+	 * display_errors must be off in the committed baseline — the log is
+	 * the only observable channel in both environment shapes — and
+	 * log_errors on, so PHP-level errors outside the core handlers
+	 * (early bootstrap, fatal shutdowns) still land in the configured
+	 * log (whose destination is the Step 1 ELGG_LOG_FILE wiring).
+	 */
+	public function testSettingsPhpRoutesHandlerOutputToTheLogOnly()
+	{
+		$this->assertFileExists($this->settingsFile());
+		$contents = $this->settingsContents();
+
+		$this->assertSame(
+			1,
+			preg_match("/ini_set\(\s*['\"]display_errors['\"]\s*,\s*['\"]0['\"]\s*\)\s*;/", $contents),
+			'settings.php must disable display_errors — internal detail is never exposed in responses in either environment shape'
+		);
+
+		$this->assertSame(
+			1,
+			preg_match("/ini_set\(\s*['\"]log_errors['\"]\s*,\s*['\"]1['\"]\s*\)\s*;/", $contents),
+			'settings.php must enable log_errors — PHP-level errors outside the core handlers still land in the configured log'
+		);
 	}
 }
