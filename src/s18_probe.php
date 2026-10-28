@@ -10,8 +10,10 @@ if (!$autoload_available) {
 	die("Couldn't include '$autoload_path'. Did you run `composer install`?");
 }
 
-// Boot the core without serving a page (same boot src/upgrade.php uses, minus the upgrade action).
-\Elgg\Application::getInstance()->start();
+// Boot the core without serving a page: ::start() is the static boot
+// (reflection-verified against the vendored 2.3 core). ::upgrade() would
+// run DB upgrades; ::index() would serve the front page.
+\Elgg\Application::start();
 
 // One event per level, all tagged for grep.
 elgg_log('S1.8 NOTICE probe', 'NOTICE');
