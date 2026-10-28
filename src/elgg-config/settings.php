@@ -216,6 +216,13 @@ error_reporting(E_ALL);
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
 
+// BEGIN TEMPORARY S1.8 Step 2 manual-verification probe — remove after verification
+if (isset($_GET['s18probe'])) {
+	trigger_error('S1.8 deliberate PHP error probe', E_USER_NOTICE);
+	throw new Exception('S1.8 deliberate uncaught exception probe');
+}
+// END TEMPORARY S1.8 Step 2 manual-verification probe
+
 /**
  * Enable SendFile file serving
  *
