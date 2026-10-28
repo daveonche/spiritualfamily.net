@@ -183,7 +183,8 @@ if ($elggDebugLevel !== false && in_array($elggDebugLevel, array('OFF', 'INFO', 
  * When ELGG_LOG_FILE is set, log events are appended to that file (it
  * must live on a persistent volume — see compose.yml fs-dataroot).
  * When unset (the committed template default), the SAPI default applies:
- * in the container that is stdout, observable via `docker compose logs app`.
+ * under the image's Apache/mod_php web SAPI that is the Apache error log
+ * (symlinked to container stderr) — observable via `docker compose logs app`.
  */
 $elggLogFile = getenv("ELGG_LOG_FILE");
 if ($elggLogFile !== false && $elggLogFile !== '') {
