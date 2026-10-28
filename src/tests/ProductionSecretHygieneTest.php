@@ -122,6 +122,12 @@ class ProductionSecretHygieneTest extends \PHPUnit_Framework_TestCase
             'MAIL_SMTP_HOST',
             'MAIL_SMTP_PORT',
             'MAIL_SMTP_AUTH',
+            // Elgg log verbosity: WARNING surfaces errors + deprecation
+            // notices (Story S1.8 Step 1)
+            'ELGG_DEBUG_LEVEL',
+            // Empty = SAPI default log destination (container stdout); set
+            // to a fs-dataroot path for file logging (Story S1.8 Step 1)
+            'ELGG_LOG_FILE',
         ];
     }
 
