@@ -125,8 +125,9 @@ class ProductionSecretHygieneTest extends \PHPUnit_Framework_TestCase
             // Elgg log verbosity: WARNING surfaces errors + deprecation
             // notices (Story S1.8 Step 1)
             'ELGG_DEBUG_LEVEL',
-            // Empty = SAPI default log destination (container stdout); set
-            // to a fs-dataroot path for file logging (Story S1.8 Step 1)
+            // Empty = SAPI default log destination (the image's Apache
+            // error log, symlinked to container stderr); set to a
+            // fs-dataroot path for file logging (Story S1.8 Step 1)
             'ELGG_LOG_FILE',
         ];
     }
