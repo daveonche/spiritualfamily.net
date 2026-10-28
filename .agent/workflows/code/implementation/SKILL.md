@@ -44,6 +44,7 @@ IMPLEMENTATION PHASE (code mode):
 - New dependencies: never assume uncovered functionality is covered by existing dependencies. STOP and invoke `$code-dependency-management`.
 - Sequential order: never skip steps or implement them out of order; subsequent steps must be explicitly reviewed when reached.
 - Verification: always verify prerequisites before implementing a step.
+- Trusted outcomes: never assert or assume a verification result yourself; during the Guided Verification walkthrough, a step's outcome counts as confirmed only when the user confirms it.
 
 ## Workflow Progress Checklist
 
@@ -51,7 +52,7 @@ IMPLEMENTATION PHASE (code mode):
 - [ ] Step 2: Present step requirements
 - [ ] Step 3: Create implementation plan
 - [ ] Step 4: Transition to code mode
-- [ ] Step 5: Implement and validate
+- [ ] Step 5: Implement, validate, and run guided verification
 
 [STEP 1] Ask the user: "Are the story steps report, sprint story, dependency context files — and, for a UI/frontend story, the approved frontend design artifact — currently loaded in your context? If yes, name them. (Y/N)" — do not assess context contents yourself (Critical Rule 3). Required items:
 1. The story steps report (`docs/analysis/S<X.Y>-story-steps.md`)
@@ -99,9 +100,12 @@ Implementation Plan for Step [number]:
    - Then: [what functionality to add]
    - Finally: [what functionality to add]
 
-3. Manual Verification:
-   For each requirement:
-   - [requirement]: Steps for user to manually verify the functionality works
+3. Guided Verification:
+   For each requirement, one or more verification steps; each step pairs a
+   single action with the exact trusted outcome the user must observe:
+   - [requirement]:
+     1. Action: [exact command to run or interaction to perform]
+        Trusted outcome: [exact expected result the user should observe]
 ```
 
 Present the plan and ask EXACTLY:
@@ -120,15 +124,26 @@ Present the plan and ask EXACTLY:
 1. Review all changed files for syntax and formatting errors.
 2. Run any relevant project checks or tests available.
 3. If validation fails, fix the issues and validate again.
-4. Only after validation passes, proceed to final status.
+4. Only after validation passes, run the Guided Verification walkthrough.
+5. Only after every verification step is confirmed (or recorded as unverified), proceed to final status.
+
+Guided Verification walkthrough — present the plan's verification steps one at a time, in order:
+1. Present the action: for a command, emit it as a single-line fenced bash code block so the user can run it (per the code-mode gate in `.agent/AGENTS.md`); for an interaction, give the precise instruction.
+2. State the trusted outcome verbatim from the approved plan.
+3. Ask the user to perform the action and reply "Y" if the observed outcome matches the trusted outcome, or "N" if it does not (describing what they observed).
+[STOP - Wait for the user's reply before presenting the next verification step. Never assert the outcome yourself; only the user's reply confirms it.]
+4. On "Y", move to the next verification step.
+5. On "N", treat it as a validation failure: diagnose, fix, re-run project checks, and restart the walkthrough from the first not-yet-confirmed step.
+6. If the user cannot perform the action (e.g., missing environment), record the step as unverified and continue; never mark it confirmed.
 
 Present final status and say EXACTLY:
 "Step [number] implementation is complete. The following requirements for this step have been implemented:
 [List ONLY this step's completed requirements]
 
+Guided verification: [list each verification step with its confirmed trusted outcome; list any unverified steps as 'unverified: [reason]']
+
 To continue:
-1. Manually verify the implementation using the steps provided above
-2. Then use #implement-step S<X.Y> [number+1] to proceed with the next step in the Story steps report
+Use #implement-step S<X.Y> [number+1] to proceed with the next step in the Story steps report
 
 IMPORTANT: Story steps must be implemented in the order defined in S<X.Y>-story-steps.md. Even if subsequent steps appear to be satisfied, they must be explicitly reviewed when reached."
 

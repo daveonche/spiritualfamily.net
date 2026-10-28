@@ -1,3 +1,16 @@
+# Switch with /model Godmode
+- name: openrouter/anthropic/claude-fable-5.1
+  edit_format: diff
+  extra_params:
+    extra_body:
+      # Forces maximum brilliant thinking when invoked
+      reasoning_effort: "max"
+      provider:
+        sort: "price"
+        ignore: ["OpenInference", "InferenceNet"]
+        allow_fallbacks: false
+        data_collection: "deny"
+
 # Switch with /model Genius
 - name: openrouter/qwen/qwen3.8-max-0902
   edit_format: diff

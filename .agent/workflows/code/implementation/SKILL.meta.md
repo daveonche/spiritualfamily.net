@@ -44,6 +44,7 @@ Guides the implementation of a specific step from a story analysis report, enfor
 - Gotchas: Dedicated section covering new-dependency stop, sequential-order enforcement, and prerequisite verification
 - Progress Tracking: Workflow Progress Checklist provided
 - Validation Loop: Explicit validate-fix-repeat loop before final status
+- Guided Verification: Step-by-step walkthrough with user-confirmed trusted outcomes before final status
 - User Response Handling: Defined N response path for step requirement confirmation
 - Status Reporting: Clarifies omitted step-number behavior before reporting status
 
@@ -54,7 +55,7 @@ Guides the implementation of a specific step from a story analysis report, enfor
 - Focused requirement coverage
 - Clear implementation planning
 - Dependency verification
-- Manual verification steps
+- Guided verification with user-confirmed trusted outcomes
 - Validation loop after implementation (review, test, fix, repeat)
 - Sequential progress tracking
 - Scope control per step
@@ -76,14 +77,14 @@ Guides the implementation of a specific step from a story analysis report, enfor
 - Strong scope boundaries
 - Dependency management integration
 - Regular progress verification
-- Manual verification steps
+- Guided verification walkthrough with user-confirmed outcomes
 - Validation loop before final status
 - Sequential implementation enforcement
 - Clear completion criteria
 
 ## Version
 
-- Current Version: 1.1.1
-- Last Updated: 2026-09-26
+- Current Version: 1.1.2
+- Last Updated: 2026-10-28
 - Stability: Beta
 - Keep metadata synchronized with changes to SKILL.md; update version and date when SKILL.md changes

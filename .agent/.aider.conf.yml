@@ -29,6 +29,7 @@ model-settings-file: .agent/.aider.model.settings.yml
 
 ## Specify multiple values like this:
 alias:
+ - "Godmode:openrouter/anthropic/claude-fable-5.1"
  - "Genius:openrouter/qwen/qwen3.8-max-0902"
  - "Specialist:openrouter/z-ai/glm-5.3"
  - "Architect:openrouter/z-ai/glm-5.3-flash"
