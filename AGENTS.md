@@ -55,6 +55,15 @@ docker compose -f compose.yml -f compose.dev.yml exec -T app composer test
 The dev bind mounts (`compose.dev.yml`) map the repo into the container;
 the tests resolve the repo root at `/var/www`.
 
+## Container log reading (required command form)
+
+Never read `/dev/stdout` or `/dev/stderr` through `docker compose exec`
+(e.g. `grep ... /var/log/apache2/error.log`): inside an `exec` session
+those device symlinks are the session's own pipes, which never close, so
+the command hangs until interrupted. `docker compose logs <service>` is
+the correct reader for stdout/stderr sinks; only regular files on disk
+may be read through `exec`.
+
 ## Production deployment
 
 Production deploys follow `docs/deployment/deploy_runbook.md` (mandatory
