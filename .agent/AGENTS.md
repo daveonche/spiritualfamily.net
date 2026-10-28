@@ -100,6 +100,7 @@ task touches. Before creating or editing any file, check this mapping:
 | Docker/Compose project layout or command execution: compose file placement, `docker/<service>/` build contexts, `.log/<service>.log` logs, in-container commands | `.agent/specs/docker/SKILL.md` |
 | A framework identified by Project Framework Detection | The matching framework pack's `SKILL.md` in `.agent/specs/` (e.g., `elgg/SKILL.md`, `rails/SKILL.md`) |
 | Coolify administration tasks (instance management, applications, services, networking, notifications, security, MCP, Cloudflare Tunnels) | `.agent/specs/coolify/SKILL.md` |
+| Pentest tool invocations (`nmap`, `sqlmap`, `nuclei`, `httpx`, `katana`, `subfinder`, `naabu`, `semgrep`, `bandit`) or `.agent/specs/pentest/` | `.agent/specs/pentest/SKILL.md` |
 | `*.php` files or PHP language-level guidance (also linked from framework packs' Language pack sections) | `.agent/specs/php-best-practices/SKILL.md` |
 | Creating or editing anything under `.agent/specs/` (packs, `SKILL.md`, `SKILL.meta.md`, `rules/`, pack `references/`) | `.agent/specs/references/spec-pack-standard.md` |
 | Creating or editing anything under `.agent/workflows/` (`SKILL.md`, `SKILL.meta.md`, `references/`) | `.agent/specs/references/workflow-pack-standard.md` |
@@ -221,6 +222,39 @@ announce any droppables with the single `/drop` line, so context is freed
 before new files are loaded. If nothing is droppable, say so in one line and
 proceed with the request.
 
+## Upstream Materials
+
+`tmp/upstream/` is the dedicated store for upstream source material:
+external repositories cloned or copied there (e.g.,
+`tmp/upstream/elgg-llm-skills`) to provide concrete knowledge for
+orchestrator-guided work. It is never checked into git.
+
+- General purpose: ground any task that needs concrete knowledge —
+  spec-pack distillation, code review, migration or upgrade guidance,
+  framework questions — not only spec-pack work. This section is
+  project-agnostic and applies as written in any project using this
+  `.agent/`.
+- Temporary but recoverable: contents live under `tmp/` and may be
+  cleaned up when no longer needed — by explicit user decision, never
+  by the orchestrator. If material is missing (never stored, or cleaned
+  up earlier) and a task needs it, ask the user to clone or copy it
+  back into `tmp/upstream/<name>/`; never substitute memory or
+  invention for the missing source.
+- Read-only: never edit, modify, or delete anything under
+  `tmp/upstream/`. Cite or distill its concrete knowledge into the task
+  output; when a distillation feeds a spec pack, record the upstream
+  version covered.
+- Never `/add` a file under `tmp/upstream/` for editing; request
+  upstream files with `/read-only` only.
+- Never commit or force-add (`git add -f`) anything under
+  `tmp/upstream/`; the store must stay untracked. If
+  `git --no-pager status --porcelain` ever lists paths under
+  `tmp/upstream/`, stop and fix the ignore rule before proceeding.
+- Keep the store gitignored: if
+  `git --no-pager check-ignore -v tmp/upstream/<probe>` reports no
+  rule, add `tmp/upstream/` to `.gitignore` before storing material
+  there.
+
 ## Workflow Orchestration Mode
 
 When you see `$<category>-<promptname>`, activate this role:
@@ -303,6 +337,20 @@ Replace `[command]` and `[name]` with the actual values; the `OK`/`FAILED`
 status line (plus at most the grep tail on failure) is the only output
 that enters context.
 
+**Code-mode gate for executable commands (hard rule):** Aider only offers to
+run shell commands in `/code` mode, and only auto-detects them when each
+command is a single line in a fenced code block tagged with a shell language.
+Before asking the user to run any command, first instruct the user to switch
+to `/code` and reply `run command`; only after that reply, emit the command.
+Never emit executable commands while in `/ask` mode or before the gate reply.
+Every emitted command must be aider-runnable: a single line (collapse
+`for`/`while`/`if` and heredocs into one line with `;` separators — aider
+executes replies line-by-line, so a multi-line block runs as broken
+fragments), in a fenced code block tagged with a shell language (for example,
+`bash`), with no prefix such as `/run`. Template blocks that only document a
+pattern (e.g., the log-redirect pattern above) are not executable requests
+and are exempt.
+
 When asking the user to run verification commands, output each command
 in a fenced code block tagged with a shell language (for example, `bash`),
 with no prefix such as `/run`, so aider recognizes it in the response
@@ -324,9 +372,17 @@ missing, abandon the composed plan and end the reply with the question.
 
 1. When the user needs to run `/read-only` or `/drop`, output the command inline as part of the sentence — embed the exact command in the sentence, never a paraphrase. Do not execute these commands yourself.
 2. Always wait for explicit user input at [STOP] points; if the input is invalid or unexpected, re-prompt with the original question.
-3. A file counts as in context only if the user has added it during this session. Never assert a file's presence, absence, or freshness from transcript recall. When unsure whether a file is loaded or current, request it — re-loading is cheap and idempotent.
-4. Never construct a file path that is not stated verbatim in a SKILL.md, a routing table, or the transcript. When a required file's location is unknown, ask the user for its actual path instead of inferring it from sibling directories or similar file names.
+3. A file counts as in context only if the user has added it during this session. Never assert a file's presence, absence, or freshness from transcript recall. When unsure whether a file is loaded or current, request it — re-loading is cheap and idempotent. When a file's presence is disputed (by the user or by your own uncertainty), confirm it with a verbatim-quote scan: quote a distinctive line (first heading, sentinel, or a unique phrase) from the copy in context — a quote is evidence, an assertion is not.
+4. Never construct a file path that is not stated verbatim in a SKILL.md, a routing table, or the transcript. When a required file's location or name is unknown, do not guess it, infer it from sibling directories or similar file names, or ask the user to type, recall, or confirm a path — user recall is not a trusted source, and delegating the guess to the user is the same violation with the guess transferred. The listing command is the only permitted action: output a listing command for the user to run (e.g., `git --no-pager ls-files <directory>`) and treat the pasted output as the trusted list of actual paths before requesting any file from it. Self-check before every file request: every requested path must trace to a stated source (SKILL.md, routing table, transcript) or to pasted listing output; if any path does not, emit the listing command instead of the file request.
 5. Request files in the one-line format: a single space-separated
    `/read-only <path1> <path2>` command for files needed for reading only, and
    a single space-separated `/add <path1> <path2>` command for files that need
    editing. Never output one command per file.
+6. Ground every meta-claim about the session (a file "was never loaded",
+   earlier analysis "was ungrounded", a prior step "was skipped") in quoted
+   transcript evidence before disclosing it — run the verbatim-quote scan
+   from rule 3 against the trust messages first. A false "not in context"
+   disclosure triggers unnecessary remediation (re-adding files, rewording
+   provenance, void drop proposals) exactly as a false presence claim does.
+   If the transcript does not settle the claim, state what is uncertain
+   instead of asserting either direction.

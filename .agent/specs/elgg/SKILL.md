@@ -2,8 +2,8 @@
 
 Delta conventions for projects using Elgg. Use when writing or reviewing
 Elgg plugins, events, views, routing, web services, or upgrades. Triggers
-on "Elgg plugin", "Elgg upgrade", or Elgg reported by Project Framework
-Detection.
+on "Elgg plugin", "Elgg site upgrade", "Elgg upgrade", or Elgg reported
+by Project Framework Detection.
 
 **Source:** distilled from the Elgg manual:
 <https://learn.elgg.org/en/stable/guides/index.html>
@@ -41,7 +41,7 @@ below govern what it contains.
    `composer.json` or `composer.lock`.
 3. Before using any `rules/` topic, run the documentation freshness
    check: compare the distilled version recorded in
-   `references/source-listing-7.1.1.json` against the latest stable
+   `references/source-listing-7.1.2.json` against the latest stable
    Elgg release. If a newer stable release exists, always prompt the
    user to update to that release's source listing JSON (e.g.,
    `references/source-listing-<new>.json`) and refresh the affected
@@ -70,9 +70,11 @@ details.
   `capabilities`, `context`, `cron`, `database`, `dont-modify-core`,
   `email`, `errors`, `events-list`, `file-system`, `group-tools`,
   `guidelines`, `helpers`, `i18n`, `javascript`, `menus`, `notifications`,
-  `page-owner`, `permissions-check`, `plugins`, `restore`, `river`,
-  `routing`, `search`, `services`, `settings`, `themes`, `upgrading-data`,
-  `views`, `walled-garden`, `web-services`, `widgets`
+  `page-owner`, `permissions-check`, `performance`, `plugins`,
+  `restore`, `river`,
+  `routing`, `search`, `security`, `services`, `settings`, `themes`,
+  `testing`, `upgrading-data`, `views`, `walled-garden`, `web-services`,
+  `widgets`
 - `events-list/`: `access`, `actions-ajax`, `entities`, `files`,
   `notifications`, `other`, `permissions`, `routing`, `search`, `system`,
   `users`, `views`
@@ -86,11 +88,16 @@ details.
   standard procedure applied one major version at a time from any site on
   Elgg `2.3.*` or later, the composer patch policy, and the legacy manual
   approach for earlier versions.
+- `references/site-upgrades.md` — site-level upgrade discipline: the five
+  iron laws, the complete verification-gate inventory (the reference file
+  is the authoritative list — never treat a summary here as exhaustive),
+  anonymized-seed footguns, and the production cutover order. Load for
+  any task upgrading an entire installation across a major version.
 - `references/upgrade-notes/` — per-version change list
   (`<from>-to-<to>.md`) that drives updates to `rules/`; load the notes
   for each boundary crossed.
-- `references/source-listing-7.1.1.json` — provenance manifest for the
-  7.1.1 distillation pass; machine-readable, not loaded for guidance.
+- `references/source-listing-7.1.2.json` — provenance manifest for the
+  7.1.2 distillation pass; machine-readable, not loaded for guidance.
 
 ## Language pack
 
@@ -107,10 +114,30 @@ PHP), load `.agent/specs/php-best-practices/SKILL.md` via `/read-only`.
 - `references/upgrade-notes/` drives `rules/` updates: when a note
   changes, update the affected rule files in the same change.
 - `rules/` topics apply only to the latest stable version recorded in
-  `references/source-listing-7.1.1.json`; run the freshness check
+  `references/source-listing-7.1.2.json`; run the freshness check
   (Before advising, step 3) before relying on any rule, and route
   legacy versions through `references/upgrade-notes/` to upgrade
   first (Before advising, step 4).
+- HTTP-200 and server-side render checks cannot detect six failure
+  classes that recur across version transitions: latent-path fatals
+  (code that only runs on specific routes or data), client-side
+  failures (unresolved module specifiers, orphaned CSS overrides —
+  the page still returns 200), silent no-ops (lookups and
+  unregistrations that quietly fail), silent security bypasses
+  (handlers that stop blocking), silent data loss (changed deletion
+  or query semantics), and boot-time fatals (removed APIs on any
+  loaded path). After any transition, exercise the real routes in a
+  browser and the data paths behind them.
+- Before using an API that does not appear in the rules index, verify
+  it exists in the installed `elgg/elgg` source or this pack's
+  distillation — plausible-sounding names can be hallucinations,
+  including in third-party reference material.
+- Hooks and events are distinct concepts whose split varies by
+  version (4.x: separate `'hooks'`/`'events'` keys and `\Elgg\Hook`
+  vs `\Elgg\Event` type hints; 5.x and later: merged under `'events'`
+  and `\Elgg\Event`). Before registering a handler, check which key
+  and type hint the target version expects via the matching upgrade
+  note.
 
 ## How to use
 

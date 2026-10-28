@@ -67,6 +67,11 @@ the menu's internal name when registering a handler):
 - The third parameter passed into the handler contains all menu items
   registered so far by Elgg core and other enabled plugins; loop through them
   and use the class methods to interact with the item properties.
+- Handler return values are an `\Elgg\Menu\MenuItems` collection
+  (Traversable), not a plain array: mutate items through their methods or
+  the collection API (`->has()`, `->get()`, `->remove()`, `->merge()`).
+  `foreach ($items as &$item)` fatals on a Traversable, and
+  `array_merge($items, ...)` fails on an object.
 - Granular versions `menu:<menu name>:<type>:<subtype>` of the `register` and
   `prepare` events apply when the menu is provided an `\ElggEntity` in
   `$params['entity']`, an `\ElggAnnotation` in `$params['annotation']`, or an

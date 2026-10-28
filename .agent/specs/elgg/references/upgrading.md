@@ -32,6 +32,30 @@ Chain hops major-by-major up to the latest stable version, for example
 2.3.17 → 3.3.25 → 4.2.10 → and so on — never 2.3.17 → 7.1.0 in a single
 upgrade.
 
+## Identifying the installed version
+
+Route version questions through the `elgg/elgg` constraint in
+`composer.json` or `composer.lock` first. When composer metadata is
+absent, identify the version from structural markers, checking from
+the top — the first matching row gives the minimum version:
+
+| Structural marker | Minimum version |
+| :--- | :--- |
+| ESM registration calls (`elgg_register_esm()` / `elgg_import_esm()`) | 6.x |
+| `elgg-plugin.php` with an `'events'` key and no `'hooks'` key | 5.x |
+| `elgg-plugin.php` without `start.php` / `manifest.xml` | 4.x |
+| `elgg-plugin.php` together with `start.php` or `manifest.xml` | 3.x |
+| `start.php` without `elgg-plugin.php` | 2.x |
+
+When a defect traces to a version transition, fix it on the earliest
+branch where the API broke and let it forward-merge through the later
+branches — patching only the newest copy leaves the same latent bug on
+every intermediate branch. Upgrade-note entries follow an API-lifecycle
+convention: each removed or deprecated API records where it was
+deprecated and where it was removed (for example, the plugin-hook
+functions were deprecated in 5.0 and removed in 6.0), so legacy-version
+work can migrate early for forward compatibility.
+
 ## Standard upgrade procedure (one major hop, from `2.3.*`)
 
 The source page documents this as "From 2.3 to 3.0"; the same steps apply to

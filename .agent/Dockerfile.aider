@@ -170,6 +170,79 @@ RUN case "${TARGETARCH}" in \
 RUN --mount=type=cache,target=/root/.cache/pip \
     /venv/bin/python3 -m pip install pytest==8.3.5
 
+# ---- Layer D4: de-shadow httpx (venv console-script rename) ------------------
+# The base image's aider venv ships /venv/bin/httpx — the Python httpx CLI
+# from aider's dependency tree. /venv/bin precedes /usr/local/bin on PATH,
+# so it shadowed the projectdiscovery httpx binary installed in Layer G:
+# bare `httpx` ran the wrong tool (verified 2026-10-26; recorded in
+# docs/tech_stack.md). Renaming to py-httpx lets the pd binary resolve
+# while keeping the Python CLI reachable; aider only imports the httpx
+# library, never its CLI. A missing script fails the build deliberately
+# (fail-closed): a base-image change here must be reviewed, not skipped.
+RUN mv /venv/bin/httpx /venv/bin/py-httpx
+
+# ---- Layer F: pentest toolkit (apt) -----------------------------------------
+# Tools for the $code-pentest workflow (.agent/workflows/code/pentest/;
+# methodology vendored from Strix — see .agent/specs/pentest/). nmap stays
+# Debian-packaged: bookworm security updates cover it and the version lag
+# vs. nmap.org is accepted (docs/tech_stack.md). sqlmap moved to Layer H
+# (PyPI pin tracks current stable). unzip and libcap2-bin support Layer G
+# (asset extraction, setcap for naabu raw sockets).
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libcap2-bin \
+        nmap \
+        unzip
+
+# ---- Layer G: pentest toolkit (Go tools as pinned release binaries) ---------
+# VERIFY-THEN-BUILD: confirm each version against the repo's latest release
+# before the first build (a wrong version 404s — fail-closed). Every asset is
+# verified against the release's checksums.txt before extraction. Stronger
+# alternative (match the ShellCheck pattern): replace the checksums.txt check
+# with per-arch SHA256 ARGs computed via `sha256sum <downloaded asset>`.
+RUN set -eu; \
+    pd_install() { \
+        tool="$1"; version="$2"; repo="$3"; \
+        case "$(uname -m)" in \
+            x86_64) arch=amd64 ;; \
+            aarch64|arm64) arch=arm64 ;; \
+            *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;; \
+        esac; \
+        asset="${tool}_${version}_linux_${arch}.zip"; \
+        curl -fsSL -o "/tmp/${asset}" \
+            "https://github.com/${repo}/releases/download/v${version}/${asset}"; \
+        curl -fsSL -o /tmp/pd-checksums.txt \
+            "https://github.com/${repo}/releases/download/v${version}/checksums.txt"; \
+        grep "  ${asset}\$" /tmp/pd-checksums.txt | (cd /tmp && sha256sum -c -); \
+        unzip -p "/tmp/${asset}" "${tool}" > "/usr/local/bin/${tool}"; \
+        chmod 0755 "/usr/local/bin/${tool}"; \
+        rm -f "/tmp/${asset}" /tmp/pd-checksums.txt; \
+    }; \
+    pd_install nuclei    3.11.1 projectdiscovery/nuclei && \
+    pd_install httpx     1.12.0 projectdiscovery/httpx && \
+    pd_install subfinder 2.17.0 projectdiscovery/subfinder && \
+    pd_install katana    1.8.0 projectdiscovery/katana && \
+    pd_install naabu     2.6.1 projectdiscovery/naabu && \
+    setcap cap_net_raw+eip /usr/local/bin/naabu
+
+# ---- Layer H: pentest toolkit (Python tools, isolated venv) ------------------
+# Isolated from the aider /venv on purpose: semgrep pulls a large dependency
+# tree that must never resolve against aider's own pins. sqlmap lives here
+# too: the PyPI package tracks current stable releases, unlike the
+# bookworm-frozen apt package it replaces. VERIFY-THEN-BUILD: confirm the
+# pinned versions on PyPI first.
+RUN python3 -m venv /opt/pentest-venv && \
+    /opt/pentest-venv/bin/pip install --no-cache-dir \
+        semgrep==1.182.1 \
+        bandit==1.9.4 \
+        sqlmap==1.10.10 && \
+    ln -sf /opt/pentest-venv/bin/semgrep /usr/local/bin/semgrep && \
+    ln -sf /opt/pentest-venv/bin/bandit /usr/local/bin/bandit && \
+    ln -sf /opt/pentest-venv/bin/sqlmap /usr/local/bin/sqlmap && \
+    chmod -R a+rX /opt/pentest-venv
+
 # ---- Layer E: runtime configuration ----------------------------------------
 # Sticky bit (1777) instead of 777: /home stays writable as a shared scratch
 # HOME (the launcher sets HOME=/home and mounts host caches into it) without

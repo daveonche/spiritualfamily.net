@@ -42,14 +42,17 @@ authoritative. Status: `pending` = not yet distilled.
 | `notifications.md` | `notifications.rst` | notification system | done |
 | `page-owner.md` | `page-owner.rst` | page owner detection | done |
 | `permissions-check.md` | `permissions-check.rst` | write-permission override via `permissions_check` event | done |
+| `performance.md` | — (no `performance.rst` in `docs/guides/`) | query-performance measurement: `Handler_read_*` delta verdict, native seeding, metadata composite index | done |
 | `plugins.md` | `plugins.rst` | static config (`elgg-plugin.php`), bootstrap, DI services, composer, tests | done |
 | `restore.md` | `restore.rst` | trash/restore via `restorable` capability, deletion functions, cleanup cron | done |
 | `river.md` | `river.rst` | activity stream: `elgg_create_river_item()`, view/summary fallback chains, `river_emittable` | done |
 | `routing.md` | `routing.rst` | route registration/names, middleware gatekeepers, generic controllers, `route:rewrite` | done |
 | `search.md` | `search.rst` | `elgg_search()` params, `search:fields`/`search:config` events, livesearch endpoints | done |
+| `security.md` | — (no `security.rst` in `docs/guides/`) | plugin security requirements: CSRF beyond actions, access bypasses, escaping, uploads, SQL, hook input trust | done |
 | `services.md` | `services.rst` | service providers | done |
 | `settings.md` | `settings.rst` | plugin/user/group settings forms, get/set APIs, defaults | done |
 | `themes.md` | `themes.rst` | theming principles, CSS view map, variables/dark mode, view extension/overload, icons | done |
+| `testing.md` | — (no `testing.rst` in `docs/guides/`) | PHPUnit/Playwright testing: base classes and session API by version, test-DB prefix, hook mocking, Seeder fixtures, JS test stack | done |
 | `upgrading-data.md` | `upgrading-data.rst` | async plugin upgrades: `AsynchronousUpgrade` contract, `Result` API, admin panel | done |
 | `views.md` | `views.rst` | `elgg_view()`, `$vars`, cacheable assets, viewtypes, override/extend, view events, entity listing, icons | done |
 | `walled-garden.md` | `walled-garden.rst` | walled garden mode: admin toggle, `'walled' => false` routes, `public_pages` event | done |
@@ -79,8 +82,14 @@ Enumerate each with the same contents-API call used for `docs/guides/`
 
 - `index.rst` is the manual's TOC (a `:glob:` toctree); it is not distilled
   as a topic.
-- Baseline contents listing kept at `../references/source-listing-7.1.json`
+- Baseline contents listing kept at `../references/source-listing-7.1.2.json`
   (per-file SHAs and sizes): diff a fresh listing against it to find upstream
   changes.
 - `events-list.rst` is large (~58 KB); distill as a compact lookup list or
   split it if it exceeds the topic-file size cap.
+- `security.md`, `performance.md`, and `testing.md` have no manual
+  source page: `security.md` distills field-observed security
+  conventions from the elgg-migrate tooling checklist; `performance.md`
+  and `testing.md` distill the elgg-benchmark and elgg-test-writer
+  skills (upstream store `tmp/upstream/elgg-llm-skills`, distilled
+  2026-10-28) — update them from skill-repo changes, not manual diffs.

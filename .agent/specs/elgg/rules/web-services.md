@@ -1,8 +1,8 @@
 # Elgg Developer Guide: Web Services
 
 Delta distillation of <https://learn.elgg.org/en/stable/guides/web-services.html>,
-distilled from the stable manual on 2026-09-30 (source:
-`docs/guides/web-services.rst`, Elgg ref `7.1`). Records only what counters
+distilled from the stable manual on 2026-10-27 (source:
+`docs/guides/web-services.rst`, Elgg ref `7.1.2`). Records only what counters
 stale training-data memory: current API names, signatures, defaults,
 deprecations, gotchas. Update in place when the stable manual changes.
 
@@ -282,9 +282,14 @@ Then register the PAMs to use:
 ```php
 function rest_plugin_setup_pams() {
     // user token can also be used for user authentication
-    elgg_register_pam_handler(\Elgg\WebServices\PAM\UserToken::class);
+    elgg_register_pam_handler(\Elgg\WebServices\PAM\User\AuthToken::class, 'sufficient', 'api:user');
 
     // simple API key check
     elgg_register_pam_handler(\Elgg\WebServices\PAM\APIKey::class, 'sufficient', 'api');
 }
 ```
+
+- Gotcha: pre-7.1.2 documentation and examples reference
+  `\Elgg\WebServices\PAM\UserToken` — the current class is
+  `\Elgg\WebServices\PAM\User\AuthToken`, registered with the
+  `'sufficient'` policy and the `'api:user'` policy type.

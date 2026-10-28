@@ -21,6 +21,12 @@ elgg_import_esm('myplugin/say_hello');
   importable as `myplugin/say_hello` — from PHP via
   `elgg_import_esm('myplugin/say_hello')`, from JS via
   `import 'myplugin/say_hello';`, or on demand via `import()`.
+- Version split: Elgg 2.x–5.x load JS as AMD modules (`define()` /
+  `require()`, queued via `elgg_require_js()`); 6.x and later use
+  native ES modules (`.mjs`, queued via `elgg_import_esm()`).
+  Migrating: `elgg_define_js()` → `elgg_register_esm()`,
+  `elgg_require_js()` → `elgg_import_esm()`,
+  `define('name', [...], fn)` → `export`.
 - Modules without an `.mjs` extension (e.g. from a dependency) must be
   registered to the importmap first; afterwards they import under their
   registered name:
@@ -52,12 +58,12 @@ function myplugin_config_page(\Elgg\Event $event) {
 elgg_register_event_handler('elgg.data', 'page', 'myplugin_config_page');
 ```
 
-```js
-define(['elgg'], function(elgg) {
-    var api = elgg.data.myplugin.api;
-    var key = elgg.data.myplugin.key; // "none" or a user's key
-});
-```
+- Gotcha: the upstream manual (unchanged through 7.1.2) still
+  illustrates client access with an AMD `define(['elgg'], ...)`
+  example — AMD was removed in Elgg 6.0, so do not copy it into
+  current code. Read `elgg.data.myplugin.*` from the plugin's ES
+  modules (registered per the ESM conventions at the top of this
+  file).
 
 ## Mapping module names to files
 
@@ -108,6 +114,9 @@ var result = hooks.trigger('my_plugin:filter', 'value', {}, 'default');
 ## Module `elgg/i18n`
 
 - `i18n.echo('example:text', ['arg1']);`
+- 7.x gotcha: the module has a **default export only** — write
+  `import i18n from 'elgg/i18n'`; `import { echo } from 'elgg/i18n'`
+  binds `undefined` and every call on it throws.
 
 ## Module `elgg/system_messages`
 
@@ -215,6 +224,18 @@ import('elgg/ckeditor').then((elggCKEditor) => {
 
 - Fires an `open` event whenever a tab opens and, for ajax tabs, once it has
   finished loading.
+
+## 7.x module-system gotchas
+
+- jQuery is a deferred ESM module, no longer a global: `import $ from
+  'jquery'` and expose `window.jQuery` / `window.$` before any
+  dependent code runs — a bare `jQuery(` or `window.jQuery` reference
+  throws.
+- Importmap specifiers are the full view path minus `.mjs` (no `js/`
+  strip): `views/default/myplugin/widget.mjs` imports as
+  `myplugin/widget`. An unmapped specifier throws "Failed to resolve
+  module specifier" — the page still returns 200, so catch it with a
+  console/pageerror smoke test (see `testing.md`).
 
 ## Traditional scripts
 
