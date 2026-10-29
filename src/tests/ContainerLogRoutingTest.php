@@ -69,21 +69,32 @@ class ContainerLogRoutingTest extends \PHPUnit_Framework_TestCase
 	 * dedicated log files"
 	 *
 	 * The Compose default logging driver captures each service's
-	 * stdout/stderr for the container runtime's log view — but only if
-	 * no service overrides the driver or disables logging. Neither
-	 * compose file may carry a `logging:` key.
+	 * stdout/stderr for the container runtime's log view. Step 6 pins
+	 * that default driver explicitly with automatic rotation options
+	 * (RoutedLogRotationTest) — the driver itself must stay json-file,
+	 * and the dev overlay must not carry any `logging:` key (it
+	 * inherits the production routing).
 	 */
-	public function testNoComposeServiceOverridesTheDefaultLogDriver()
+	public function testStdoutRoutingStaysOnTheDefaultDriver()
 	{
+		$config = $this->composeConfig();
+
+		// Every service pins the default json-file driver (Step 6 adds
+		// rotation options; the driver itself must stay the default)
 		$this->assertSame(
-			0,
-			preg_match('/^\s*logging:\s*$/m', $this->composeConfig()),
-			'compose.yml must not override the default logging driver — stdout/stderr capture is what makes every service observable via `docker compose logs`'
+			3,
+			preg_match_all('/^    logging:$/m', $config),
+			'compose.yml must define the rotation logging block on every service (app, dbm, cron)'
+		);
+		$this->assertSame(
+			3,
+			preg_match_all('/^      driver: json-file$/m', $config),
+			'compose.yml logging blocks must pin the default json-file driver — stdout/stderr capture is what makes every service observable via `docker compose logs`'
 		);
 		$this->assertSame(
 			0,
 			preg_match('/^\s*logging:\s*$/m', $this->composeDevConfig()),
-			'compose.dev.yml must not override the default logging driver'
+			'compose.dev.yml must not override the logging configuration — the dev shape inherits the production routing'
 		);
 	}
 

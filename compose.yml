@@ -58,6 +58,16 @@ services:
         # (requires Compose v2.22+; drop this line on older versions)
         restart: true
     restart: unless-stopped
+    # Story S1.8 Step 6: automatic stdout rotation — the default json-file
+    # driver pinned explicitly with size/count rotation: the daemon rotates
+    # each service's stdout log at 5 MB and keeps at most 5 segments
+    # (oldest removed) with no operator intervention. Values quoted —
+    # unquoted numbers/booleans are misparsed by YAML (docker conventions).
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "5"
     networks:
       - appnet
 
@@ -94,6 +104,12 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
+    # Story S1.8 Step 6: automatic stdout rotation (same policy as app)
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "5"
     networks:
       - appnet
 
@@ -109,6 +125,11 @@ services:
     container_name: ${CRON_CONTAINER_NAME}
     environment:
       - HOST=${APP_HOST}
+      # Story S1.8 Step 6: the application log path the rotation script
+      # targets — the same variable the app's settings.php reads (Step 1);
+      # the default mirrors the script's baked fallback on fs-dataroot
+      # (.env.example's empty default = SAPI log destination, not a file)
+      - ELGG_LOG_FILE=${ELGG_LOG_FILE:-/var/www/dataroot/elgg-log.txt}
       - MINUTE_TOKEN=${APP_CRON_MINUTE}
       - FIVEMINUTE_TOKEN=${APP_CRON_FIVEMINUTE}
       - FIFTEENMIN_TOKEN=${APP_CRON_FIFTEENMIN}
@@ -146,6 +167,16 @@ services:
       # (Story S1.7 Step 5): the retention window spans container
       # recreation
       - fs-cronlog:/var/log/cron
+      # Story S1.8 Step 6: read-write access to the Elgg data directory
+      # so the cron container can rotate the application log file
+      # (ELGG_LOG_FILE, Step 1) written by the app on this same volume
+      - fs-dataroot:/var/www/dataroot
+    # Story S1.8 Step 6: automatic stdout rotation (same policy as app/dbm)
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "5"
     networks:
       - appnet
     depends_on:

@@ -54,4 +54,14 @@
 # job output would be lost); guarded by src/tests/CronLogRotationTest.php
 30 0 * * * /usr/local/bin/rotate-cron-log.sh >> /var/log/cron/app-cron.log 2>&1
 
+# Daily rotation of the Elgg application log (Story S1.8 Step 6):
+# copy-truncates the ELGG_LOG_FILE application log into gzip archives
+# and prunes archives older than the retention window — the application
+# half of the routed-log rotation duty, complementing the S1.7
+# scheduled-task rotation above (staggered 15 minutes later, still
+# after the midnight Elgg jobs). Its confirmation output appends to the
+# same dedicated log (the image ships no sendmail); guarded by
+# src/tests/RoutedLogRotationTest.php
+45 0 * * * /usr/local/bin/rotate-elgg-log.sh >> /var/log/cron/app-cron.log 2>&1
+
 # An empty line is required at the end
