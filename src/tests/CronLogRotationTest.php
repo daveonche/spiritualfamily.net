@@ -183,14 +183,16 @@ class CronLogRotationTest extends \PHPUnit_Framework_TestCase
 			$scheduleLines[] = $line;
 		}
 
-		// Exactly one daily rotation entry, after the midnight Elgg jobs
+		// Exactly one daily rotation entry, after the midnight Elgg jobs,
+		// its own output appended to the dedicated log (the image ships
+		// no sendmail, so unredirected job output would be lost)
 		$this->assertCount(
 			1,
 			preg_grep(
-				'~^30 0 \* \* \* /usr/local/bin/rotate-cron-log\.sh$~',
+				'~^30 0 \* \* \* /usr/local/bin/rotate-cron-log\.sh >> /var/log/cron/app-cron\.log 2>&1$~',
 				$scheduleLines
 			),
-			'Crontab must schedule the rotation script exactly once daily (30 0 * * *), after the midnight Elgg jobs'
+			'Crontab must schedule the rotation script exactly once daily (30 0 * * *), after the midnight Elgg jobs, appending its output to the dedicated log'
 		);
 
 		// And the rotation script appears on no other scheduled line

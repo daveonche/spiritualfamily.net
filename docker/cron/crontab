@@ -49,7 +49,9 @@
 
 # Daily rotation of the scheduled-task output log (Story S1.7 Step 5):
 # runs after the midnight Elgg jobs so their output lands in the
-# archived day; guarded by src/tests/CronLogRotationTest.php
-30 0 * * * /usr/local/bin/rotate-cron-log.sh
+# archived day; the script's own confirmation output appends to the
+# same dedicated log (the image ships no sendmail, so unredirected
+# job output would be lost); guarded by src/tests/CronLogRotationTest.php
+30 0 * * * /usr/local/bin/rotate-cron-log.sh >> /var/log/cron/app-cron.log 2>&1
 
 # An empty line is required at the end
