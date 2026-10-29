@@ -138,6 +138,11 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 	/**
 	 * Must Support: "Dedicated persistent storage for the application data
 	 * directory"
+	 *
+	 * Story S1.8 Step 6 exception: the cron service mounts the dataroot
+	 * read-write solely to rotate the application log the app writes
+	 * there (rotate-elgg-log.sh targeting ELGG_LOG_FILE) — guarded below
+	 * as the only dataroot reference permitted outside the app service.
 	 */
 	public function testApplicationDataDirectoryUsesDedicatedNamedVolume()
 	{
@@ -177,7 +182,12 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 			'compose.yml must declare the fs-dataroot named volume exactly once in the top-level volumes block'
 		);
 
-		// Dedicated: no service other than app references the dataroot volume
+		// Dedicated: no service other than app uses the dataroot volume.
+		// Exception (Story S1.8 Step 6): the cron service mounts the
+		// dataroot read-write solely to rotate the application log the
+		// app writes there (rotate-elgg-log.sh, ELGG_LOG_FILE) — its
+		// dataroot reference must be exactly that one mount line; dbm
+		// must reference the volume never.
 		$boundaries = array(
 			'dbm' => '^  cron:',
 			'cron' => '^networks:',
@@ -188,10 +198,28 @@ class ComposePersistenceTest extends \PHPUnit_Framework_TestCase
 				preg_match('/^  ' . $service . ':\s*$(.*?)' . $boundary . '/ms', $config, $m),
 				"compose.yml has no recognizable '$service' service block"
 			);
+			if ($service === 'dbm') {
+				$this->assertSame(
+					0,
+					preg_match('/fs-dataroot/', $m[1]),
+					"compose.yml '$service' service references the app dataroot volume — application data storage is not dedicated"
+				);
+				continue;
+			}
+
+			// cron: exactly one dataroot reference, and it must be the
+			// Step 6 rotation mount itself (the exact-line match also
+			// pins read-write: no :ro suffix) — any other reference
+			// fails the guard
 			$this->assertSame(
-				0,
-				preg_match('/fs-dataroot/', $m[1]),
-				"compose.yml '$service' service references the app dataroot volume — application data storage is not dedicated"
+				1,
+				preg_match_all('/fs-dataroot/', $m[1]),
+				"compose.yml 'cron' service may reference the app dataroot volume only for the S1.8 Step 6 rotation mount"
+			);
+			$this->assertSame(
+				1,
+				preg_match('/^      - fs-dataroot:\/var\/www\/dataroot$/m', $m[1]),
+				"compose.yml 'cron' service's dataroot reference must be the S1.8 Step 6 rotation mount (- fs-dataroot:/var/www/dataroot)"
 			);
 		}
 	}
