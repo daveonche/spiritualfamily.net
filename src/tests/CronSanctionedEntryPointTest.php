@@ -128,11 +128,14 @@ class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
 			if ($line === '' || $line[0] === '#') {
 				continue;
 			}
-			// Story S1.7 Step 5: the daily log-rotation entry is a
-			// scheduled line but not an Elgg cron interval — it is
-			// guarded by CronLogRotationTest, not by this
-			// sanctioned-endpoint check
-			if (strpos($line, 'rotate-cron-log.sh') !== false) {
+			// Story S1.7 Step 5 / S1.8 Step 6: the daily log-rotation
+			// entries are scheduled lines but not Elgg cron intervals —
+			// the scheduled-task rotation is guarded by
+			// CronLogRotationTest, the application-log rotation by
+			// RoutedLogRotationTest — not by this sanctioned-endpoint
+			// check
+			if (strpos($line, 'rotate-cron-log.sh') !== false
+				|| strpos($line, 'rotate-elgg-log.sh') !== false) {
 				continue;
 			}
 			$matchedInterval = null;
