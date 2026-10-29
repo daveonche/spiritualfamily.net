@@ -64,6 +64,33 @@ the command hangs until interrupted. `docker compose logs <service>` is
 the correct reader for stdout/stderr sinks; only regular files on disk
 may be read through `exec`.
 
+## Empty bind mounts recovery (Docker Desktop/WSL)
+
+If the guard suite fails with `Command "test" is not defined.`, or
+`ls -a /var/www/html` inside the app container shows an empty directory while
+the host checkout has files, the container's repo bind mounts resolved empty
+at creation time (Docker Desktop/WSL file-sharing failure: the daemon saw an
+empty tree when the containers were created). The cron container is affected
+too — an empty `/tmp/app-cron` bind seeds an empty spool crontab, so scheduled
+jobs silently no-op until it is recreated.
+
+1. Confirm the daemon sees the repo now (throwaway probe; a real file listing
+   means only the containers need recreating):
+
+```bash
+docker run --rm -v "$PWD/src:/probe:ro" alpine:3.23.3 ls /probe
+```
+
+2. Recreate the affected containers so their mounts re-resolve (`dbm` has no
+   repo binds — leave it running):
+
+```bash
+docker compose -f compose.yml -f compose.dev.yml up -d --force-recreate --no-deps app cron
+```
+
+3. Re-run the guard suite (command in "Development stack and test suite") and
+   confirm green.
+
 ## Production deployment
 
 Production deploys follow `docs/deployment/deploy_runbook.md` (mandatory
