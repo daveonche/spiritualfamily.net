@@ -337,6 +337,13 @@ Replace `[command]` and `[name]` with the actual values; the `OK`/`FAILED`
 status line (plus at most the grep tail on failure) is the only output
 that enters context.
 
+**Container HTTP checks (hard rule):** Aider runs in its own container:
+`curl localhost:<published-port>` (e.g. 3010/3011) hits aider's own loopback —
+host-published ports unreachable, curl prints `000`. HTTP checks against stack
+services: exec into target container, e.g.
+`docker compose -f compose.yml -f compose.dev.yml exec -T app curl -s -o /dev/null -w "%{http_code}" "http://localhost/<path>"`.
+Host-browser checks = alternative.
+
 **Code-mode gate for executable commands (hard rule):** Aider only offers to
 run shell commands in `/code` mode, and only auto-detects them when each
 command is a single line in a fenced code block tagged with a shell language.
