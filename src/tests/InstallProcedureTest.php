@@ -10,7 +10,7 @@
  * the procedure documentation wires the script in before the manual
  * web installer steps.
  */
-class InstallProcedureTest extends \PHPUnit_Framework_TestCase
+class InstallProcedureTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @var string|null Cached contents of the pre-flight script
