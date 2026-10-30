@@ -8,9 +8,9 @@
  * recorded in docs/baseline/baseline.md.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class BaselineVersionTest extends \PHPUnit_Framework_TestCase
+class BaselineVersionTest extends \PHPUnit\Framework\TestCase
 {
 	/** The single pinned Elgg core version (docs/baseline/baseline.md). */
 	const PINNED_CORE_VERSION = '2.3.17';

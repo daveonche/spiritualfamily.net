@@ -4,9 +4,9 @@
  * Step 2 tests for Story S1.1 — pinned PHP runtime version.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class BaselineRuntimeVersionTest extends \PHPUnit_Framework_TestCase
+class BaselineRuntimeVersionTest extends \PHPUnit\Framework\TestCase
 {
 	/** The single pinned PHP runtime version (docs/baseline/baseline.md). */
 	const PINNED_RUNTIME_VERSION = '7.4.27';

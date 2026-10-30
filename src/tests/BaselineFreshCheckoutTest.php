@@ -8,7 +8,7 @@
  * committed Compose stack, and that the executed verification result is
  * recorded in docs/baseline/baseline.md.
  */
-class BaselineFreshCheckoutTest extends \PHPUnit_Framework_TestCase
+class BaselineFreshCheckoutTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @var string|null Cached contents of the procedure document

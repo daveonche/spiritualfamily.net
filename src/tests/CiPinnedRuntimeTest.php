@@ -16,9 +16,9 @@
  * on an arbitrary runtime.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class CiPinnedRuntimeTest extends \PHPUnit_Framework_TestCase
+class CiPinnedRuntimeTest extends \PHPUnit\Framework\TestCase
 {
 	/** The Composer LTS line compatible with the pinned PHP baseline era (metadata-only Composer jobs in ci.yml). */
 	const COMPOSER_LTS_LINE = '2.2';
