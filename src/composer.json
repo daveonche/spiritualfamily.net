@@ -8,10 +8,10 @@
 		"elgg/elgg": "3.3.25"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "4.8.36"
+		"phpunit/phpunit": "9.6.38"
 	},
 	"replace": {
-		"elgg/login_as": "1.9.2"
+		"elgg/login_as": "2.1.0"
 	},
 	"scripts": {
 		"post-install-cmd": "\\Elgg\\Composer\\PostInstall::execute",
