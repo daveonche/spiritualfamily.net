@@ -90,7 +90,7 @@ class CronSanctionedEntryPointTest extends \PHPUnit\Framework\TestCase
 	{
 		// A scheduled line must hit the core's sanctioned HTTP cron endpoint:
 		// wget with the Host header override, /cron/<interval>, and the
-		// __elgg_mac MAC token placeholder — exactly as the 2.3.17 core
+		// __elgg_mac MAC token placeholder — exactly as the 3.3.25 core
 		// documents for cron-driven processing — with the job output
 		// appended to the scheduled-task output log (Story S1.7 Step 5)
 		$schedule = preg_quote($this->expectedSchedules()[$interval], '~');
