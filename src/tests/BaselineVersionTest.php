@@ -13,7 +13,7 @@
 class BaselineVersionTest extends \PHPUnit\Framework\TestCase
 {
 	/** The single pinned Elgg core version (docs/baseline/baseline.md). */
-	const PINNED_CORE_VERSION = '2.3.17';
+	const PINNED_CORE_VERSION = '3.3.25';
 
 	/** src/, resolved relative to this file so the suite runs from anywhere. */
 	private function srcDir()
@@ -101,7 +101,7 @@ class BaselineVersionTest extends \PHPUnit\Framework\TestCase
 		$doc = file_get_contents($docFile);
 
 		// The exact pinned value is recorded in the documentation.
-		$this->assertContains(
+		$this->assertStringContainsString(
 			self::PINNED_CORE_VERSION,
 			$doc,
 			'The pinned core version is not recorded in the baseline documentation'
@@ -109,16 +109,18 @@ class BaselineVersionTest extends \PHPUnit\Framework\TestCase
 
 		// Recorded in a dedicated "Pinned Versions" section (Developer
 		// Notes: a dedicated documentation location agreed by the team).
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'## Pinned Versions',
 			$doc,
 			'Baseline documentation lacks a dedicated "Pinned Versions" section'
 		);
 
 		// The recording cites its codebase source, keeping the pinned
-		// value re-verifiable against the vendor tree in later steps.
-		$this->assertContains(
-			'src/vendor/elgg/elgg/composer.json',
+		// value re-verifiable against the manifest and lock in later steps
+		// (Story S1.9: vendor/ is untracked; the pin lives in
+		// src/composer.json and src/composer.lock).
+		$this->assertStringContainsString(
+			'src/composer.json',
 			$doc,
 			'Documentation does not cite the source of the pinned core version'
 		);

@@ -68,17 +68,17 @@ class BaselineFreshCheckoutTest extends \PHPUnit\Framework\TestCase
 		$this->assertFileExists($this->procedureDoc());
 		$doc = $this->procedureDocContents();
 
-		$this->assertContains('## Procedure', $doc);
-		$this->assertContains('### 1. Clean checkout', $doc);
-		$this->assertContains('git clone', $doc);
-		$this->assertContains('### 2. Environment file', $doc);
-		$this->assertContains('cp .env.example .env', $doc);
-		$this->assertContains('### 3. Start the stack', $doc);
-		$this->assertContains('docker compose up', $doc);
-		$this->assertContains('### 6. Install Elgg', $doc);
-		$this->assertContains('### 7. Verify the baseline', $doc);
-		$this->assertContains('### 8. Tear down', $doc);
-		$this->assertContains('docker compose down', $doc);
+		$this->assertStringContainsString('## Procedure', $doc);
+		$this->assertStringContainsString('### 1. Clean checkout', $doc);
+		$this->assertStringContainsString('git clone', $doc);
+		$this->assertStringContainsString('### 2. Environment file', $doc);
+		$this->assertStringContainsString('cp .env.example .env', $doc);
+		$this->assertStringContainsString('### 3. Start the stack', $doc);
+		$this->assertStringContainsString('docker compose up', $doc);
+		$this->assertStringContainsString('### 6. Install Elgg', $doc);
+		$this->assertStringContainsString('### 7. Verify the baseline', $doc);
+		$this->assertStringContainsString('### 8. Tear down', $doc);
+		$this->assertStringContainsString('docker compose down', $doc);
 	}
 
 	/**
@@ -104,12 +104,12 @@ class BaselineFreshCheckoutTest extends \PHPUnit\Framework\TestCase
 
 		// The procedure must expect exactly the committed service set...
 		foreach ($committedServices as $service) {
-			$this->assertContains("`$service`", $doc);
+			$this->assertStringContainsString("`$service`", $doc);
 		}
 
 		// ...and exactly the committed app image, not the upstream one.
-		$this->assertContains($committedAppImage, $doc);
-		$this->assertNotContains('coldtrick/elgg_webserver', $doc);
+		$this->assertStringContainsString($committedAppImage, $doc);
+		$this->assertStringNotContainsString('coldtrick/elgg_webserver', $doc);
 	}
 
 	/**
@@ -125,20 +125,20 @@ class BaselineFreshCheckoutTest extends \PHPUnit\Framework\TestCase
 
 		// The verification section must exist and state success for the
 		// front page load...
-		$this->assertContains('## Fresh-Checkout Verification', $doc);
-		$this->assertContains('Loaded at the site URL', $doc);
+		$this->assertStringContainsString('## Fresh-Checkout Verification', $doc);
+		$this->assertStringContainsString('Loaded at the site URL', $doc);
 
 		// ...and for the admin login / administration area.
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'Logged in; administration area reachable and functional',
 			$doc
 		);
 
 		// The run must be dated and tied to a commit for repeatability.
-		$this->assertContains('Verification date', $doc);
-		$this->assertContains('Commit verified', $doc);
+		$this->assertStringContainsString('Verification date', $doc);
+		$this->assertStringContainsString('Commit verified', $doc);
 
 		// Deviations must be explicitly recorded (None is a valid value).
-		$this->assertContains('Deviations / findings', $doc);
+		$this->assertStringContainsString('Deviations / findings', $doc);
 	}
 }

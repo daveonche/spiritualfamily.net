@@ -56,9 +56,19 @@ class CiPinnedRuntimeTest extends \PHPUnit\Framework\TestCase
 		$this->assertFileExists($file);
 		$doc = file_get_contents($file);
 
+		// Scope to the Pinned Versions section — the canonical pin record.
+		// Later upgrade-stage sections carry annotation tables that must
+		// not reuse the canonical row labels; scoping keeps this reader
+		// on the canonical table only.
 		$this->assertSame(
 			1,
-			preg_match_all('/^\|\s*PHP runtime\s*\|\s*([^|]+?)\s*\|/m', $doc, $matches),
+			preg_match('/^## Pinned Versions$(.*?)(?=^## |\z)/ms', $doc, $section),
+			'Expected exactly one "## Pinned Versions" section in the baseline doc'
+		);
+
+		$this->assertSame(
+			1,
+			preg_match_all('/^\|\s*PHP runtime\s*\|\s*([^|]+?)\s*\|/m', $section[1], $matches),
 			'Expected exactly one "PHP runtime" row in the baseline Pinned Versions table'
 		);
 

@@ -11,8 +11,8 @@ class BaselineRuntimeVersionTest extends \PHPUnit\Framework\TestCase
 	/** The single pinned PHP runtime version (docs/baseline/baseline.md). */
 	const PINNED_RUNTIME_VERSION = '7.4.27';
 
-	/** Minimum PHP required by the pinned Elgg 2.3.17 core. */
-	const MIN_PHP_REQUIRED_BY_CORE = '5.6';
+	/** Minimum PHP required by the pinned Elgg 3.3.25 core. */
+	const MIN_PHP_REQUIRED_BY_CORE = '7.2';
 
 	private function srcDir()
 	{
@@ -23,6 +23,25 @@ class BaselineRuntimeVersionTest extends \PHPUnit\Framework\TestCase
 	private function docsBaselineFile()
 	{
 		return dirname($this->srcDir()) . '/docs/baseline/baseline.md';
+	}
+
+	/**
+	 * The "## Pinned Versions" section of the baseline doc — the canonical
+	 * pin record, from its heading to the next top-level heading. Later
+	 * upgrade-stage sections carry annotation tables; scoping keeps the
+	 * row-count assertions reading only the canonical table.
+	 */
+	private function pinnedVersionsSection()
+	{
+		$doc = file_get_contents($this->docsBaselineFile());
+
+		$this->assertSame(
+			1,
+			preg_match('/^## Pinned Versions$(.*?)(?=^## |\z)/ms', $doc, $match),
+			'Expected exactly one "## Pinned Versions" section in the baseline doc'
+		);
+
+		return $match[1];
 	}
 
 	/**
@@ -55,7 +74,7 @@ class BaselineRuntimeVersionTest extends \PHPUnit\Framework\TestCase
 		$this->assertArrayHasKey('require', $coreComposer);
 		$this->assertArrayHasKey('php', $coreComposer['require']);
 		$this->assertSame(
-			'>=5.6',
+			'>=7.2',
 			$coreComposer['require']['php'],
 			'Pinned core no longer declares the expected PHP constraint'
 		);
@@ -73,15 +92,12 @@ class BaselineRuntimeVersionTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function testSinglePinnedRuntimeVersionInDocumentation()
 	{
-		$docFile = $this->docsBaselineFile();
-		$this->assertFileExists($docFile);
-
-		$doc = file_get_contents($docFile);
+		$section = $this->pinnedVersionsSection();
 
 		// Exactly one pinned PHP runtime row in the Pinned Versions table.
 		$this->assertSame(
 			1,
-			preg_match_all('/^\|\s*PHP runtime\s*\|\s*([^|]+?)\s*\|/m', $doc, $matches),
+			preg_match_all('/^\|\s*PHP runtime\s*\|\s*([^|]+?)\s*\|/m', $section, $matches),
 			'Expected exactly one "PHP runtime" row in the Pinned Versions table'
 		);
 
