@@ -64,6 +64,29 @@ the command hangs until interrupted. `docker compose logs <service>` is
 the correct reader for stdout/stderr sinks; only regular files on disk
 may be read through `exec`.
 
+## Dataroot writes from exec sessions (required command form)
+
+`docker compose exec` runs as root by default, while the app writes the
+dataroot as www-data (uid 33). A file or directory created by a root exec
+session under the dataroot (e.g. a log probe creating the `ELGG_LOG_FILE`
+file) is root-owned, and the app's writes to it then fail silently. Run
+one-off commands that create or write dataroot files as www-data:
+
+```bash
+docker compose -f compose.yml -f compose.dev.yml exec -T --user 33:33 app php -r 'error_log("exec-session probe", 3, getenv("ELGG_LOG_FILE"));'
+```
+
+If a root-owned file was already created, repair its ownership before
+re-testing (the path comes from the container's own `ELGG_LOG_FILE`):
+
+```bash
+docker compose -f compose.yml -f compose.dev.yml exec -T app sh -c 'chown www-data:www-data "$ELGG_LOG_FILE"'
+```
+
+Root-owned gzip archives written by the cron rotation scripts are
+expected — only files the app itself writes (the active `ELGG_LOG_FILE`
+log) must stay www-data-owned.
+
 ## Empty bind mounts recovery (Docker Desktop/WSL)
 
 If the guard suite fails with `Command "test" is not defined.`, or
