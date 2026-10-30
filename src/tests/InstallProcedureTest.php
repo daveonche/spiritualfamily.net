@@ -1,14 +1,15 @@
 <?php
 
 /**
- * Story S1.3 Step 3 — reproducible Elgg 2.3 install procedure tests.
+ * Story S1.3 Step 3 — reproducible Elgg install procedure tests.
  *
- * Elgg 2.3 provides no CLI installer, so the committed procedure is the
- * pre-flight script plus the documented web installer steps. Verifies
- * the committed pre-flight script checks everything the web installer
- * depends on (environment, database, directories, pinned core) and that
- * the procedure documentation wires the script in before the manual
- * web installer steps.
+ * The committed procedure is the pre-flight script plus the documented
+ * web installer steps (moving to the Elgg 3 elgg-cli installer is
+ * evaluated in Story S1.9 Step 3). Verifies the committed pre-flight
+ * script checks everything the web installer depends on (environment,
+ * database, directories, pinned core) and that the procedure
+ * documentation wires the script in before the manual web installer
+ * steps.
  */
 class InstallProcedureTest extends \PHPUnit\Framework\TestCase
 {

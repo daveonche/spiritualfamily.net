@@ -334,7 +334,7 @@ class DroppedPluginsDispositionTest extends \PHPUnit\Framework\TestCase
 			$package = trim($row[2], '` ');
 			if ($package === 'not yet recorded') {
 				$this->assertArrayHasKey(3, $row, "Row for $pluginId lacks a Notes cell");
-				$this->assertContains(
+				$this->assertStringContainsString(
 					'S1.14',
 					$row[3],
 					"$pluginId records no replacement package and no deferred-identification trigger"
@@ -344,7 +344,7 @@ class DroppedPluginsDispositionTest extends \PHPUnit\Framework\TestCase
 
 			// Strip the version suffix: "vendor/package v1.2" -> "vendor/package".
 			$packageName = preg_replace('/\s+v?\S+$/', '', $package);
-			$this->assertContains(
+			$this->assertStringContainsString(
 				$packageName,
 				$techStack,
 				"Replacement package for $pluginId is not recorded in docs/tech_stack.md"
@@ -361,7 +361,7 @@ class DroppedPluginsDispositionTest extends \PHPUnit\Framework\TestCase
 
 		foreach ($this->tableRows($manualBody) as $row) {
 			$pluginId = $row[0];
-			$this->assertContains(
+			$this->assertStringContainsString(
 				$pluginId,
 				$manualSection,
 				"Manual-reinstall plugin $pluginId is not recorded in the tech stack's Manual Installs section"
@@ -408,24 +408,24 @@ class DroppedPluginsDispositionTest extends \PHPUnit\Framework\TestCase
 		$techStack = $this->techStackDoc();
 
 		$this->assertArrayHasKey('amap_coverphoto', $deferred, 'amap_coverphoto is not recorded as deferred');
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'Content migration then drop',
 			$techStack,
 			'Tech stack does not record the amap_coverphoto drop trigger'
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'migration',
 			strtolower($deferred['amap_coverphoto']),
 			'amap_coverphoto deferral does not reference the content migration'
 		);
 
 		$this->assertArrayHasKey('custom_index', $deferred, 'custom_index is not recorded as deferred');
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'S1.16',
 			$deferred['custom_index'],
 			'custom_index deferral does not reference Story S1.16'
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'REQ-FR-TR-1',
 			$techStack,
 			'Tech stack does not record the custom_index handling requirement'
@@ -460,12 +460,12 @@ class DroppedPluginsDispositionTest extends \PHPUnit\Framework\TestCase
 		// exclusion with its recorded trigger.
 		$crossCheck = $this->docSection($doc, 'Cross-Check Against docs/tech_stack.md');
 		$this->assertNotSame('', $crossCheck, 'No "Cross-Check Against docs/tech_stack.md" section found');
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'custom_index is excluded',
 			$crossCheck,
 			'Cross-check does not record the custom_index exclusion from the kept list'
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'S1.16',
 			$crossCheck,
 			'Cross-check does not record the custom_index S1.16 trigger'

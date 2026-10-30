@@ -2,9 +2,10 @@
 # Pre-flight checks for installing Elgg 2.3.17 inside the Compose app
 # container (Story S1.3 Step 3).
 #
-# Elgg 2.3 provides no CLI installer, so the web installer documented in
-# docs/baseline/fresh_checkout.md remains the install procedure. This
-# script verifies everything that procedure depends on before it runs:
+# The web installer documented in docs/baseline/fresh_checkout.md remains
+# the install procedure (moving to the Elgg 3 elgg-cli installer is
+# evaluated in Story S1.9 Step 3). This script verifies everything that
+# procedure depends on before it runs:
 # required environment variables, database reachability and freshness,
 # data/cache directory writability, and the pinned Elgg core version.
 #
