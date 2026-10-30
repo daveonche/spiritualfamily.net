@@ -44,6 +44,24 @@ documents every required variable with placeholder values and no real
 secrets; copy it to `.env` and supply real values locally. `.env` is
 git-ignored, so real secrets never enter the repository.
 
+## Upgrade-Stage Pin (Story S1.9 Step 1)
+
+The first sequential upgrade step (Elgg 2.3 → Elgg 3) resolved the sprint
+story's two "latest stable" pinning flags from Packagist, queried via
+`composer show -a elgg/elgg` inside the app container (2026-10-30):
+
+| Component | Pinned version | Source |
+| --- | --- | --- |
+| Elgg core (upgrade target) | 3.3.25 | Latest stable 3.x release in the Packagist version list; `3.3.x-dev` above it is a branch, not a release |
+| PHP runtime | 7.4.27 (unchanged) | elgg/elgg 3.3.25 declares `"php": ">=7.2"` (`composer show -a elgg/elgg 3.3.25`); the pinned 7.4.27 runtime satisfies it, so the runtime pin does not move |
+
+The 2.3.17 ground-zero rows in Pinned Versions above remain the baseline
+record; this pair is the active pin for the S1.9 upgrade work. The MariaDB,
+cron, and phpMyAdmin pins are untouched by this step. The target is declared
+in `src/composer.json` (`"elgg/elgg": "3.3.25"`), so every environment
+resolves the same pair; the runtime declarations (Dockerfile `PHP_VERSION`
+default, Compose build arg, CI image) stay at 7.4 and need no edit.
+
 ## Base-Image Digest Pins
 
 Digest pins for the app image build chain (`docker/app/Dockerfile`),
