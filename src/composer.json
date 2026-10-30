@@ -5,14 +5,14 @@
 	"prefer-stable": true,
 	"minimum-stability": "dev",
 	"require": {
-		"elgg/elgg": "3.3.25",
-		"roave/security-advisories": "dev-master#69ddaead6caa68f4f6190e2ee732f103326e78ba"
+		"elgg/elgg": "3.3.25"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "9.6.38"
 	},
 	"replace": {
-		"elgg/login_as": "2.1.0"
+		"elgg/login_as": "2.1.0",
+		"roave/security-advisories": "dev-master"
 	},
 	"repositories": [
 		{
