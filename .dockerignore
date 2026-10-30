@@ -22,10 +22,15 @@ docs/
 **/tests/
 phpunit.xml*
 
-# Composer specific (Story S1.6: src/vendor is tracked in git and is
-# baked into the app image by COPY src/ — it must not be excluded from
-# the repository-root build context)
+# Composer specific
 composer.phar
+
+# Dependencies (Story S1.9: Elgg 3's composer-install model — vendor/ is
+# untracked and installed from the committed composer.lock during the app
+# image build; a stale on-disk tree must not enter the build context and
+# be COPY-ed over the lock install. Supersedes the Story S1.6 rule that
+# kept src/vendor in the context while it was tracked in git)
+src/vendor/
 
 # Elgg specific
 **/cache/
