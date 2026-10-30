@@ -2,7 +2,6 @@
 Last updated: 2026-10-30
 
 ## Active Workflow
-- Command: (none — no active workflow; side-task complete)
-- Hazard: the aider shell exports an empty ELGG_LOG_FILE (shadows .env) — recreate cron only with the ELGG_LOG_FILE=/var/www/dataroot/logs/elgg.log prefix until aider is restarted from a fresh shell
-- Last completed: side-task done — root-exec footgun note folded into AGENTS.md ("Dataroot writes from exec sessions": run dataroot-writing one-offs as --user 33:33, chown repair via the container's ELGG_LOG_FILE, root-owned rotation archives expected)
-- Reload to resume: (none pending — request the next task's files when the next task is chosen)
+- Command: $planning-story-analysis S1.9
+- Last completed: footgun probe — fresh aider shell exports ELGG_LOG_FILE=/var/www/dataroot/logs/elgg.log (correct path, not empty); hazard lapsed, hazard line cleared; post-scaffolding chain active, Mid-Sprint Entry (S1.1–S1.8 complete)
+- Reload to resume: .agent/workflows/phases/post-scaffolding-chain/SKILL.md .agent/workflows/planning/story-analysis/SKILL.md docs/sprints/sprint_1_stories.md
