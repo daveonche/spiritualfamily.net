@@ -1,6 +1,6 @@
 {
 	"name": "elgg/starter-project",
-	"description": "This is a quickstart skeleton for building a site based on Elgg 2.x.",
+	"description": "This is a quickstart skeleton for building a site based on Elgg 3.x.",
 	"license": "MIT",
 	"prefer-stable": true,
 	"minimum-stability": "dev",
@@ -13,6 +13,12 @@
 	"replace": {
 		"elgg/login_as": "2.1.0"
 	},
+	"repositories": [
+		{
+			"type": "composer",
+			"url": "https://asset-packagist.org"
+		}
+	],
 	"scripts": {
 		"post-install-cmd": "\\Elgg\\Composer\\PostInstall::execute",
 		"post-package-update": "\\Elgg\\Composer\\PostUpdate::execute",
