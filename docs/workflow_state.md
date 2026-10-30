@@ -2,6 +2,6 @@
 Last updated: 2026-10-30
 
 ## Active Workflow
-- Command: $planning-story-analysis S1.9
-- Last completed: footgun probe — fresh aider shell exports ELGG_LOG_FILE=/var/www/dataroot/logs/elgg.log (correct path, not empty); hazard lapsed, hazard line cleared; post-scaffolding chain active, Mid-Sprint Entry (S1.1–S1.8 complete)
-- Reload to resume: .agent/workflows/phases/post-scaffolding-chain/SKILL.md .agent/workflows/planning/story-analysis/SKILL.md docs/sprints/sprint_1_stories.md
+- Command: $code-implementation S1.9
+- Last completed: S1.9 Step 1 — Elgg 3.3.25/PHP 7.4.27 pins recorded (baseline.md, composer.json), composer-install delivery model landed, guard suite green on PHPUnit 9.6.38; guided verification confirmed
+- Reload to resume: .agent/workflows/code/implementation/SKILL.md docs/analysis/S1.9-story-steps.md docs/sprints/sprint_1_stories.md
