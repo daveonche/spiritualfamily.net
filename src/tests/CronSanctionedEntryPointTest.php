@@ -1,11 +1,11 @@
 <?php
 
-class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
+class CronSanctionedEntryPointTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * Story S1.7 Step 1 guard: scheduled jobs must reach the Elgg core
 	 * through the core's sanctioned entry point for cron-driven processing.
-	 * For the pinned Elgg 2.3.17 core that is the core's HTTP cron endpoint
+	 * For the pinned Elgg 3.3.25 core that is the core's HTTP cron endpoint
 	 * (/cron/<interval>?__elgg_mac=<token>), triggered by the S1.2 wget
 	 * crontab baked into the cron image.
 	 */
@@ -55,7 +55,7 @@ class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
 
 	private function expectedSchedules()
 	{
-		// All recurring intervals supported by Elgg 2.3.17, at their defined
+		// All recurring intervals supported by Elgg 3.3.25, at their defined
 		// frequencies (standard cron five-field schedules)
 		return array(
 			'minute' => '* * * * *',
@@ -177,7 +177,7 @@ class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
 
 	public function testCronImageBakesCommittedCrontab()
 	{
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'COPY docker/cron/crontab /tmp/app-cron',
 			$this->cronDockerfileContents(),
 			'The cron image must bake the committed crontab as the entrypoint spool source'
@@ -197,22 +197,22 @@ class CronSanctionedEntryPointTest extends \PHPUnit_Framework_TestCase
 	public function testCronEntrypointWritesSingleSpoolFileAndRunsCrondInForeground()
 	{
 		$compose = $this->composeContents();
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'/var/spool/cron/crontabs/root',
 			$compose,
 			'The cron entrypoint must expand tokens into the single active BusyBox spool location'
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'chmod 600 /var/spool/cron/crontabs/root',
 			$compose,
 			'The expanded spool file must carry the strict permissions BusyBox cron requires'
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'touch /var/spool/cron/crontabs/cron.update',
 			$compose,
 			'The entrypoint must force the daemon to reload the expanded schedule immediately'
 		);
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'crond -f -d 8',
 			$compose,
 			'crond must run in foreground with debug logging so scheduled execution is observable via compose logs'
