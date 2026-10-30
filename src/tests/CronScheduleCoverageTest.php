@@ -1,6 +1,6 @@
 <?php
 
-class CronScheduleCoverageTest extends \PHPUnit_Framework_TestCase
+class CronScheduleCoverageTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * Story S1.7 Step 2 guard: every recurring interval the current platform
