@@ -104,7 +104,7 @@ The full secrets-injection treatment is Step 3 of the story steps.
 
 | Service | Role | Image / build | In production |
 | :--- | :--- | :--- | :--- |
-| app | Elgg web server | Built from `docker/app/Dockerfile` (repository-root context) via the `PHP_VERSION` build arg; web root incl. tracked `vendor/` and PHP ini baked in | Yes |
+| app | Elgg web server | Built from `docker/app/Dockerfile` (repository-root context) via the `PHP_VERSION` build arg; web root, PHP ini, and the lock-installed `vendor/` baked in | Yes |
 | dbm | MariaDB database | Pinned `mariadb:10.11.18` | Yes |
 | cron | Scheduled tasks | Built from `docker/cron/Dockerfile`; committed crontab baked in (`sfn/elgg_cron:3.23.3`) | Yes |
 
@@ -128,9 +128,10 @@ docker compose -f compose.yml -f compose.dev.yml up -d
 
 1. Coolify clones the repository and builds **both** images from the
    repository root: the app image (`docker/app/Dockerfile`, `PHP_VERSION`
-   build arg) with the web root — `src/` including the tracked `vendor/` —
-   and the PHP ini overrides baked in; the cron image
-   (`docker/cron/Dockerfile`) with the committed crontab baked in.
+   build arg) with the web root — `src/` plus the dependencies installed
+   from the committed `composer.lock` at build time — and the PHP ini
+   overrides baked in; the cron image (`docker/cron/Dockerfile`) with the
+   committed crontab baked in.
 2. The production definition carries **no repository bind mounts**:
    v4.4.6 runs `docker compose up` without the cloned repository present,
    so repo-relative bind sources would resolve to empty directories.
@@ -292,11 +293,11 @@ Troubleshooting:
 - **Do not run the Elgg web installer in production.** The production
   schema arrives with the Step 7 dump restore; a web-installer schema
   would be a parallel one the restore would have to remove.
-- **No `composer install` in the container.** The tracked vendor tree is
-  baked into the image (the S1.1 baseline design: a fresh clone runs
-  without `composer install`); the container's writable layer is
-  ephemeral, and the base image disables `putenv()`, which Composer
-  requires.
+- **No `composer install` in the running container.** Dependencies are
+  installed from the committed lock during the image build (Story S1.9:
+  Elgg 3's composer-install model — `vendor/` is untracked) and baked in;
+  the container's writable layer is ephemeral, and the base image disables
+  `putenv()`, which Composer requires.
 - **Empty mail variables fall back to the dev defaults.** With
   `MAIL_SMTP_HOST`/`MAIL_SMTP_PORT` empty (or absent), the Compose
   interpolation defaults apply in the app container

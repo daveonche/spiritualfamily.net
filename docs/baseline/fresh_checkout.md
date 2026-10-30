@@ -7,9 +7,9 @@ deliverable of Story S1.1 Step 5; execute it verbatim when verifying.
 
 Notes:
 
-- `src/vendor` (pinned Elgg 2.3.17) and `src/composer.lock` are tracked in git,
-  so a fresh clone runs without `composer install`; the Composer step below is
-  a consistency check only.
+- `src/composer.lock` is tracked in git and is the pin; `src/vendor` is
+  untracked (Story S1.9: Elgg 3's composer-install model) and installed from
+  the lock during the app image build — step 5 verifies the baked install.
 - The committed `src/elgg-config/settings.php` reads every environment-specific
   setting from environment variables (`MYSQL_USER`, `MYSQL_PASSWORD`,
   `MYSQL_DATABASE`, `MYSQL_HOST`, `ELGG_DB_PREFIX`, `WWW_DATA`, `WWW_CACHE`,
@@ -98,17 +98,23 @@ docker compose exec app php -v
 ```
 
 Expected: PHP 7.4.27 (pinned pair: Elgg 2.3.17 / PHP 7.4.27). Optional
-cross-check: `$release` in `src/vendor/elgg/elgg/version.php` reads `2.3.17`.
+cross-check: `$release` in the container's
+`/var/www/html/vendor/elgg/elgg/version.php` reads `2.3.17`.
 
-### 5. Composer consistency check (optional)
+### 5. Verify the baked dependency install
 
-From `src/` on the host, if Composer is installed:
+Dependencies are installed from the committed lock during the app image
+build (Story S1.9: Elgg 3's composer-install model — `src/vendor` is
+untracked). Verify the baked install inside the container — no host
+Composer assumed:
 
 ```bash
-cd src && composer validate && cd ..
+docker compose exec app sh -c 'cd /var/www/html && composer install --no-interaction --no-progress'
 ```
 
-Nothing is downloaded; a failure here is a manifest/lock inconsistency to
+Expected: "Nothing to install, update or remove" — the image build already
+installed exactly the locked versions, so a no-op install proves the baked
+tree matches the lock. A failure here is a manifest/lock inconsistency to
 record, not a blocker for the run verification.
 
 ### 6. Install Elgg (fresh database only)
@@ -176,5 +182,4 @@ Add `-v` to also remove this verification run's volumes.
   the committed `src/bin/install_preflight.sh` automates the pre-flight
   portion
 - The OS hosts entry for `v2.sfnapp.local`
-- The host-side Composer consistency check (optional)
 - Admin account creation and local credential recording

@@ -178,6 +178,14 @@ jobs:
     # scope visible on top of the workflow-level baseline.
     permissions:
       contents: read
+    env:
+      # Composer on the pinned PHP 7.4 refuses to extract the bower-asset
+      # tar dists (asset-packagist serves tars; Composer's tar/phar
+      # hardening applies below PHP 8.0). The dists are the official
+      # bower releases and the extraction happens only inside this CI
+      # container — the same override the app image's build-time install
+      # uses (docker/app/Dockerfile).
+      COMPOSER_ALLOW_UNSAFE_PHAR_METADATA: "1"
     container:
       # The pinned runtime (docs/baseline/baseline.md, PHP 7.4.27) — the
       # same image as the runtime job. The composer:2.2.24 image runs a
