@@ -12,13 +12,13 @@ class CronScheduleCoverageTest extends \PHPUnit\Framework\TestCase
 	 * this suite until the crontab and the pinned schedule list are
 	 * adjusted.
 	 *
-	 * Elgg 2.3.17 has no elgg_get_cron_periods() helper: the core registers
-	 * its periods via elgg_set_config('elgg_cron_periods', ...) in
-	 * _elgg_cron_init() and drives scheduled execution from the
-	 * period => interval map in _elgg_cron_run() (engine/lib/cron.php).
-	 * The map is parsed because it carries each period's defined frequency;
-	 * when a later core version grows a dedicated periods API, re-point
-	 * this parser at it.
+	 * Elgg 3.3.25 defines the supported intervals as the
+	 * period => cron-schedule map in the $default_intervals property of
+	 * the core's scheduler class (engine/classes/Elgg/Cron.php) — the
+	 * class that drives scheduled execution and serves /cron/<interval>.
+	 * The map is parsed because it carries each period's defined
+	 * frequency; when a later core version moves or reshapes it, re-point
+	 * this parser at the new definition.
 	 */
 
 	private function repoDir()
@@ -41,18 +41,18 @@ class CronScheduleCoverageTest extends \PHPUnit\Framework\TestCase
 		return $contents;
 	}
 
-	private function coreCronLibraryContents()
+	private function coreCronClassContents()
 	{
 		// src/ resolved relative to this file (src/tests/…), per
 		// BaselineVersionTest's pattern: works from the repo checkout and
 		// inside the container, where src/ is mounted at /var/www/html
-		$path = dirname(__DIR__) . '/vendor/elgg/elgg/engine/lib/cron.php';
+		$path = dirname(__DIR__) . '/vendor/elgg/elgg/engine/classes/Elgg/Cron.php';
 		$this->assertFileExists(
 			$path,
-			'Vendored Elgg core cron library missing at src/vendor/elgg/elgg/engine/lib/cron.php'
+			'Vendored Elgg core scheduler class missing at src/vendor/elgg/elgg/engine/classes/Elgg/Cron.php'
 		);
 		$contents = file_get_contents($path);
-		$this->assertNotFalse($contents, 'Vendored Elgg core cron library is not readable');
+		$this->assertNotFalse($contents, 'Vendored Elgg core scheduler class is not readable');
 		return $contents;
 	}
 
@@ -63,18 +63,12 @@ class CronScheduleCoverageTest extends \PHPUnit\Framework\TestCase
 	 */
 	private function coreCronPeriods()
 	{
-		$contents = $this->coreCronLibraryContents();
+		$contents = $this->coreCronClassContents();
 
 		$this->assertSame(
 			1,
-			preg_match('~function _elgg_cron_run\(\)\s*\{(.*?)\n\}~s', $contents, $function),
-			'_elgg_cron_run() not found in the vendored core cron library — the core changed its cron API; re-derive the supported intervals from the new core'
-		);
-
-		$this->assertSame(
-			1,
-			preg_match('~\$periods\s*=\s*(?:array\s*\(|\[)(.*?)(?:\)|\])~s', $function[1], $literal),
-			'Default cron period map not found inside _elgg_cron_run() — re-derive the supported intervals from the new core'
+			preg_match('~\$default_intervals\s*=\s*\[(.*?)\];~s', $contents, $literal),
+			'$default_intervals map not found in the vendored core scheduler class — the core changed its cron API; re-derive the supported intervals from the new core'
 		);
 
 		$periods = array();
@@ -86,13 +80,11 @@ class CronScheduleCoverageTest extends \PHPUnit\Framework\TestCase
 			'No cron periods could be derived from the vendored core — re-derive the supported intervals from the new core'
 		);
 
-		// Reboot disposition: the core itself marks the period deprecated
-		// ("// reboot is deprecated and probably does not work") and it is
-		// not a recurring interval — no cron schedule exists for it. Step 2
-		// schedules every *recurring* interval, so 'reboot' is excluded
-		// here. If a future core drops it the filter becomes a no-op; any
-		// newly supported period still fails the comparisons until the
-		// crontab and pinned list are adjusted.
+		// Reboot disposition: Elgg 2.3 registered a deprecated 'reboot'
+		// period that was not a recurring interval; Elgg 3.3.25 no longer
+		// registers it, so this filter is a no-op retained for
+		// forward-compatibility. Any newly supported period still fails
+		// the comparisons until the crontab and pinned list are adjusted.
 		$periods = array_values(array_diff($periods, array('reboot')));
 
 		return $periods;
@@ -151,7 +143,7 @@ class CronScheduleCoverageTest extends \PHPUnit\Framework\TestCase
 		$this->assertSame(
 			$corePeriods,
 			$scheduled,
-			'The crontab schedule set must exactly match the intervals the vendored Elgg core supports (elgg_get_cron_periods()) — after a core upgrade, re-derive the interval list from the new core and adjust the crontab'
+			'The crontab schedule set must exactly match the intervals the vendored Elgg core supports ($default_intervals in Elgg\Cron) — after a core upgrade, re-derive the interval list from the new core and adjust the crontab'
 		);
 	}
 
@@ -166,7 +158,7 @@ class CronScheduleCoverageTest extends \PHPUnit\Framework\TestCase
 		$this->assertSame(
 			$corePeriods,
 			$pinned,
-			'The pinned schedule list in CronSanctionedEntryPointTest must match the intervals the vendored Elgg core supports (elgg_get_cron_periods()) — after a core upgrade, re-derive the interval list from the new core and update the pinned list'
+			'The pinned schedule list in CronSanctionedEntryPointTest must match the intervals the vendored Elgg core supports ($default_intervals in Elgg\Cron) — after a core upgrade, re-derive the interval list from the new core and update the pinned list'
 		);
 	}
 }
