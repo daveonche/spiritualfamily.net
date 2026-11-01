@@ -57,7 +57,7 @@ class BaselineDependencyPinTest extends \PHPUnit\Framework\TestCase
 
 		// No open-ended ranges: reject comparison operators, wildcards,
 		// and range separators in the pinned constraint.
-		$this->assertNotRegExp(
+		$this->assertDoesNotMatchRegularExpression(
 			'/[<>*~^|,]/',
 			$composer['require']['elgg/elgg'],
 			'The elgg/elgg constraint must be an exact pin with no open-ended range'
