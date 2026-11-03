@@ -62,6 +62,23 @@ chmod 0755 /usr/local/bin/composer
 composer --version
 EOF
 
+# Database driver for Elgg 3 (Story S1.9 Step 5): Elgg 3 talks to MySQL
+# exclusively through PDO (ext-pdo in elgg/elgg's composer.json), while
+# the Elgg 2.3 baseline used mysqli — so the base image lacks the
+# pdo_mysql driver and Elgg 3 reports "couldn't connect to the database"
+# on valid credentials. Install it through the official docker-php-ext-install
+# helper (standard in php-derived base images) and fail the build unless
+# the extension actually loads.
+RUN <<EOF
+if command -v docker-php-ext-install >/dev/null 2>&1; then
+    docker-php-ext-install pdo_mysql
+else
+    echo "no docker-php-ext-install in base image" >&2
+    exit 1
+fi
+php -r 'exit(extension_loaded("pdo_mysql") ? 0 : 1);' || { echo "pdo_mysql not loaded" >&2; exit 1; }
+EOF
+
 # Outgoing-mail relay (Story S1.4 Step 3 duty check): the base image's
 # stock /usr/sbin/sendmail cannot deliver from inside the container, so
 # PHP mail() fails silently and uservalidationbyemail never reaches the
