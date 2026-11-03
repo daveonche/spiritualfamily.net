@@ -76,6 +76,15 @@ else
     echo "no docker-php-ext-install in base image" >&2
     exit 1
 fi
+# The compile succeeds but the base image ships no enabling ini for
+# pdo_mysql (observed 2026-11-03: .so present in extension_dir yet
+# extension_loaded() false, no conf.d reference). Enable it explicitly:
+# prefer the official helper, fall back to writing the ini directly.
+if command -v docker-php-ext-enable >/dev/null 2>&1; then
+    docker-php-ext-enable pdo_mysql
+else
+    echo 'extension=pdo_mysql' > /usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini
+fi
 php -r 'exit(extension_loaded("pdo_mysql") ? 0 : 1);' || { echo "pdo_mysql not loaded" >&2; exit 1; }
 EOF
 
