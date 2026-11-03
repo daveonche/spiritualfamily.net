@@ -259,6 +259,70 @@ except the recorded site-URL change:
 Record the result in `docs/baseline/baseline.md` (Production Re-Deploy
 Reproducibility section) and add a Run log row below.
 
+## Elgg major-version upgrade sequence (S1.9 record)
+
+Story S1.9 Step 5 executed the first sequential hop (Elgg 2.3.17 →
+3.3.25) locally against the restored production copy. Recorded here as
+the reusable template for every future upgrade point; the production
+deploy at the upgrade point additionally follows Steps 1–5 above
+(backup, restorability, deploy, data migration, verification).
+
+1. **Pin the target** — declare the exact `elgg/elgg` version in
+   `src/composer.json` and regenerate the lock (per
+   `docs/dependencies/S1.9-dependencies.md`), then rebuild the local
+   stack at the pinned pair. The PHP pin does not move for a 2.3 → 3.x
+   hop (verify the constraint via `composer show -a elgg/elgg <version>`).
+2. **Run the official routine in the browser** — `upgrade.php` on the
+   local vhost. The CLI alternative (`elgg-cli upgrade async`) was ruled
+   out for this stack: the CLI image has no mysql transport, so the web
+   path is the reproducible one.
+3. **Remediate boot blockers one at a time**, re-running `upgrade.php`
+   after each fix, in the order observed here:
+   - `extension=pdo_mysql` missing — the repo `docker/app/php/extensions.ini`
+     overwrites the base image's conf.d copy, which carried the
+     extension lines; Elgg 3 talks to MySQL only through PDO, so without
+     it the site cannot connect. Commit `d309071`.
+   - `.htaccess` rewrite `index.php?__elgg_uri=$1` → `index.php`
+     (Elgg 3 rewrite requirement, official upgrade notes). Commit
+     `a902e1f`.
+   - Remove stale Elgg 2.3 plugin copies from `src/mod/` — every plugin
+     bundled with the new core ships under `vendor/` instead, and a
+     stale local copy calling a removed API fatals every boot (observed:
+     `blog` → `Call to undefined function elgg_register_library()`).
+     Verify the vendor bundle with
+     `ls src/vendor/elgg/elgg/mod | sort` before deleting. Third-party
+     plugins in `mod/` go with them, with their data migration recorded
+     as follow-up work (here: `amap_coverphoto` → Elgg 3 native `cover`
+     icon type, pending).
+   - `extension=gd` missing — Elgg 3 renders entity icons through
+     Imagine's Gd driver (`Gd not installed` fatal while `gd.so` sat
+     unloaded in `extension_dir`); same overwriting-ini cause as
+     pdo_mysql. Verify loaded after rebuild with
+     `… exec -T app php -m | grep -i gd`. Commit `b4f7cb7`.
+4. **If an async upgrade fails on MariaDB ≥ 10.3** ("Failure to set
+   'innodb_large_prefix'"): the variable was removed in MariaDB 10.3 and
+   is always on in 10.11. Elgg's `AlterDatabaseToMultiByteCharset`
+   upgrade probes it with `SHOW GLOBAL VARIABLES`, misreads the empty
+   result as OFF, runs `SET GLOBAL innodb_large_prefix = 'ON'` which
+   throws, and returns before any ALTER executes — so the conversion
+   never happened. Reproduce the class's SQL manually as root on the dbm
+   container (`ALTER DATABASE … utf8mb4` plus per-table
+   `ROW_FORMAT=DYNAMIC` / `CONVERT TO CHARACTER SET utf8mb4` with the
+   class's index drop/re-add for its 16 target tables; scratch scripts
+   commit `8a5e563`, files removed from tracking after use). Check
+   completeness with
+   `SELECT table_name, table_collation FROM information_schema.tables
+   WHERE table_schema = DATABASE()` — all 16 must read
+   `utf8mb4_general_ci`; the vendor upgrade then resolves itself via its
+   own `shouldBeSkipped()` and disappears from the pending list.
+5. **Complete all remaining pending upgrades** in the admin area
+   (asynchronous data migrations) and confirm the pending list is empty
+   and error-free before declaring the step verified.
+6. **Record** verification figures and follow-up work (dropped-plugin
+   data migrations) in the step report and `docs/baseline/baseline.md`
+   as applicable; the Run log row below is added at the production
+   deploy, not the local upgrade run.
+
 ## Run log
 
 One row per production deploy:

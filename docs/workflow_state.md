@@ -3,6 +3,6 @@ Last updated: 2026-11-03
 
 ## Active Workflow
 - Command: $code-implementation S1.9
-- Last completed: S1.9 Step 5 mid-flight — plan approved, official routine chosen (web upgrade.php; CLI elgg-cli unusable, no mysql transport in CLI). Fixed pdo_mysql: repo extensions.ini overwrote base image's ini (carried extension lines); added extension=pdo_mysql, committed d309071. .htaccess rewrite rule updated to index.php (a902e1f)
-- Next action: open http://v2.sfnapp.local/upgrade.php in browser, run official upgrade end-to-end, report completion/error; then check app log for fatals and capture commands for Step 10 runbook
+- Last completed: S1.9 Step 5 verified complete (Y/Y): official upgrade + all pending migrations clean. Remediations: pdo_mysql (d309071), .htaccess (a902e1f), stale mod/ plugin removal, gd (b4f7cb7), utf8mb4 manual conversion (8a5e563). S1.9 record drafted in deploy_runbook.md
+- Next action: run #implement-step S1.9 6 — verify upgraded site locally: admin login, core pages browse, ELGG_LOG_FILE fatal check
 - Reload to resume: .agent/workflows/code/implementation/SKILL.md docs/analysis/S1.9-story-steps.md docs/sprints/sprint_1_stories.md docs/dependencies/S1.9-dependencies.md docs/deployment/deploy_runbook.md
