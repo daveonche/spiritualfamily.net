@@ -299,6 +299,41 @@ deploy at the upgrade point additionally follows Steps 1–5 above
      unloaded in `extension_dir`); same overwriting-ini cause as
      pdo_mysql. Verify loaded after rebuild with
      `… exec -T app php -m | grep -i gd`. Commit `b4f7cb7`.
+   - Keep the `src/mod/` directory itself (recreated empty in commit
+     `7953d27` after the cleanup above had removed it with its
+     contents): it is the only scan root Elgg resolves plugin entities
+     against — `plugins_path` defaults to `Paths::project() . 'mod/'`
+     (`ServiceProvider.php`), and `ElggPlugin::getPath()` computes
+     `plugins_path . <id>` at runtime; nothing is stored per entity —
+     and it is the destination for manually installed plugins
+     (Story S1.14). Elgg 3.3 discovers plugins only under `plugins_path`;
+     the vendor bundle (`src/vendor/elgg/elgg/mod/`) is never scanned in
+     the elgg-as-composer-dependency layout, so bridge every bundled
+     plugin into the scan root with a relative symlink
+     (`mod/<id> -> ../vendor/elgg/elgg/mod/<id>`; relative so one link
+     resolves both inside the container and in the host checkout, and
+     composer regeneration of `vendor/` never breaks it). Deleting
+     `mod/` leaves every plugin entity enabled-but-invalid ("Missing
+     ElggPluginPackage", cannot activate): `generateEntities()`
+     early-returns on an empty/missing scan dir before its disable
+     loop, so the system can neither regenerate nor even disable the
+     orphans.
+   - Delete legacy scan-artifact plugin entities once the scan root is
+     populated: plugin entities whose ID is an Elgg package
+     subdirectory, not a plugin (`actions`, `classes`, `install`,
+     `languages`, `lib`, `screenshots`, `vendor`, `views` — one batch
+     created 2021-03-14 by a scan run against an unpacked Elgg source
+     tree on the pre-container host — plus `disabled`, 2023-09-20).
+     SQL-delete each GUID across `*_metadata`, `*_private_settings`,
+     `*_annotations`, and `*_entity_relationships`, then `*_entities`
+     (children first). Dropped third-party plugin entities are NOT
+     deleted: with the scan root populated, `generateEntities()`'s
+     disable loop disables them while preserving their settings (the
+     core's own rule: "don't delete the entities because they hold
+     settings"), keeping the recorded data migrations (e.g.
+     `amap_coverphoto` → `cover`) possible. The `config` table's `path`
+     row still holds the pre-container host path; it is inert at
+     runtime (only `ElggInstaller` reads it) and is left in place.
 4. **If an async upgrade fails on MariaDB ≥ 10.3** ("Failure to set
    'innodb_large_prefix'"): the variable was removed in MariaDB 10.3 and
    is always on in 10.11. Elgg's `AlterDatabaseToMultiByteCharset`
