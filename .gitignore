@@ -7,6 +7,10 @@
 /src/composer.phar
 *.phar
 
+# PHPUnit test-result cache (machine-local state rewritten on every test
+# run; never committed)
+.phpunit.result.cache
+
 # ------------------------------------------------------------------
 # environment / secrets
 # ------------------------------------------------------------------
