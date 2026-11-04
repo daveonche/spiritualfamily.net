@@ -3,6 +3,6 @@ Last updated: 2026-11-04
 
 ## Active Workflow
 - Command: $code-implementation S1.9
-- Last completed: S1.9 Step 6 verified complete (Y/Y/Y/Y): admin login, core pages browse, log fatal check 0, deprecations 0 (recorded for S1.10). Fix session: mod/ recreated (7953d27), vendor symlinks + runbook + disposition-test skip (07b1eed, ebd999b2), 9 artifact plugin entities deleted
-- Next action: run #implement-step S1.9 7 — take and verify the pre-upgrade production database backup
+- Last completed: S1.9 Step 7 verified complete (7/7): old-production phpMyAdmin dump sdb-74_hosting_stackcp_net.sql.gz (120873040 B, gzip OK) in tmp/sfn-backups/, transferred to VPS ~/sfn-backups/, restorability verified on dbm backup_verify (38/38 tables, names match; +2 = system_log archives 2026-09-30/11-01), scratch dropped; runbook updated (dump-derived table counts, backup record)
+- Next action: run #implement-step S1.9 8 — deploy the upgraded stack to production with the database upgraded in sync
 - Reload to resume: .agent/workflows/code/implementation/SKILL.md docs/analysis/S1.9-story-steps.md docs/sprints/sprint_1_stories.md docs/dependencies/S1.9-dependencies.md docs/deployment/deploy_runbook.md

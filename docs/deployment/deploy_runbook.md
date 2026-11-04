@@ -80,7 +80,8 @@ Before the Step 7 migration the production database is empty, so its dump
 restores 0 tables — expected, and not a failure. The pre-migration
 restorability gate is the S1.3 production-dump restore check (recorded in
 `docs/baseline/baseline.md`); from the first post-migration deploy onward,
-this check must show the full 36-table schema.
+this check must show the full schema — table count equal to the dump's
+`CREATE TABLE` count, derived per the check below.
 
 Native `mariadb-dump` output contains no `CREATE DATABASE`/`USE` redirect
 lines, but the phpMyAdmin-exported production dump does (baseline finding):
@@ -95,8 +96,12 @@ docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DA
 gunzip -c "$(ls -t ~/sfn-backups/sfn-elgg-*.sql.gz | head -n 1)" | grep -vE '^(CREATE DATABASE|USE )' | docker exec -i "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" backup_verify'
 ```
 
-Confirm the scratch database holds the full schema — 36 tables, matching
-the production dump's 36 `CREATE TABLE` statements:
+Confirm the scratch database holds the full schema — the table count must
+equal the dump's own `CREATE TABLE` statement count. Derive the expected
+figure from the dump instead of assuming a fixed number: it grows as the
+live site's monthly system_log archive rotations add tables (38 as of the
+2026-11-04 pre-upgrade dump, up from 36 in the October records) —
+`gunzip -c <dump>.sql.gz | grep -c '^CREATE TABLE'`:
 
 ```bash
 docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = \"backup_verify\""'
@@ -138,7 +143,8 @@ Restore Verification).
 gunzip -c <production dump>.sql.gz | grep -vE '^(CREATE DATABASE|USE )' | docker exec -i "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
 ```
 
-Confirm the production schema holds the full dump — 36 tables:
+Confirm the production schema holds the full dump — table count equal to
+the dump's `CREATE TABLE` count (derived per Step 2):
 
 ```bash
 docker exec "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = \"$MYSQL_DATABASE\""'
@@ -271,6 +277,19 @@ Story S1.9 Step 5 executed the first sequential hop (Elgg 2.3.17 →
 the reusable template for every future upgrade point; the production
 deploy at the upgrade point additionally follows Steps 1–5 above
 (backup, restorability, deploy, data migration, verification).
+
+Pre-upgrade backup for this upgrade point (S1.9 Step 7, taken
+2026-11-04): the authoritative data still lives on the old production
+site (live, shared hosting, no SSH), so the backup was exported there via
+phpMyAdmin — `sdb-74_hosting_stackcp_net.sql.gz`, 120,873,040 bytes,
+gzip-integrity verified — into the repo's gitignored `tmp/sfn-backups/`,
+then transferred to the VPS `~/sfn-backups/`. Restorability verified on
+the dbm scratch database `backup_verify`: 38 tables, count and names
+matching the dump's 38 `CREATE TABLE` statements (the two beyond the
+recorded 36 are the system_log archive tables of 2026-09-30 and
+2026-11-01). This dump is the Step 8 rollback point and data-sync source;
+retain it until the production upgrade is confirmed successful. The Run
+log row is added at the production deploy.
 
 1. **Pin the target** — declare the exact `elgg/elgg` version in
    `src/composer.json` and regenerate the lock (per
