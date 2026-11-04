@@ -1,0 +1,4 @@
+Custom Elgg plugins directory. Git does not track empty directories, so
+this placeholder keeps it in the repository. Bundled Elgg 3 plugins ship
+in src/vendor/elgg/elgg/mod/ (composer-managed); manually installed
+third-party plugins (Story S1.14) are copied here.
