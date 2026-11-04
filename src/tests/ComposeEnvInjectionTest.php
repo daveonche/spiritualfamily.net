@@ -14,9 +14,9 @@
  * Step 6).
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class ComposeEnvInjectionTest extends \PHPUnit_Framework_TestCase
+class ComposeEnvInjectionTest extends \PHPUnit\Framework\TestCase
 {
 	private function repoDir()
 	{

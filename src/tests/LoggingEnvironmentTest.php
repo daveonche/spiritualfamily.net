@@ -30,9 +30,9 @@
  *   ELGG_DEBUG_LEVEL keeps severity filtering per environment.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class LoggingEnvironmentTest extends \PHPUnit_Framework_TestCase
+class LoggingEnvironmentTest extends \PHPUnit\Framework\TestCase
 {
 	private function repoDir()
 	{

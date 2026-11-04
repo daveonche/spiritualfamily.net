@@ -1,6 +1,6 @@
 <?php
 
-class WorkflowStatePointerTest extends \PHPUnit_Framework_TestCase
+class WorkflowStatePointerTest extends \PHPUnit\Framework\TestCase
 {
 	private function repoDir()
 	{

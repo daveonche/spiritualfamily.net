@@ -4,9 +4,9 @@
  * Step 1 tests for Story S1.2 — version-parameterized web application image build.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class ComposeImageBuildTest extends \PHPUnit_Framework_TestCase
+class ComposeImageBuildTest extends \PHPUnit\Framework\TestCase
 {
 	/** Docker-tag form of the stage's pinned PHP runtime (docs/baseline/baseline.md). */
 	const PINNED_RUNTIME_DOCKER_TAG = '7.4';
@@ -104,7 +104,7 @@ class ComposeImageBuildTest extends \PHPUnit_Framework_TestCase
 				"Base image reference '$ref' has no explicit tag"
 			);
 			// No floating "latest" reference
-			$this->assertNotRegExp(
+			$this->assertDoesNotMatchRegularExpression(
 				'/:latest$/',
 				$ref,
 				"Base image reference '$ref' floats the \"latest\" tag"

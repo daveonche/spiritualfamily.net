@@ -12,7 +12,7 @@ declare(strict_types=1);
  * Complements, not duplicates: ComposeDatabasePinTest (dbm ↔ baseline) and
  * CiPinnedRuntimeTest (runtime tag ↔ recorded digest enforcement in CI).
  */
-class ProductionVersionPinTest extends \PHPUnit_Framework_TestCase
+class ProductionVersionPinTest extends \PHPUnit\Framework\TestCase
 {
     private function repoDir(): string
     {

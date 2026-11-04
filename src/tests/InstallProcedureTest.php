@@ -72,8 +72,8 @@ class InstallProcedureTest extends \PHPUnit\Framework\TestCase
 		$this->assertFileExists($this->scriptPath());
 		$script = $this->scriptContents();
 
-		$this->assertContains('#!/usr/bin/env bash', $script);
-		$this->assertContains('set -euo pipefail', $script);
+		$this->assertStringContainsString('#!/usr/bin/env bash', $script);
+		$this->assertStringContainsString('set -euo pipefail', $script);
 	}
 
 	/**
@@ -97,7 +97,7 @@ class InstallProcedureTest extends \PHPUnit\Framework\TestCase
 			'WWW_CACHE',
 		];
 		foreach ($required as $var) {
-			$this->assertContains($var, $script);
+			$this->assertStringContainsString($var, $script);
 		}
 	}
 
@@ -111,8 +111,8 @@ class InstallProcedureTest extends \PHPUnit\Framework\TestCase
 	{
 		$script = $this->scriptContents();
 
-		$this->assertContains('PDO', $script);
-		$this->assertContains('SHOW TABLES', $script);
+		$this->assertStringContainsString('PDO', $script);
+		$this->assertStringContainsString('SHOW TABLES', $script);
 	}
 
 	/**
@@ -124,9 +124,9 @@ class InstallProcedureTest extends \PHPUnit\Framework\TestCase
 	{
 		$script = $this->scriptContents();
 
-		$this->assertContains('check_writable_dir "${WWW_DATA}"', $script);
-		$this->assertContains('check_writable_dir "${WWW_CACHE}"', $script);
-		$this->assertContains('www-data', $script);
+		$this->assertStringContainsString('check_writable_dir "${WWW_DATA}"', $script);
+		$this->assertStringContainsString('check_writable_dir "${WWW_CACHE}"', $script);
+		$this->assertStringContainsString('www-data', $script);
 	}
 
 	/**
@@ -138,7 +138,7 @@ class InstallProcedureTest extends \PHPUnit\Framework\TestCase
 	{
 		$script = $this->scriptContents();
 
-		$this->assertContains("PINNED_ELGG_VERSION='2.3.17'", $script);
+		$this->assertStringContainsString("PINNED_ELGG_VERSION='3.3.25'", $script);
 	}
 
 	/**
@@ -151,11 +151,11 @@ class InstallProcedureTest extends \PHPUnit\Framework\TestCase
 	{
 		$doc = $this->procedureDocContents();
 
-		$this->assertContains('install_preflight.sh', $doc);
-		$this->assertContains(
+		$this->assertStringContainsString('install_preflight.sh', $doc);
+		$this->assertStringContainsString(
 			'docker compose exec app /var/www/html/bin/install_preflight.sh',
 			$doc
 		);
-		$this->assertContains('no CLI installer', $doc);
+		$this->assertStringContainsString('no CLI installer', $doc);
 	}
 }

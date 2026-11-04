@@ -4,9 +4,9 @@
  * Step 2 tests for Story S1.2 — version-pair-agnostic build inputs.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class VersionPairAgnosticBuildTest extends \PHPUnit_Framework_TestCase
+class VersionPairAgnosticBuildTest extends \PHPUnit\Framework\TestCase
 {
 	private function repoDir()
 	{

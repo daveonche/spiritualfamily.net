@@ -1,6 +1,6 @@
 <?php
 
-class ContainerLogRoutingTest extends \PHPUnit_Framework_TestCase
+class ContainerLogRoutingTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * Story S1.8 Step 5 guard: each container service (application,

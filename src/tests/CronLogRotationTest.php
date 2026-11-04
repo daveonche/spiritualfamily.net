@@ -1,6 +1,6 @@
 <?php
 
-class CronLogRotationTest extends \PHPUnit_Framework_TestCase
+class CronLogRotationTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * Story S1.7 Step 5 guard: the scheduled-task output log rotates

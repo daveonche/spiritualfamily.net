@@ -8,7 +8,7 @@
  * the observed evidence.
  */
 
-class CronLogRotationVerificationTest extends \PHPUnit_Framework_TestCase
+class CronLogRotationVerificationTest extends \PHPUnit\Framework\TestCase
 {
 	private function recordFile()
 	{
@@ -28,29 +28,29 @@ class CronLogRotationVerificationTest extends \PHPUnit_Framework_TestCase
 	public function testRecordPinsRotationScriptAndSchedule()
 	{
 		$contents = $this->recordContents();
-		$this->assertContains('rotate-cron-log.sh', $contents);
-		$this->assertContains('30 0 * * *', $contents);
+		$this->assertStringContainsString('rotate-cron-log.sh', $contents);
+		$this->assertStringContainsString('30 0 * * *', $contents);
 	}
 
 	public function testRecordPinsCopyTruncateMechanism()
 	{
 		$contents = $this->recordContents();
-		$this->assertContains('copy-truncate', $contents);
-		$this->assertContains('app-cron.log', $contents);
-		$this->assertContains('gzip', $contents);
+		$this->assertStringContainsString('copy-truncate', $contents);
+		$this->assertStringContainsString('app-cron.log', $contents);
+		$this->assertStringContainsString('gzip', $contents);
 	}
 
 	public function testRecordPinsRetentionSeed()
 	{
 		$contents = $this->recordContents();
-		$this->assertContains('20200101-000000', $contents);
-		$this->assertContains('touch -t', $contents);
+		$this->assertStringContainsString('20200101-000000', $contents);
+		$this->assertStringContainsString('touch -t', $contents);
 	}
 
 	public function testRecordPinsObservedEvidence()
 	{
 		$contents = $this->recordContents();
-		$this->assertContains('20261026-030538', $contents);
-		$this->assertContains('fs-cronlog', $contents);
+		$this->assertStringContainsString('20261026-030538', $contents);
+		$this->assertStringContainsString('fs-cronlog', $contents);
 	}
 }

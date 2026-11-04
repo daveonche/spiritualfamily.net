@@ -6,7 +6,7 @@
  * pinned core actually provides, with the no-cron-handler finding and the
  * per-upgrade re-check duty documented.
  */
-class CronValidationVerificationTest extends \PHPUnit_Framework_TestCase
+class CronValidationVerificationTest extends \PHPUnit\Framework\TestCase
 {
 	private function recordFile()
 	{
@@ -26,27 +26,27 @@ class CronValidationVerificationTest extends \PHPUnit_Framework_TestCase
 	public function testRecordDocumentsNoCronHandlerFinding()
 	{
 		$contents = $this->recordContents();
-		$this->assertContains('registers no cron handler', $contents);
-		$this->assertContains('uservalidationbyemail_disable_new_user', $contents);
-		$this->assertContains('uservalidationbyemail_check_manual_login', $contents);
-		$this->assertContains('uservalidationbyemail_request_validation', $contents);
-		$this->assertContains('notify_user', $contents);
+		$this->assertStringContainsString('registers no cron handler', $contents);
+		$this->assertStringContainsString('uservalidationbyemail_disable_new_user', $contents);
+		$this->assertStringContainsString('uservalidationbyemail_check_manual_login', $contents);
+		$this->assertStringContainsString('uservalidationbyemail_request_validation', $contents);
+		$this->assertStringContainsString('notify_user', $contents);
 	}
 
 	public function testRecordDocumentsEndToEndNotificationVerification()
 	{
 		$contents = $this->recordContents();
-		$this->assertContains('Seed a pending account', $contents);
-		$this->assertContains('MailHog', $contents);
-		$this->assertContains('signed validation link', $contents);
-		$this->assertContains('uservalidationbyemail/confirm?u=', $contents);
+		$this->assertStringContainsString('Seed a pending account', $contents);
+		$this->assertStringContainsString('MailHog', $contents);
+		$this->assertStringContainsString('signed validation link', $contents);
+		$this->assertStringContainsString('uservalidationbyemail/confirm?u=', $contents);
 	}
 
 	public function testRecordDocumentsPerUpgradeDuty()
 	{
 		$contents = $this->recordContents();
-		$this->assertContains('Per-upgrade duty', $contents);
-		$this->assertContains('cron-driven', $contents);
-		$this->assertContains('docs/analysis/S1.7-story-steps.md', $contents);
+		$this->assertStringContainsString('Per-upgrade duty', $contents);
+		$this->assertStringContainsString('cron-driven', $contents);
+		$this->assertStringContainsString('docs/analysis/S1.7-story-steps.md', $contents);
 	}
 }

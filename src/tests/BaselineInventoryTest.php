@@ -13,9 +13,9 @@
  * consistency of the stored inventory.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class BaselineInventoryTest extends \PHPUnit_Framework_TestCase
+class BaselineInventoryTest extends \PHPUnit\Framework\TestCase
 {
 	private function srcDir()
 	{
@@ -61,7 +61,7 @@ class BaselineInventoryTest extends \PHPUnit_Framework_TestCase
 		$this->assertNotNull($section, 'No "Database Inventory" section found');
 
 		// Size subsection with a per-schema table.
-		$this->assertContains('### Size', $section, 'Database Inventory lacks a Size subsection');
+		$this->assertStringContainsString('### Size', $section, 'Database Inventory lacks a Size subsection');
 
 		// The in-scope production schema must have a row with a size.
 		$this->assertSame(
@@ -164,7 +164,7 @@ class BaselineInventoryTest extends \PHPUnit_Framework_TestCase
 		$section = $this->section($doc, 'Data Directory Inventory');
 		$this->assertNotNull($section, 'No "Data Directory Inventory" section found');
 
-		$this->assertContains('### Totals', $section, 'Data Directory Inventory lacks a Totals subsection');
+		$this->assertStringContainsString('### Totals', $section, 'Data Directory Inventory lacks a Totals subsection');
 
 		// Total size in MB.
 		$this->assertSame(
@@ -191,14 +191,14 @@ class BaselineInventoryTest extends \PHPUnit_Framework_TestCase
 		);
 
 		// Content summary: file-type breakdown and largest buckets.
-		$this->assertContains('### File Types', $section, 'No file-type breakdown');
+		$this->assertStringContainsString('### File Types', $section, 'No file-type breakdown');
 		$this->assertSame(
 			1,
 			preg_match('/^\|\s*jpg\s*\|/m', $section),
 			'File-type breakdown lacks the dominant jpg type'
 		);
 
-		$this->assertContains('### Largest Content Buckets', $section, 'No largest-bucket summary');
+		$this->assertStringContainsString('### Largest Content Buckets', $section, 'No largest-bucket summary');
 		$this->assertGreaterThan(
 			0,
 			preg_match_all('/^\|\s*`[^`]+`\s*\|\s*([\d.]+)\s*\|/m', $section, $buckets),
@@ -219,8 +219,8 @@ class BaselineInventoryTest extends \PHPUnit_Framework_TestCase
 		$doc = $this->inventoryDoc();
 
 		// Self-identifies as the S1.1 Step 4 migration starting point.
-		$this->assertContains('Story S1.1 Step 4', $doc, 'Inventory does not identify its story step');
-		$this->assertContains('migration starting point', $doc, 'Inventory does not state its role');
+		$this->assertStringContainsString('Story S1.1 Step 4', $doc, 'Inventory does not identify its story step');
+		$this->assertStringContainsString('migration starting point', $doc, 'Inventory does not state its role');
 
 		// Capture details with a date.
 		$capture = $this->section($doc, 'Capture Details');
@@ -232,10 +232,10 @@ class BaselineInventoryTest extends \PHPUnit_Framework_TestCase
 		);
 
 		// Read-only capture statement.
-		$this->assertContains('Production was not modified', $doc, 'Inventory does not state production was untouched');
+		$this->assertStringContainsString('Production was not modified', $doc, 'Inventory does not state production was untouched');
 
 		// Cross-reference to the pinned baseline.
-		$this->assertContains(
+		$this->assertStringContainsString(
 			'docs/baseline/baseline.md',
 			$doc,
 			'Inventory does not cross-reference the pinned baseline'

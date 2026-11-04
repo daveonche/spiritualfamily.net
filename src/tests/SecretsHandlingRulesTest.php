@@ -6,7 +6,7 @@
  * live in development versus production, and stay in agreement with the
  * secret-hygiene enforcement in ProductionSecretHygieneTest.
  */
-class SecretsHandlingRulesTest extends \PHPUnit_Framework_TestCase
+class SecretsHandlingRulesTest extends \PHPUnit\Framework\TestCase
 {
     private function repoDir(): string
     {

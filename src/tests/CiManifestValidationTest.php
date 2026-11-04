@@ -12,9 +12,9 @@
  * check.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class CiManifestValidationTest extends \PHPUnit_Framework_TestCase
+class CiManifestValidationTest extends \PHPUnit\Framework\TestCase
 {
 	/** The Composer LTS line compatible with the pinned PHP baseline era (metadata-only Composer jobs in ci.yml). */
 	const COMPOSER_LTS_LINE = '2.2';
@@ -114,7 +114,7 @@ class CiManifestValidationTest extends \PHPUnit_Framework_TestCase
 		// LTS line (it executes no project PHP).
 		$image = $this->jobContainerImage($job);
 		$this->assertNotNull($image, "Job 'composer-validate' declares no container image");
-		$this->assertRegExp(
+		$this->assertMatchesRegularExpression(
 			'/^composer:' . self::COMPOSER_LTS_LINE . '\.\d+$/',
 			$image,
 			"Job 'composer-validate' does not run on the era-compatible Composer " . self::COMPOSER_LTS_LINE . " LTS line"

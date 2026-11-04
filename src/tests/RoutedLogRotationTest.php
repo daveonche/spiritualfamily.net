@@ -1,6 +1,6 @@
 <?php
 
-class RoutedLogRotationTest extends \PHPUnit_Framework_TestCase
+class RoutedLogRotationTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * Story S1.8 Step 6 guard: rotation is defined for the routed

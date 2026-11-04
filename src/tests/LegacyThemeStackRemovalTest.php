@@ -12,9 +12,9 @@
  * for Steps 3-4 are out of scope for this suite.
  *
  * PHPUnit 4.8: class name must match the file name and extend the
- * un-namespaced \PHPUnit_Framework_TestCase.
+ * un-namespaced \PHPUnit\Framework\TestCase.
  */
-class LegacyThemeStackRemovalTest extends \PHPUnit_Framework_TestCase
+class LegacyThemeStackRemovalTest extends \PHPUnit\Framework\TestCase
 {
 	private function srcDir()
 	{
@@ -184,10 +184,10 @@ class LegacyThemeStackRemovalTest extends \PHPUnit_Framework_TestCase
 				is_dir($this->modDir() . '/' . $pluginId),
 				"Legacy theme plugin directory $pluginId still present in src/mod"
 			);
-			$this->assertFileNotExists(
+			$this->assertFileDoesNotExist(
 				$this->modDir() . '/' . $pluginId . '/manifest.xml'
 			);
-			$this->assertFileNotExists(
+			$this->assertFileDoesNotExist(
 				$this->modDir() . '/' . $pluginId . '/elgg-plugin.php'
 			);
 		}
@@ -217,7 +217,7 @@ class LegacyThemeStackRemovalTest extends \PHPUnit_Framework_TestCase
 
 		// Every Step 2 row must cite the legacy theme requirement.
 		foreach ($notes as $pluginId => $note) {
-			$this->assertContains(
+			$this->assertStringContainsString(
 				'REQ-FR-TR-1',
 				$note,
 				"Step 2 removal row for $pluginId does not cite REQ-FR-TR-1"
@@ -228,11 +228,11 @@ class LegacyThemeStackRemovalTest extends \PHPUnit_Framework_TestCase
 		// stack and cite the requirement.
 		$story = $this->sprintStorySection();
 		$this->assertNotSame('', $story, 'S1.4 story not found in the sprint stories document');
-		$this->assertContains('Legacy theme stack dropped:', $story);
-		$this->assertContains('aalborg_theme', $story);
-		$this->assertContains('aalborg extras/L1', $story);
-		$this->assertContains('paul_override', $story);
-		$this->assertContains('REQ-FR-TR-1', $story);
+		$this->assertStringContainsString('Legacy theme stack dropped:', $story);
+		$this->assertStringContainsString('aalborg_theme', $story);
+		$this->assertStringContainsString('aalborg extras/L1', $story);
+		$this->assertStringContainsString('paul_override', $story);
+		$this->assertStringContainsString('REQ-FR-TR-1', $story);
 
 		// Coverage: each story-named stack member must be covered by the
 		// Step 2 removal set — "aalborg extras/L1" via l1, whose notes
@@ -240,6 +240,6 @@ class LegacyThemeStackRemovalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('aalborg_theme', $notes);
 		$this->assertArrayHasKey('paul_override', $notes);
 		$this->assertArrayHasKey('l1', $notes);
-		$this->assertContains('aalborg extras/L1', $notes['l1']);
+		$this->assertStringContainsString('aalborg extras/L1', $notes['l1']);
 	}
 }

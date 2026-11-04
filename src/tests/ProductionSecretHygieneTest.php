@@ -6,7 +6,7 @@
  * supplied exclusively via the deployment platform's environment settings,
  * and `.env` stays git-ignored.
  */
-class ProductionSecretHygieneTest extends \PHPUnit_Framework_TestCase
+class ProductionSecretHygieneTest extends \PHPUnit\Framework\TestCase
 {
     private function repoDir(): string
     {

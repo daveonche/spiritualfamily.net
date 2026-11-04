@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-flight checks for installing Elgg 2.3.17 inside the Compose app
+# Pre-flight checks for installing Elgg 3.3.25 inside the Compose app
 # container (Story S1.3 Step 3).
 #
 # The web installer documented in docs/baseline/fresh_checkout.md remains
@@ -30,7 +30,7 @@ readonly REQUIRED_ENV_VARS=(
 )
 
 # Pinned Elgg core version (docs/baseline/baseline.md)
-readonly PINNED_ELGG_VERSION='2.3.17'
+readonly PINNED_ELGG_VERSION='3.3.25'
 
 # Web root inside the app container (the ./src mount target)
 readonly WWW_ROOT_DIR="${WWW_ROOT:-/var/www/html}"
@@ -55,7 +55,7 @@ usage() {
   cat <<'EOF'
 Usage: install_preflight.sh [--debug]
 
-Verifies the app container is ready for the Elgg 2.3 web installer:
+Verifies the app container is ready for the Elgg 3 web installer:
 required environment variables, database reachability and freshness,
 data/cache directory writability, and the pinned Elgg core version.
 
@@ -240,7 +240,7 @@ main() {
 
   cat <<'EOF'
 All pre-flight checks passed.
-Continue with the Elgg 2.3 web installer steps in
+Continue with the Elgg 3 web installer steps in
 docs/baseline/fresh_checkout.md (Step 6).
 EOF
 }
