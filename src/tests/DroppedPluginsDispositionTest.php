@@ -228,10 +228,16 @@ class DroppedPluginsDispositionTest extends \PHPUnit\Framework\TestCase
 	/**
 	 * Returns the plugin directories currently present in src/mod: every
 	 * subdirectory carrying a plugin marker (manifest.xml or
-	 * elgg-plugin.php).
+	 * elgg-plugin.php). Symlinks resolving into the composer-managed
+	 * vendor tree (src/vendor/) are skipped: the bundled Elgg plugins are
+	 * bridged into the scan root that way (Story S1.9) and were never
+	 * dropped, so the disposition list must not identify them. Real
+	 * directories and symlinks pointing outside the vendor tree are still
+	 * returned and must be identified by the list.
 	 */
 	private function currentPluginDirs()
 	{
+		$vendorDir = realpath($this->srcDir() . '/vendor');
 		$dirs = array();
 		foreach (scandir($this->modDir()) as $entry) {
 			if ($entry === '.' || $entry === '..') {
@@ -240,6 +246,12 @@ class DroppedPluginsDispositionTest extends \PHPUnit\Framework\TestCase
 			$path = $this->modDir() . '/' . $entry;
 			if (!is_dir($path)) {
 				continue;
+			}
+			if ($vendorDir !== false && is_link($path)) {
+				$resolved = realpath($path);
+				if ($resolved !== false && strpos($resolved, $vendorDir . DIRECTORY_SEPARATOR) === 0) {
+					continue;
+				}
 			}
 			if (file_exists($path . '/manifest.xml') || file_exists($path . '/elgg-plugin.php')) {
 				$dirs[] = $entry;
