@@ -15,9 +15,12 @@ sequence only.
 
 - Never run a production data operation without a verified backup (Steps 1
   and 2 below).
-- Database dumps stay in a git-ignored local path outside the repository
-  (this runbook uses `~/sfn-backups/`) — never committed. The production
-  dump is on the order of 110 MB compressed.
+- Database dumps stay in git-ignored paths — never committed. On the VPS,
+  dumps go to `~/sfn-backups/` (outside the repository). Local dumps
+  (old-production phpMyAdmin exports) go to the repo root's gitignored
+  `tmp/sfn-backups/` (covered by the `/tmp/` gitignore rule) and are
+  transferred to the VPS `~/sfn-backups/` before use. The production dump
+  is on the order of 110 MB compressed.
 - Credentials come from the containers' own environment (injected by the
   platform); no secret is typed on a command line or stored in the
   repository.
@@ -126,8 +129,10 @@ docker ps --format 'table {{.Names}}\t{{.Status}}'
 Restore the production dump into the deployed dbm service's production
 database — the same strip-and-import procedure as Step 2, targeting the
 production database name instead of the scratch database. The dump source
-is the phpMyAdmin-exported production dump (git-ignored local path, see
-`docs/baseline/baseline.md`, Production Dump Restore Verification).
+is the phpMyAdmin-exported production dump (exported locally into the
+repo root's gitignored `tmp/sfn-backups/`, then transferred to the VPS
+`~/sfn-backups/`; see `docs/baseline/baseline.md`, Production Dump
+Restore Verification).
 
 ```bash
 gunzip -c <production dump>.sql.gz | grep -vE '^(CREATE DATABASE|USE )' | docker exec -i "$DBM" sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
