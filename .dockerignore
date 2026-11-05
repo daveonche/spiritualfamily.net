@@ -35,6 +35,12 @@ composer.phar
 **/cache/
 **/caches/
 **/engine/settings.php
+# The baked vendor/ tree is the pin and must enter the image verbatim:
+# re-include it in full — the broad patterns above also match vendor
+# content (**/cache/ strips the psr/cache package directory, a package
+# name rather than a runtime cache, whose missing CacheItemPoolInterface
+# fatals every Elgg 3 boot; S1.9 Step 8)
+!src/vendor/**
 
 # Environment variables and secrets
 .env
