@@ -25,12 +25,11 @@ phpunit.xml*
 # Composer specific
 composer.phar
 
-# Dependencies (Story S1.9: Elgg 3's composer-install model — vendor/ is
-# untracked and installed from the committed composer.lock during the app
-# image build; a stale on-disk tree must not enter the build context and
-# be COPY-ed over the lock install. Supersedes the Story S1.6 rule that
-# kept src/vendor in the context while it was tracked in git)
-src/vendor/
+# Dependencies: the tracked src/vendor/ tree is the pin — the app image
+# bakes it via COPY src/ (docker/app/Dockerfile: "No composer step here"),
+# so it must stay in the build context. Restores the Story S1.6 rule
+# (S1.9 Step 8 fix): the interim composer-install exclusion was never
+# implemented in the Dockerfile and left the baked image without vendor/.
 
 # Elgg specific
 **/cache/

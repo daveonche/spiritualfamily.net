@@ -56,7 +56,7 @@ Desktop.ini
 /src/tmtags
 /src/npm-debug.log*
 /src/node_modules/
-/src/vendor/
+# /src/vendor/ is tracked on purpose (baked-image pin — see docker/app/Dockerfile)
 /src/startup.sh
 
 # ------------------------------------------------------------------
