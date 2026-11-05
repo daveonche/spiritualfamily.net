@@ -153,6 +153,24 @@ $CONFIG->dataroot = getenv("WWW_DATA") . "/";
 $CONFIG->cacheroot = getenv("WWW_CACHE") . "/";
 
 /**
+ * Site URL (Story S1.9 Step 8)
+ *
+ * Elgg 3.3 sniffs the site URL from the Symfony Request object when
+ * $CONFIG->wwwroot is unset (engine/classes/Elgg/Config.php: "If not
+ * provided, this is sniffed from the Symfony Request object"). Behind
+ * the production TLS-terminating proxy the sniff yields http:// —
+ * breaking the upgrade path's RewriteTest self-check and every
+ * generated absolute URL. Pin the URL per environment instead:
+ * ELGG_WWWROOT must carry the scheme (https:// in production via
+ * Coolify environment settings). Unset or empty keeps the
+ * request-sniffing fallback (direct, unproxied local development).
+ */
+$elggWwwroot = getenv("ELGG_WWWROOT");
+if ($elggWwwroot !== false && $elggWwwroot !== '') {
+	$CONFIG->wwwroot = rtrim($elggWwwroot, '/') . '/';
+}
+
+/**
  * Logging verbosity
  *
  * Per-environment log verbosity (Story S1.8 Step 1): the value is read
