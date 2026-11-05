@@ -382,6 +382,10 @@ class ComposeEnvInjectionTest extends \PHPUnit\Framework\TestCase
 			// error log, symlinked to container stderr); set to a
 			// fs-dataroot path for file logging (Story S1.8 Step 1)
 			'ELGG_LOG_FILE' => '',
+			// Empty = request-sniffing fallback (direct, unproxied local
+			// development); set per environment to pin the site URL
+			// (Story S1.9 Step 8)
+			'ELGG_WWWROOT' => '',
 		);
 
 		// Credential variables must be exactly the changeme placeholder
