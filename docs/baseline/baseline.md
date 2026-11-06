@@ -202,6 +202,7 @@ below records the per-variable treatment for the production settings; the
 | `MYSQL_ROOT_PASSWORD`, `MYSQL_USER`, `MYSQL_PASSWORD` | Secrets — platform settings only, never committed |
 | `APP_CRON_MINUTE` … `APP_CRON_YEARLY` (9 tokens) | Secrets — platform settings only, never committed; left empty for now — Elgg 2.3 does not consume cron tokens, so the empty values are inert; fill with real random strings once the upgrade reaches the latest Elgg version (S1.7 verifies the cron intervals end-to-end) |
 | `MAIL_SMTP_HOST`, `MAIL_SMTP_PORT` | Platform settings — accounted for now, left empty; the production relay override is Step 5. With them empty the Compose interpolation defaults apply in the app container (`${MAIL_SMTP_HOST:-host.docker.internal}`, port `1025` — the development capture endpoint), so outgoing mail fails until Step 5; expected and harmless while the database is still empty |
+| `ELGG_WWWROOT` | Platform setting — `https://spiritualfamily.online/` (Story S1.9 Step 8): pins the site URL; Elgg 3.3 otherwise sniffs it from the request, which behind the TLS-terminating proxy yields `http://` and breaks the upgrade path's RewriteTest self-check and every generated absolute URL. Local dev sets the hosts-mapped hostname with the published port (e.g. `http://v2.sfnapp.local:3010/`); empty = request-sniffing fallback |
 | `PMA_HOST`, `PMA_HOST_PORT`, `PMA_CONTAINER_NAME` | Development-only — not set in production (`pma` excluded per Step 1) |
 | `COMPOSE_PROJECT_NAME` | Optional |
 
@@ -339,3 +340,25 @@ value recorded in the earlier tables above.
 | Entity counts (object/user/group/site) | 87217 / 1136 / 289 / 1 | 87217 / 1136 / 289 / 1 | exact match |
 | Site row | GUID 1, URL `https://spiritualfamily.online/` (updated) | GUID 1, SpiritualFamily.Net, `https://spiritualfamily.online/` | exact match |
 | HTTPS | valid certificate, no warnings | valid certificate at `https://spiritualfamily.online/`, no warnings | match |
+
+## Production Upgrade (Story S1.9 Step 8)
+
+The first sequential hop (Elgg 2.3.17 → 3.3.25) executed on production per
+`docs/deployment/deploy_runbook.md` (S1.9 record): backup → deploy → data
+sync → upgrade → verify. The Step 7 pre-upgrade dump (restorability verified
+2026-11-04) is the rollback point.
+
+| Check | Result |
+| :--- | :--- |
+| Verification date | 2026-11-06 (upgrade completed 2026-11-05 ~23:30 UTC; deploys 2026-11-04/05) |
+| Deployed commit | `b84b6e1` — converged over `09ed6dec` → `afe8b45d` → `1cf33e85` → `b84b6e1` (per-commit causes in the runbook Run log) |
+| Site URL pin | `ELGG_WWWROOT=https://spiritualfamily.online/` (Coolify env) — required behind the TLS-terminating proxy: unset, Elgg 3.3 sniffs the URL from the request (`http://`), failing the upgrade path's RewriteTest self-check and every generated absolute URL |
+| Interrupted first pass | the 2026-11-04 image baked without `vendor/` (untracked since the S1.9 composer-install pivot the Dockerfile never implemented); the migration phase completed on the reduced boot, then the psr/cache fatal killed the completion phase. Recovered via clean Step 7-dump restore + full re-run; the intermediate state was forensically dumped first (`sfn-elgg-broken-20261105T230009.sql.gz`) |
+| Charset remediation | `AlterDatabaseToMultiByteCharset` failed on MariaDB 10.11 (`Unknown system variable 'innodb_large_prefix'`), as in the local run; the recorded manual SQL (scratch scripts of commit `8a5e563`, extracted from git history, deleted after use) converted the 16 target tables — post-check: all 16 `utf8mb4_general_ci`; the vendor upgrade then resolved via `shouldBeSkipped()` |
+| Table count | 31 (38 restored − 8 dropped by the migration chain + `elggjr_migrations`) |
+| Config | `installed` = `1483761119` (unchanged); `lastcache` present — the completion-phase marker absent in the interrupted state |
+| Entity counts (object/user/group/site) | 86990 / 1142 / 288 / 1 (post bot-cleanup; local completed copy: 86981 / 1142 / 288 / 1) |
+| Delta accounting vs local | +7 `elgg_upgrade` bookkeeping entities (production's completion session registered 14 records vs local's 7; the 8 titled 2.x-era records are identical in both); +2 dump-vintage content objects (`file` 96985, `hjwall` 96986 — created on the old live site 2026-11-03 22:51 UTC, after local's earlier Step 4 dump export, before the Step 7 dump); async conversions applied (61 `discussion_reply` → `comment`, 450 `page_top` → `page` — net-zero); a bot registration (user `djbi` + 8 widgets, 23:47 UTC in the open window) deleted via the admin UI, cascade verified |
+| Async upgrades | pending list empty, no errors; plugin entities 102, widget entities 12604, `elgg_upgrade` records 22 (8 dump-carried + 14 session-registered) |
+| Version readout | admin area reports v3.3.25 |
+| Post-upgrade verification | admin login + dashboard ✓; representative core pages render ✓; test email delivered through the production relay ✓; pins unchanged (PHP 7.4.27 / MariaDB 10.11.18 / alpine 3.23.3) ✓; no CRITICAL or PHP-fatal lines in the app log across the upgrade + browsing window ✓ |
