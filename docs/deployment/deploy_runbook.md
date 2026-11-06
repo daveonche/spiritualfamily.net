@@ -278,6 +278,13 @@ the reusable template for every future upgrade point; the production
 deploy at the upgrade point additionally follows Steps 1–5 above
 (backup, restorability, deploy, data migration, verification).
 
+Production parity confirmation (S1.9 Step 2): before any upgrade work,
+production was confirmed installed and serving the working pinned Elgg
+2.3.17 baseline — front page over HTTPS, admin login working, core
+pages rendering — with the stack matching the pinned versions (the
+2026-10-20 deployment version cross-check and the 2026-10-22 clean
+re-deploy verification, both recorded in `docs/baseline/baseline.md`).
+
 Pre-upgrade backup for this upgrade point (S1.9 Step 7, taken
 2026-11-04): the authoritative data still lives on the old production
 site (live, shared hosting, no SSH), so the backup was exported there via
@@ -380,7 +387,14 @@ log row is added at the production deploy.
 6. **Record** verification figures and follow-up work (dropped-plugin
    data migrations) in the step report and `docs/baseline/baseline.md`
    as applicable; the Run log row below is added at the production
-   deploy, not the local upgrade run.
+   deploy, not the local upgrade run. The production post-upgrade
+   verification (S1.9 Step 9, 2026-11-06) followed the deploy: admin
+   login + dashboard confirmed; representative core pages — front
+   page, activity, blog listing + post, group, profile, file, page,
+   discussion — all rendering; the app log captured to
+   `.log/production-app.log` with 0 fatal-marker matches (container
+   `app-z7fqpfbtv8s4uu8rbbvlt98v-20261105T224651`) — mirroring the
+   local Step 6 verification with no divergence.
 
 ## Run log
 
