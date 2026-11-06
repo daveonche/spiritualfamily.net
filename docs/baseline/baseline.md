@@ -7,7 +7,7 @@ Ground-zero version reference for the Spiritual Family Network upgrade journey
 
 | Component | Pinned version | Source |
 | --- | --- | --- |
-| Elgg core | 3.3.25 | `src/composer.json` (`"elgg/elgg": "3.3.25"`) and `src/composer.lock` (Story S1.9: `vendor/` untracked, installed from the lock) |
+| Elgg core | 3.3.25 | `src/composer.json` (`"elgg/elgg": "3.3.25"`) and `src/composer.lock` (tracked — the baked-image pin; the interim untracked state was reverted in S1.9 Step 8) |
 | PHP runtime | 7.4.27 | Compose stack app image `sfn/elgg_webserver:7.4-composer2`, built locally from upstream `coldtrick/elgg_webserver:7.4` (see `docker/app/Dockerfile`); confirmed via `docker compose exec app php -v` |
 | Database server | MariaDB 10.11.18 | Compose stack `dbm` image `mariadb:10.11.18` (see `compose.yml`); confirmed via `SELECT VERSION()` → `10.11.18-MariaDB-ubu2204` |
 | Cron service base | alpine:3.23.3 | Compose stack `cron` image `sfn/elgg_cron:3.23.3`, built locally from `alpine:3.23.3` (see `docker/cron/Dockerfile`); the image tag carries the pinned base version (Story S1.6 Step 2) |
@@ -88,8 +88,9 @@ Dockerfile pin and the CI workflow together.
   authoritative pin declaration (`"elgg/elgg": "3.3.25"`, Story S1.9).
 - Manual verification for this pin: confirm `$release` in the installed
   core's `vendor/elgg/elgg/version.php` reads `3.3.25` (inside the app
-  container — `src/vendor/` is untracked since Story S1.9), and cross-check
-  against the version reported by the running site's administration area.
+  container — `src/vendor/` is tracked, re-tracked in S1.9 Step 8 as the
+  baked-image pin), and cross-check against the version reported by the
+  running site's administration area.
 
 ## Fresh-Checkout Verification
 
