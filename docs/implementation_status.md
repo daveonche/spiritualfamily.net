@@ -1,6 +1,6 @@
 # Implementation Status Report
 
-Analysis date: 2026-10-23 (second analysis pass; supersedes the 2026-09-26 analysis)
+Analysis date: 2026-11-07 (third analysis pass; supersedes the 2026-10-23 analysis)
 
 Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/core_requirements.md`, `docs/sprints/sprint_1_stories.md`, and `docs/tech_stack.md`.
 
@@ -30,19 +30,32 @@ Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/co
 
 ### C. Not Yet Implemented Features
 
-- S1.9–S1.13 — Sequential upgrades 2.3→3→4→5→6→7.1.0 (REQ-FR-PU-5, REQ-DEPL-4).
+- S1.10–S1.13 — Sequential upgrades 3→4→5→6→7.1.0 (REQ-FR-PU-5, REQ-DEPL-4).
 - S1.14–S1.16 — Plugin provisioning, activation, and theme skeleton at Elgg 7 (REQ-FR-PU-4, REQ-FR-TR-1).
 - S1.17 — Developer workflow and upgrade runbook documentation.
 - All `REQ-FR-CF-*`, `REQ-FR-CMF-*`, `REQ-FR-PS-*` feature preservation — scheduled for restoration at Elgg 7 in S1.14–S1.15, by design.
 
 ## Priority Order for Next Implementation Phase
 
-- Priority 1 - Logging remainder (S1.8):
-  - Per-environment Elgg logging with registered error/exception handlers, secrets-handling rules documentation, container log routing/rotation
-  - Rationale: same observability rationale before the upgrade sequence begins
+- Priority 1 - Platform upgrade sequence (S1.10):
+  - Upgrade Step — Elgg 3 → Elgg 4: the only unblocked open story; REQ-FR-PU-5 mandates one major version at a time, so every later story (S1.11–S1.16) depends on this chain advancing
+  - Rationale: S1.10 → S1.11 → S1.12 → S1.13 → S1.14 → S1.15 → S1.16 is a strict dependency chain; S1.10 is its head
 
-- Priority 2 - Upgrade sequence and restoration (S1.9–S1.17):
-  - Sequential major-version upgrades with backup-then-upgrade-then-deploy per step, then plugin provisioning/activation/theme, then runbook
-  - Rationale: strictly ordered per REQ-FR-PU-5; feature restoration only after Elgg 7.1.0 is reached
+- Priority 2 - Feature restoration at Elgg 7 (S1.14–S1.16):
+  - Plugin provisioning, activation, and theme skeleton restore the REQ-FR-CF/CMF/PS/TR requirement set
+  - Rationale: blocked by S1.13; strictly after the upgrade chain per REQ-FR-PU-5
 
-Next workflow step: `$planning-story-analysis S1.8`
+- Priority 3 - Documentation (S1.17):
+  - Developer workflow and upgrade runbook consolidation
+  - Rationale: blocked by S1.15 and S1.16
+
+## Sprint State
+
+Latest sprint file: `docs/sprints/sprint_1_stories.md`
+- S1.10: Not Yet Implemented — the platform reports Elgg 3.3.25 (production readout, `docs/baseline/baseline.md`); no Elgg 4.x pin exists
+- S1.11–S1.13: Not Yet Implemented — upgrade chain blocked behind S1.10
+- S1.14–S1.17: Not Yet Implemented — blocked behind S1.13
+
+Sprint state: OPEN (Mid-Sprint Entry applies — Phase 2 skipped; Phase 3 runs directly on the first open story, S1.10)
+
+Next workflow step: `$planning-story-analysis S1.10`
