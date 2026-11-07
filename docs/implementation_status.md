@@ -24,9 +24,13 @@ Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/co
 
 - Cron and scheduled tasks wiring (S1.7; REQ-FR-PU-7): `crontab` schedules all nine Elgg cron intervals supported by Elgg 2.3.17 and `compose.yml` renders/runs the spool file; the sanctioned entry point is the core's documented HTTP cron endpoint invoked via `wget` (per `docs/analysis/S1.7-story-steps.md` Step 1; per-upgrade duty: move to the core CLI entry point when a later core version ships one), guarded by `src/tests/CronSanctionedEntryPointTest.php` and `src/tests/CronScheduleCoverageTest.php`; garbagecollector cleanup and uservalidationbyemail notification verified end-to-end with records in `docs/verification/` (`src/tests/CronCleanupVerificationTest.php`, `src/tests/CronValidationVerificationTest.php`); cron output log rotation with archive retention and prune replaces the dropped logrotate plugin (REQ-FR-PU-7), record `docs/verification/s1.7-logrotation-verification.md` (`src/tests/CronLogRotationTest.php`, `src/tests/CronLogRotationVerificationTest.php`); guard suite green 2026-10-26 at 117 tests / 1166 assertions.
 
+- Logging, configuration &amp; environment management (S1.8): `settings.php` env-injection and secrets rules asserted by `src/tests/LoggingEnvironmentTest.php`, `src/tests/SecretsHandlingRulesTest.php`, `src/tests/ProductionSecretHygieneTest.php`, `src/tests/ContainerLogRoutingTest.php`; the Coolify environment-variable walk recorded green in `docs/baseline/baseline.md` (Production Environment Injection, Step 3 Manual Verification).
+
+- Upgrade Step — Elgg 2.3 → Elgg 3 (S1.9; REQ-FR-PU-5 first hop, REQ-DEPL-4): `docs/baseline/baseline.md` (Upgrade-Stage Pin — Elgg 3.3.25 / PHP 7.4.27; Production Upgrade S1.9 Step 8 — admin area reports v3.3.25, pending list empty, backup-restore-recover sequence recorded); `docs/deployment/deploy_runbook.md` (S1.9 upgrade-sequence record, Run log 2026-11-05 commit `b84b6e1`); `docs/dependencies/S1.9-dependencies.md`; `docs/analysis/S1.9-story-steps.md`; `docs/workflow_state.md` records Story S1.9 complete (Steps 1–10 implemented and verified).
+
 ### B. Partially Implemented Features
 
-- Logging &amp; environment management (S1.8): the documented `.env` template AC is met (`.env.example`, `src/tests/ComposeEnvInjectionTest.php`). Remaining: per-environment Elgg logging with registered error/exception handlers, secrets-handling rules documentation, and container log routing/rotation.
+None — no story has source evidence of partial progress without completion.
 
 ### C. Not Yet Implemented Features
 
