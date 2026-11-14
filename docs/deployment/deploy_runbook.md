@@ -29,6 +29,27 @@ sequence only.
   inside the container — expanded by the host shell it is empty and
   authentication fails (`Access denied … using password: NO`).
 
+## Production topology during the upgrade journey
+
+Two production databases exist until the user-facing cutover completes:
+
+- **Old live production** — `spiritualfamily.net`, shared hosting (no SSH;
+  dumps via phpMyAdmin only), Elgg 2.3.17 (pinned baseline, never
+  upgraded). This is the **live site real users continue to use**, and its
+  database is the **authoritative** data source: content created there is
+  not in the VPS database. Until cutover, every "fresh dump of the
+  production database" in any story step means this database.
+- **VPS production** — `spiritualfamily.online`, the Coolify deployment
+  this runbook operates. It is kept in version-sync at every upgrade point
+  (REQ-DEPL-4; currently Elgg 3.3.25 since 2026-11-05) but is **not yet
+  the live site**. Its data is a snapshot of the old live production (as
+  of 2026-11-04) and goes stale between syncs; it is never the dump
+  source while the old site remains live.
+
+The cutover (old site retired; VPS becomes the single live production) is
+its own future step. Until then, this note governs every dump-source
+decision in the upgrade stories and the runbook.
+
 ## Pre-deploy checks
 
 - CI is green on the commit being deployed.
