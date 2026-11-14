@@ -7,21 +7,21 @@ Ground-zero version reference for the Spiritual Family Network upgrade journey
 
 | Component | Pinned version | Source |
 | --- | --- | --- |
-| Elgg core | 3.3.25 | `src/composer.json` (`"elgg/elgg": "3.3.25"`) and `src/composer.lock` (tracked — the baked-image pin; the interim untracked state was reverted in S1.9 Step 8) |
+| Elgg core | 4.3.10 | `src/composer.json` (`"elgg/elgg": "4.3.10"`) and `src/composer.lock` (tracked — the baked-image pin; the interim untracked state was reverted in S1.9 Step 8) |
 | PHP runtime | 7.4.27 | Compose stack app image `sfn/elgg_webserver:7.4-composer2`, built locally from upstream `coldtrick/elgg_webserver:7.4` (see `docker/app/Dockerfile`); confirmed via `docker compose exec app php -v` |
 | Database server | MariaDB 10.11.18 | Compose stack `dbm` image `mariadb:10.11.18` (see `compose.yml`); confirmed via `SELECT VERSION()` → `10.11.18-MariaDB-ubu2204` |
 | Cron service base | alpine:3.23.3 | Compose stack `cron` image `sfn/elgg_cron:3.23.3`, built locally from `alpine:3.23.3` (see `docker/cron/Dockerfile`); the image tag carries the pinned base version (Story S1.6 Step 2) |
 | phpMyAdmin | 5.2.3 | Compose stack `pma` image `phpmyadmin/phpmyadmin:5.2.3` (see `compose.dev.yml`); confirmed via the image's `/var/www/html/package.json` |
 
-This is the single pinned Elgg core version — the active pin, moved to 3.3.25
-by Story S1.9 Step 1 (the 2.3.17 ground-zero value is preserved as the
+This is the single pinned Elgg core version — the active pin, moved to 4.3.10
+by Story S1.10 Step 1 (the 3.3.25 first-hop value is preserved as the
 resolution record in the Upgrade-Stage Pin section below); it is the
 reference value for all subsequent steps in the upgrade sequence
 (REQ-FR-PU-5).
 
 The pinned PHP runtime sits directly beneath the core version so future steps
-can cite them as a pair. Constraint note: the pinned Elgg 3.3.25 core declares
-`"php": ">=7.2"` (requirement card via `composer show -a elgg/elgg 3.3.25`,
+can cite them as a pair. Constraint note: the pinned Elgg 4.3.10 core declares
+`"php": ">=7.4"` (requirement card via `composer show -a elgg/elgg 4.3.10`,
 recorded in the Upgrade-Stage Pin section below); 7.4.27 satisfies that
 constraint.
 
@@ -48,7 +48,32 @@ documents every required variable with placeholder values and no real
 secrets; copy it to `.env` and supply real values locally. `.env` is
 git-ignored, so real secrets never enter the repository.
 
+## Upgrade-Stage Pin (Story S1.10 Step 1)
+
+The second sequential upgrade step (Elgg 3 → Elgg 4) resolved the sprint
+story's two "latest stable" pinning flags from Packagist, queried via
+`composer show -a elgg/elgg` inside the app container (2026-11-07):
+
+| Component | Pinned version | Source |
+| --- | --- | --- |
+| Elgg core (upgrade target) | 4.3.10 | Latest stable 4.x release in the Packagist version list — the 4.x line ends at 4.3.10 (a `4.12.0` string in the listing is a bundled CKEditor dependency version, not an elgg/elgg release; `composer show -a elgg/elgg 4.3.10` confirms the release) |
+| PHP runtime | 7.4.27 (unchanged) | elgg/elgg 4.3.10 declares `"php": ">=7.4"` (`composer show -a elgg/elgg 4.3.10`); the pinned 7.4.27 runtime satisfies it, so the runtime pin does not move |
+
+With Step 1 complete, the Pinned Versions table above carries this pair as
+the active pin — the core row moved from the 3.3.25 first-hop value, which
+the S1.9 section below preserves as the resolution record. The MariaDB,
+cron, and phpMyAdmin pins are untouched by this step. The target is declared
+in `src/composer.json` (`"elgg/elgg": "4.3.10"`), so every environment
+resolves the same pair; the runtime declarations (Dockerfile `PHP_VERSION`
+default, Compose build arg, CI image) stay at 7.4 and need no edit.
+Dependency-change record: `docs/dependencies/S1.10-dependencies.md`
+(transitive tree replacement, security-advisory acceptances, inert
+`elgg/login_as` replace removal).
+
 ## Upgrade-Stage Pin (Story S1.9 Step 1)
+
+Superseded as the active pin by Story S1.10 Step 1 (section above); preserved
+as the resolution record for the first hop.
 
 The first sequential upgrade step (Elgg 2.3 → Elgg 3) resolved the sprint
 story's two "latest stable" pinning flags from Packagist, queried via
@@ -59,13 +84,14 @@ story's two "latest stable" pinning flags from Packagist, queried via
 | Elgg core (upgrade target) | 3.3.25 | Latest stable 3.x release in the Packagist version list; `3.3.x-dev` above it is a branch, not a release |
 | PHP runtime | 7.4.27 (unchanged) | elgg/elgg 3.3.25 declares `"php": ">=7.2"` (`composer show -a elgg/elgg 3.3.25`); the pinned 7.4.27 runtime satisfies it, so the runtime pin does not move |
 
-With Step 1 complete, the Pinned Versions table above carries this pair as
-the active pin — the core row moved from the 2.3.17 ground-zero value, which
-this section preserves as the resolution record. The MariaDB, cron, and
-phpMyAdmin pins are untouched by this step. The target is declared in
-`src/composer.json` (`"elgg/elgg": "3.3.25"`), so every environment resolves
-the same pair; the runtime declarations (Dockerfile `PHP_VERSION` default,
-Compose build arg, CI image) stay at 7.4 and need no edit.
+At Step 1 completion this pair was the active pin — the core row had moved
+from the 2.3.17 ground-zero value, which this section preserves as the
+resolution record; Story S1.10 Step 1 subsequently moved the active pin to
+4.3.10 (section above). The MariaDB, cron, and phpMyAdmin pins are untouched
+by this step. The target was declared in `src/composer.json`
+(`"elgg/elgg": "3.3.25"`); the runtime declarations (Dockerfile
+`PHP_VERSION` default, Compose build arg, CI image) stayed at 7.4 and needed
+no edit.
 
 ## Base-Image Digest Pins
 
@@ -85,9 +111,9 @@ Dockerfile pin and the CI workflow together.
 - Historical note (resolved in S1.1 Step 3): the repository-root
   `composer.json` had been overwritten in a previous session with Elgg 7
   requirements and was corrected back to the pinned baseline; it is now the
-  authoritative pin declaration (`"elgg/elgg": "3.3.25"`, Story S1.9).
+  authoritative pin declaration (`"elgg/elgg": "4.3.10"`, Story S1.10).
 - Manual verification for this pin: confirm `$release` in the installed
-  core's `vendor/elgg/elgg/version.php` reads `3.3.25` (inside the app
+  core's `vendor/elgg/elgg/version.php` reads `4.3.10` (inside the app
   container — `src/vendor/` is tracked, re-tracked in S1.9 Step 8 as the
   baked-image pin), and cross-check against the version reported by the
   running site's administration area.

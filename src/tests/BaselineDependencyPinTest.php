@@ -16,7 +16,7 @@
 class BaselineDependencyPinTest extends \PHPUnit\Framework\TestCase
 {
 	/** The single pinned Elgg core version (docs/baseline/baseline.md). */
-	const PINNED_CORE_VERSION = '3.3.25';
+	const PINNED_CORE_VERSION = '4.3.10';
 
 	/** The single pinned PHP runtime version (docs/baseline/baseline.md). */
 	const PINNED_RUNTIME_VERSION = '7.4.27';

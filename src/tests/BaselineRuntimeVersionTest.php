@@ -11,8 +11,8 @@ class BaselineRuntimeVersionTest extends \PHPUnit\Framework\TestCase
 	/** The single pinned PHP runtime version (docs/baseline/baseline.md). */
 	const PINNED_RUNTIME_VERSION = '7.4.27';
 
-	/** Minimum PHP required by the pinned Elgg 3.3.25 core. */
-	const MIN_PHP_REQUIRED_BY_CORE = '7.2';
+	/** Minimum PHP required by the pinned Elgg 4.3.10 core. */
+	const MIN_PHP_REQUIRED_BY_CORE = '7.4';
 
 	private function srcDir()
 	{
@@ -74,7 +74,7 @@ class BaselineRuntimeVersionTest extends \PHPUnit\Framework\TestCase
 		$this->assertArrayHasKey('require', $coreComposer);
 		$this->assertArrayHasKey('php', $coreComposer['require']);
 		$this->assertSame(
-			'>=7.2',
+			'>=7.4',
 			$coreComposer['require']['php'],
 			'Pinned core no longer declares the expected PHP constraint'
 		);
