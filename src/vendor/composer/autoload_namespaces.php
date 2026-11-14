@@ -6,6 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Imagine' => array($vendorDir . '/imagine/imagine/lib'),
     'CssCrush' => array($vendorDir . '/css-crush/css-crush/lib'),
 );

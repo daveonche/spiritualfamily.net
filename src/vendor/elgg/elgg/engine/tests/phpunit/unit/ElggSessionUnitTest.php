@@ -9,12 +9,7 @@
  */
 class ElggSessionUnitTest extends \Elgg\UnitTestCase {
 
-	public function up() {
-
-	}
-
 	public function down() {
-		_elgg_services()->session->removeLoggedInUser();
 		_elgg_services()->session->invalidate();
 	}
 
@@ -61,6 +56,32 @@ class ElggSessionUnitTest extends \Elgg\UnitTestCase {
 
 		$this->assertNull($session->getLoggedInUser());
 	}
+	
+	public function testSetLoggedInUserChangesSessionID() {
+		$user = $this->createUser();
+		
+		$session = \ElggSession::getMock();
+		
+		$session->start();
+		$session_id = $session->getID();
+		
+		$session->setLoggedInUser($user, true);
+		
+		$this->assertNotEquals($session_id, $session->getID());
+	}
+	
+	public function testSetLoggedInUserDoesntChangesSessionID() {
+		$user = $this->createUser();
+		
+		$session = \ElggSession::getMock();
+		
+		$session->start();
+		$session_id = $session->getID();
+		
+		$session->setLoggedInUser($user, false);
+		
+		$this->assertEquals($session_id, $session->getID());
+	}
 
 	public function testUserTokenValidation() {
 		$user = $this->createUser();
@@ -73,7 +94,7 @@ class ElggSessionUnitTest extends \Elgg\UnitTestCase {
 		$user->setPassword('some new password');
 		
 		// token isn't valid anymore
-		$this->expectException(\SecurityException::class);
+		$this->expectException(\Elgg\Exceptions\SecurityException::class);
 		$session->validateUserToken($user);
 	}
 	

@@ -9,11 +9,10 @@
         }
     ],
     "require": {
-        "php": ">=7.4.0"
+        "php": ">=5.4.0"
     },
     "require-dev": {
-        "tburry/pquery": "~1.0.1",
-        "phpunit/phpunit": "^9.0"
+        "tburry/pquery": "~1.0.1"
     },
     "autoload": {
         "classmap": [
@@ -22,7 +21,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Htmlawed\\Tests\\": "tests"
+            "Htmlawed\\Test\\": "tests"
         }
     }
 }
