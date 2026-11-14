@@ -87,6 +87,25 @@ Root-owned gzip archives written by the cron rotation scripts are
 expected — only files the app itself writes (the active `ELGG_LOG_FILE`
 log) must stay www-data-owned.
 
+## Duration capture for long-running commands (required command form)
+
+Any command whose duration is part of the verification record (database
+dumps and imports, image builds, long test runs) embeds a duration counter
+in the same run — never estimated or reconstructed afterwards. Prefix the
+command with `time` (bash builtin; prints `real`/`user`/`sys` to stderr):
+
+```bash
+time gunzip -c tmp/sfn-backups/sdb-74_hosting_stackcp_net-20261114.sql.gz | docker compose -f compose.yml -f compose.dev.yml exec -T dbm sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
+```
+
+`time` writes to stderr, so a stdout-only redirect keeps it visible; when
+the whole command is redirected with `2>&1` into a `.log/` file, wrap it in
+braces so the timing lands in the log beside the output:
+
+```bash
+{ time docker compose -f compose.yml -f compose.dev.yml exec -T app composer test; } > .log/guard-suite.log 2>&1
+```
+
 ## Empty bind mounts recovery (Docker Desktop/WSL)
 
 If the guard suite fails with `Command "test" is not defined.`, or
