@@ -38,20 +38,10 @@ class BaselineVersionTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function testCodebaseReportsPinnedCoreVersion()
 	{
-		// Vendored core's version.php defines $release — Elgg's own
-		// human-readable version string.
-		$versionFile = $this->elggCoreDir() . '/version.php';
-		$this->assertFileExists($versionFile);
-
-		$release = null;
-		include $versionFile;
-		$this->assertSame(
-			self::PINNED_CORE_VERSION,
-			$release,
-			"version.php \$release does not match the pinned core version"
-		);
-
-		// Vendored core's composer.json "version" field.
+		// Elgg 4 removed the version.php the 2.3/3.x cores carried at the
+		// package root (no version.php anywhere in the vendored 4.3.10
+		// tree, observed 2026-11-07); the composer.json "version" field is
+		// the codebase's version record.
 		$composerFile = $this->elggCoreDir() . '/composer.json';
 		$this->assertFileExists($composerFile);
 

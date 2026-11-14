@@ -112,10 +112,11 @@ Dockerfile pin and the CI workflow together.
   `composer.json` had been overwritten in a previous session with Elgg 7
   requirements and was corrected back to the pinned baseline; it is now the
   authoritative pin declaration (`"elgg/elgg": "4.3.10"`, Story S1.10).
-- Manual verification for this pin: confirm `$release` in the installed
-  core's `vendor/elgg/elgg/version.php` reads `4.3.10` (inside the app
-  container — `src/vendor/` is tracked, re-tracked in S1.9 Step 8 as the
-  baked-image pin), and cross-check against the version reported by the
+- Manual verification for this pin: confirm the `"version"` field in the
+  installed core's `vendor/elgg/elgg/composer.json` reads `4.3.10` (inside
+  the app container — `src/vendor/` is tracked, re-tracked in S1.9 Step 8
+  as the baked-image pin; elgg 4 removed the `version.php` the 2.3/3.x
+  cores carried), and cross-check against the version reported by the
   running site's administration area.
 
 ## Fresh-Checkout Verification
