@@ -417,6 +417,90 @@ log row is added at the production deploy.
    `app-z7fqpfbtv8s4uu8rbbvlt98v-20261105T224651`) — mirroring the
    local Step 6 verification with no divergence.
 
+## Elgg major-version upgrade sequence (S1.10 record)
+
+Story S1.10 Step 5 executed the second sequential hop (Elgg 3.3.25 →
+4.3.10) locally against the restored production copy — as a **two-hop
+run**, because the restored copy is 2.3-era data (datalists
+`version=2016092300`) and Elgg upgrades one major version at a time. The
+pattern is reusable at every future upgrade point whose restored copy lags
+the pinned target by more than one major version; the production deploy at
+the upgrade point additionally follows Steps 1–5 above, and the Run log
+row is added at the production deploy, not the local upgrade run.
+
+**Hop A — temporary rebuild at the previous pin.** Swap the pin surfaces
+(`src/composer.json`, `src/composer.lock`, `src/vendor/`, `src/mod/`) to
+the previous pin's commit, run `upgrade.php`, then restore HEAD for Hop B;
+HEAD never moves. Locate the source commit with
+`git --no-pager log --oneline -- src/composer.json` and pick the one
+holding both the composer pin and a complete tracked vendor tree (here
+`b84b6e1` — `src/vendor/` was untracked during the S1.9 composer work, so
+the pin commit alone is not enough). The swap's three failure traps and
+verification gates are recorded in `AGENTS.md` (Working-tree version
+swaps): container-root removal of root-owned vendor files before any
+host-side `rm -rf`, `git reset <commit> -- <paths>` to clear the stale
+index entries a `git checkout <commit> -- <path>` leaves behind, and the
+empty-`status` / matching-file-counts / container-probe gate. Clear the
+cache volume after the swap and pause cron across both hops; never touch
+the dataroot — the filestore lives there. Two deviations from the S1.9
+shape, both deliberate: no app image rebuild (the dev bind mounts serve
+the swapped tree live and the PHP pin is identical across both hops), and
+no site-URL alignment (the local `ELGG_WWWROOT` pin governs URL
+generation, so the copy's `.net` site URL stays inert).
+
+**Expected schema delta, 2.3 → 3.x — verify against a recorded
+expectation, never re-derive it.** The dump's 38 tables become 30: Elgg
+3's schema consolidation drops 8 tables, each named in the core's own
+migration list (`src/vendor/elgg/elgg/engine/schema/migrations/`):
+
+| Dropped table | Migrating migration |
+| :--- | :--- |
+| `datalists` | `20170728020000_migrate_datalists_to_config.php` — values into `config`, then the table is dropped |
+| `metastrings` | `20170728030000_denormalize_metastrings.php` |
+| `geocode_cache` | `20170808084728_drop_geocode_cache.php` |
+| `sites_entity` | `20171006111953_drop_sites_entity_table.php` |
+| `groups_entity` | `20171006131622_drop_groups_entity_table.php` |
+| `objects_entity` | `20171009115032_drop_objects_entity_table.php` |
+| `users_entity` | `20171010095648_drop_users_entity_table.php` |
+| `entity_subtypes` | `20171021111059_denormalize_entity_subtypes.php` |
+
+Data-survival checks after the hop: entity count preserved (88330 → 88343
+here — growth from the run, zero loss); `config` holds the migrated values
+(`installed`, `processed_upgrades`, `simplecache_enabled`, serialized);
+`version` is absent from `config` **by design** — the migration excludes
+it, and Elgg 3 tracks schema state in the `migrations` table instead (44
+rows, one per shipped migration file).
+
+**Standard verification — diff the dump's table list against the
+post-upgrade list.** Derive both lists and compare, so every dropped or
+added table is classified against the core's migration list before any
+remediation is attempted:
+
+```bash
+mkdir -p .log && gunzip -c tmp/sfn-backups/<dump>.sql.gz | grep -oE '^CREATE TABLE `[A-Za-z0-9_]+`' | sort | tee .log/dump-tables.txt
+docker compose -f compose.yml -f compose.dev.yml exec -T dbm sh -c 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name"'
+```
+
+**Blockers.** The MariaDB ≥ 10.3 `innodb_large_prefix` charset-conversion
+failure recurred on this fresh 2.3-era copy exactly as recorded (S1.9
+record item 4). The scratch scripts were recovered from their commit
+(`git --no-pager show 8a5e563:.mb4-check.sql` and
+`git --no-pager show 8a5e563:.mb4-convert.sql` — committed, then removed
+from tracking after use) and piped to root mariadb on the dbm container:
+all 16 target tables → `utf8mb4_general_ci` in 4m55.7s, after which the
+vendor upgrade resolved via its own `shouldBeSkipped()` and left the
+pending list. Duration-capture gotcha: the command runner is dash, where
+the bash builtin `time` does not exist — a bare `time` fails with
+`/bin/sh: 1: time: not found` and the pipeline never executes; wrap the
+command in `bash -c` (`AGENTS.md`, Duration capture).
+
+**Hop B — restore the HEAD pin and run the target hop.** Restore the pin
+surfaces from HEAD (with the `git reset` index cleanup), clear the cache
+volume, and run `upgrade.php` again. Observed on this copy: the routine
+ran to completion including all pending upgrades, with no new blockers.
+Record the 3.x → 4.x schema delta with the same dump-vs-post-upgrade diff
+so the next upgrade point (S1.11) verifies against a recorded expectation.
+
 ## Run log
 
 One row per production deploy:

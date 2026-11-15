@@ -106,6 +106,18 @@ braces so the timing lands in the log beside the output:
 { time docker compose -f compose.yml -f compose.dev.yml exec -T app composer test; } > .log/guard-suite.log 2>&1
 ```
 
+The command runner here is dash (`/bin/sh`), where the bash builtin `time`
+does not exist: a bare `time …` or brace group submitted to the runner
+fails with `/bin/sh: 1: time: not found` and the pipeline never executes —
+observed on the S1.10 charset conversion, where an `OK` echo covered an
+empty log while the database was left untouched. When a command goes
+through the runner rather than an interactive bash shell, wrap the whole
+thing in `bash -c` so the builtin resolves:
+
+```bash
+bash -c '{ time docker compose -f compose.yml -f compose.dev.yml exec -T app composer test; } > .log/guard-suite.log 2>&1'
+```
+
 ## Empty bind mounts recovery (Docker Desktop/WSL)
 
 If the guard suite fails with `Command "test" is not defined.`, or
@@ -132,6 +144,55 @@ docker compose -f compose.yml -f compose.dev.yml up -d --force-recreate --no-dep
 
 3. Re-run the guard suite (command in "Development stack and test suite") and
    confirm green.
+
+## Working-tree version swaps (upgrade hops)
+
+Upgrade steps that must run an intermediate core version against the local
+database copy swap the pin surfaces — `src/composer.json`,
+`src/composer.lock`, `src/vendor/`, `src/mod/` — to the previous pin's
+commit, run `upgrade.php`, then swap back to HEAD. Locate the source commit
+with `git --no-pager log --oneline -- src/composer.json` and pick the one
+holding both the composer pin and a complete tracked vendor tree (vendor
+was untracked during early composer work; verify with
+`git --no-pager ls-tree <commit> src/vendor | head -n 3` — a tree line, not
+empty). Three traps make the naive swap fail silently:
+
+1. **Root-owned vendor files abort the host-side removal.** Past
+   in-container composer runs leave root:root files under `src/vendor/`; a
+   host `rm -rf src/vendor && git checkout <commit> -- src/vendor` chain
+   aborts on the first undeletable file and the `&&` skips the checkout,
+   leaving a mangled partial tree (missing `autoload.php`, a file count
+   matching neither pin). Remove the tree as container root first, then
+   checkout as the host user:
+
+```bash
+docker compose -f compose.yml -f compose.dev.yml exec -T app sh -c 'rm -rf /var/www/html/vendor && echo REMOVED'
+git checkout <commit> -- src/vendor
+```
+
+2. **`git checkout <commit> -- <path>` never removes index entries the
+   commit lacks.** Swapping back to HEAD leaves the previous pin's
+   deleted-package entries staged (`status --porcelain` shows `AD` rows for
+   every file only the old pin tracked) even though the worktree is already
+   correct. Reset the index to the commit — it drops absent entries and
+   touches nothing on disk:
+
+```bash
+git reset HEAD -- src/vendor src/mod
+```
+
+3. **Verify before running anything.** The swap is complete only when all
+   three hold: `git --no-pager status --porcelain -- src/composer.json src/composer.lock src/vendor src/mod` prints nothing; the tracked and
+   on-disk vendor file counts match (`git --no-pager ls-tree -r HEAD src/vendor | wc -l` vs `find src/vendor -type f | wc -l`); and the
+   container sees the tree:
+
+```bash
+docker compose -f compose.yml -f compose.dev.yml exec -T app sh -c 'test -f /var/www/html/vendor/autoload.php && echo CONTAINER_OK || echo CONTAINER_MISSING'
+```
+
+Clear the cache volume after every swap (`rm -rf "$WWW_CACHE"/*` inside the
+app container) so no previous core version's caches leak into the run;
+never touch the dataroot — the filestore lives there.
 
 ## Production deployment
 
