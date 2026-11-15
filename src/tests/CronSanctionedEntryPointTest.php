@@ -5,7 +5,8 @@ class CronSanctionedEntryPointTest extends \PHPUnit\Framework\TestCase
 	/**
 	 * Story S1.7 Step 1 guard: scheduled jobs must reach the Elgg core
 	 * through the core's sanctioned entry point for cron-driven processing.
-	 * For the pinned Elgg 3.3.25 core that is the core's HTTP cron endpoint
+	 * For the pinned Elgg cores (3.3.25; re-confirmed at 4.3.10 in Story
+	 * S1.10 Step 7) that is the core's HTTP cron endpoint
 	 * (/cron/<interval>?__elgg_mac=<token>), triggered by the S1.2 wget
 	 * crontab baked into the cron image.
 	 */
@@ -55,8 +56,9 @@ class CronSanctionedEntryPointTest extends \PHPUnit\Framework\TestCase
 
 	private function expectedSchedules()
 	{
-		// All recurring intervals supported by Elgg 3.3.25, at their defined
-		// frequencies (standard cron five-field schedules)
+		// All recurring intervals supported by the pinned Elgg core (3.3.25;
+		// re-confirmed at 4.3.10), at their defined frequencies (standard
+		// cron five-field schedules)
 		return array(
 			'minute' => '* * * * *',
 			'fiveminute' => '*/5 * * * *',
@@ -90,9 +92,10 @@ class CronSanctionedEntryPointTest extends \PHPUnit\Framework\TestCase
 	{
 		// A scheduled line must hit the core's sanctioned HTTP cron endpoint:
 		// wget with the Host header override, /cron/<interval>, and the
-		// __elgg_mac MAC token placeholder — exactly as the 3.3.25 core
-		// documents for cron-driven processing — with the job output
-		// appended to the scheduled-task output log (Story S1.7 Step 5)
+		// __elgg_mac MAC token placeholder — exactly as the pinned core
+		// (3.3.25; re-confirmed at 4.3.10) documents for cron-driven
+		// processing — with the job output appended to the scheduled-task
+		// output log (Story S1.7 Step 5)
 		$schedule = preg_quote($this->expectedSchedules()[$interval], '~');
 		return '~^' . $schedule
 			. ' wget -qO- --header "Host: \{\{HOST_PLACEHOLDER\}\}" '

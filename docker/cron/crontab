@@ -21,10 +21,11 @@
 #
 # Per-upgrade duty (re-verify at every core upgrade in the sequence):
 # re-derive the supported intervals from the vendored core itself — the
-# period => interval map in _elgg_cron_run()
-# (src/vendor/elgg/elgg/engine/lib/cron.php; 2.3.17 has no
-# elgg_get_cron_periods(), re-point at the new core's periods API when
-# one appears) — adjust this crontab and the pinned list in
+# period => interval map in the $default_intervals property of the
+# core's scheduler class Elgg\Cron
+# (src/vendor/elgg/elgg/engine/classes/Elgg/Cron.php; the 2.3-era map
+# lived in _elgg_cron_run() in engine/lib/cron.php, a file the 4.x core
+# no longer ships) — adjust this crontab and the pinned list in
 # src/tests/CronSanctionedEntryPointTest.php to match, then re-run the
 # guard suite — src/tests/CronScheduleCoverageTest.php cross-checks the
 # crontab and the pinned list against the core itself. The core's

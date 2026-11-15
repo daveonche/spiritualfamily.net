@@ -12,13 +12,14 @@ class CronScheduleCoverageTest extends \PHPUnit\Framework\TestCase
 	 * this suite until the crontab and the pinned schedule list are
 	 * adjusted.
 	 *
-	 * Elgg 3.3.25 defines the supported intervals as the
+	 * The pinned core defines the supported intervals as the
 	 * period => cron-schedule map in the $default_intervals property of
 	 * the core's scheduler class (engine/classes/Elgg/Cron.php) — the
 	 * class that drives scheduled execution and serves /cron/<interval>.
-	 * The map is parsed because it carries each period's defined
-	 * frequency; when a later core version moves or reshapes it, re-point
-	 * this parser at the new definition.
+	 * Confirmed unchanged from Elgg 3.3.25 through 4.3.10 (Story S1.10
+	 * Step 7 re-derivation). The map is parsed because it carries each
+	 * period's defined frequency; when a later core version moves or
+	 * reshapes it, re-point this parser at the new definition.
 	 */
 
 	private function repoDir()
@@ -81,10 +82,11 @@ class CronScheduleCoverageTest extends \PHPUnit\Framework\TestCase
 		);
 
 		// Reboot disposition: Elgg 2.3 registered a deprecated 'reboot'
-		// period that was not a recurring interval; Elgg 3.3.25 no longer
-		// registers it, so this filter is a no-op retained for
-		// forward-compatibility. Any newly supported period still fails
-		// the comparisons until the crontab and pinned list are adjusted.
+		// period that was not a recurring interval; the 3.3.25 and 4.3.10
+		// re-derivations confirmed the pinned recurring set without it,
+		// so this filter is a no-op retained for forward-compatibility.
+		// Any newly supported period still fails the comparisons until
+		// the crontab and pinned list are adjusted.
 		$periods = array_values(array_diff($periods, array('reboot')));
 
 		return $periods;
