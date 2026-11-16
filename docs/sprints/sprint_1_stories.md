@@ -213,6 +213,8 @@ Definition of Done:
 Story S1.9: Upgrade Step — Elgg 2.3 → Elgg 3
 As a developer, I want the first sequential upgrade executed and deployed so that the platform moves one major version along the supported path with production in sync (REQ-FR-PU-5, REQ-DEPL-4).
 
+- Status: Completed 2026-11-06
+
 Acceptance Criteria:
 
 - Target Elgg 3.x version pinned (⚠ "latest stable" of the 3 line — pin exact before implementation) together with its required PHP version (⚠ pin exact)
@@ -238,6 +240,8 @@ Definition of Done:
 
 Story S1.10: Upgrade Step — Elgg 3 → Elgg 4
 As a developer, I want the second sequential upgrade executed and deployed so the platform continues along the supported path with production in sync.
+
+- Status: Completed 2026-11-16
 
 Acceptance Criteria:
 
