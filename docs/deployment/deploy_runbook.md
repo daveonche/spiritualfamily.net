@@ -41,7 +41,7 @@ Two production databases exist until the user-facing cutover completes:
   production database" in any story step means this database.
 - **VPS production** — `spiritualfamily.online`, the Coolify deployment
   this runbook operates. It is kept in version-sync at every upgrade point
-  (REQ-DEPL-4; currently Elgg 3.3.25 since 2026-11-05) but is **not yet
+  (REQ-DEPL-4; currently Elgg 4.3.10 since 2026-11-16) but is **not yet
   the live site**. Its data is a snapshot of the old live production (as
   of 2026-11-04) and goes stale between syncs; it is never the dump
   source while the old site remains live.
