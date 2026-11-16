@@ -1,10 +1,10 @@
 # Switch with /model Godmode
-- name: openrouter/anthropic/claude-fable-5.1
+- name: openrouter/anthropic/claude-fable-5.2
   edit_format: diff
   extra_params:
     extra_body:
       # Forces maximum brilliant thinking when invoked
-      reasoning_effort: "max"
+      # reasoning_effort: "max"
       provider:
         sort: "price"
         ignore: ["OpenInference", "InferenceNet"]
@@ -12,12 +12,12 @@
         data_collection: "deny"
 
 # Switch with /model Genius
-- name: openrouter/qwen/qwen3.8-max-0902
+- name: openrouter/openai/gpt-6.1-terra
   edit_format: diff
   extra_params:
     extra_body:
       # Forces maximum brilliant thinking when invoked
-      reasoning_effort: "max"
+      # reasoning_effort: "max"
       provider:
         sort: "price"
         ignore: ["OpenInference", "InferenceNet"]
@@ -29,7 +29,7 @@
   edit_format: diff
   extra_params:
     extra_body:
-      reasoning_effort: "max"
+      # reasoning_effort: "max"
       provider:
         sort: "price"
         only: ["Together", "DeepInfra", "Baseten", "Novita", "Relace", "Sail Research", "Wafer", "Reka"]
