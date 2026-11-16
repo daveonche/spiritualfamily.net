@@ -28,6 +28,20 @@ sequence only.
   must be wrapped in `docker exec … sh -c '…'` so the variable resolves
   inside the container — expanded by the host shell it is empty and
   authentication fails (`Access denied … using password: NO`).
+- Elgg schema queries: never compose from general knowledge — derive
+  tables and columns from the recorded schema delta (the upgrade records
+  below) or the installed core source before writing the query. Known:
+  since Elgg 3 the per-type entity tables are dropped (`sites_entity`,
+  `groups_entity`, `objects_entity`, `users_entity` — each named in the
+  schema-delta tables below); entity titles/names live in `*_metadata`
+  (`name='title'` — a plugin's ID is the `title` metadata of its
+  `subtype='plugin'` object entity, confirmed via `ElggPlugin::getID()`).
+- Reading core source: the VPS host has no repository checkout (Coolify
+  runs `up` without the cloned repository present), so host-side paths
+  like `src/vendor/…` do not exist there. Read container files via
+  `docker exec <app container>` using the in-container paths from log
+  stack traces (`/var/www/html/vendor/elgg/elgg/…`), or the local dev
+  checkout.
 
 ## Production topology during the upgrade journey
 
@@ -500,6 +514,50 @@ volume, and run `upgrade.php` again. Observed on this copy: the routine
 ran to completion including all pending upgrades, with no new blockers.
 Record the 3.x → 4.x schema delta with the same dump-vs-post-upgrade diff
 so the next upgrade point (S1.11) verifies against a recorded expectation.
+
+**Production deploy (S1.10 Steps 8–10, 2026-11-16).** The deploy followed
+Steps 1–5 above (Run log row below). Recorded here in execution order:
+
+- **Step 2 parity baseline.** Production parity for this upgrade point is
+  the 2026-11-06 S1.9 Step 9 post-upgrade verification (S1.9 record above;
+  `docs/baseline/baseline.md`, Production Upgrade): production serving the
+  pinned 3.3.25 — admin login + dashboard, representative core pages, test
+  email through the production relay, pins unchanged, 0 fatals. That
+  verified state is the parity confirmation; no separate S1.10 walk was
+  performed.
+- **Ghost-plugin storm classification** (deploy-day log capture,
+  `.log/production-app.log`): 4981 ELGG.ERROR lines, all
+  `Cannot include elgg-plugin.php` — 2490 for `diagnostics` (guid 9) +
+  2491 for `notifications` (guid 25), zero non-storm errors. Bounded
+  12:36:07–13:26:57 UTC: the boot path (`activateEntities`) fired until
+  the 13:15:34 disable remediation; the upgrade run's `Upgrade\Locator`
+  path re-fired it once per ghost plugin at 13:26:57 (the Locator scans
+  disabled entities too — `getStaticConfig()` on each located plugin).
+  Nothing after 13:26:57. The pre-deploy "verified 0 errors in a 5m
+  window" was a browsing-only window, which never touches the Locator
+  path — consistent with this record, not contradicted by it.
+- **Ghost-plugin auto-removal.** Post-upgrade, both ghost entities are
+  absent (guid 9/25 not in `elggjr_entities`); the admin dashboard showed
+  a removal notification after the `/upgrade.php` run; nothing was
+  deleted manually — system-initiated. The installed core's
+  `generateEntities()` deletes unloadable plugin entities ("if the ID is
+  wrong, delete the plugin because we can never load it" →
+  `$plugin->delete()`); the exact code path for guid 9/25 is unestablished,
+  the end state is verified: entities absent, the 30-plugin enabled
+  inventory intact (incl. `activity`/`friends`/`friends_collections`/
+  `system_log` at g97002–97005), disabled legacy plugins preserved with
+  their settings.
+- **Step 10 post-upgrade verification (2026-11-16).** Admin login +
+  dashboard confirmed; representative core pages — front page, Activity,
+  Blog listing + post, group, profile, File, Page, discussion — all
+  rendering; log capture 0 PHP Fatal/Parse and 0 ELGG.CRITICAL —
+  mirroring the S1.9 record's verification shape.
+- **For the next upgrade point (S1.11).** Expect the Locator-path storm
+  re-fire at the upgrade run while disabled/ghost plugin entities remain —
+  do not chase it; classify it (per-plugin counts + last timestamps) and
+  verify the dropped/ghost entities' end state (absent vs disabled) after
+  the run. Compose Elgg schema queries only from the recorded schema
+  delta or the installed core source (Rules above).
 
 ## Run log
 
