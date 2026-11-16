@@ -7,23 +7,25 @@ Ground-zero version reference for the Spiritual Family Network upgrade journey
 
 | Component | Pinned version | Source |
 | --- | --- | --- |
-| Elgg core | 4.3.10 | `src/composer.json` (`"elgg/elgg": "4.3.10"`) and `src/composer.lock` (tracked — the baked-image pin; the interim untracked state was reverted in S1.9 Step 8) |
-| PHP runtime | 7.4.27 | Compose stack app image `sfn/elgg_webserver:7.4-composer2`, built locally from upstream `coldtrick/elgg_webserver:7.4` (see `docker/app/Dockerfile`); confirmed via `docker compose exec app php -v` |
+| Elgg core | 5.1.12 | Story S1.11 Step 1 pin (Packagist p2 resolution, 2026-11-16); declared in `src/composer.json` (`"elgg/elgg": "5.1.12"`) and `src/composer.lock` (tracked — the baked-image pin) at Story S1.11 Step 2 |
+| PHP runtime | 8.3 (exact patch confirmed at the Step 3 image rebuild) | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); upstream base `coldtrick/elgg_webserver:8.3` (see `docker/app/Dockerfile`); app image `sfn/elgg_webserver:8.3-composer2` built at Story S1.11 Step 3 |
 | Database server | MariaDB 10.11.18 | Compose stack `dbm` image `mariadb:10.11.18` (see `compose.yml`); confirmed via `SELECT VERSION()` → `10.11.18-MariaDB-ubu2204` |
 | Cron service base | alpine:3.23.3 | Compose stack `cron` image `sfn/elgg_cron:3.23.3`, built locally from `alpine:3.23.3` (see `docker/cron/Dockerfile`); the image tag carries the pinned base version (Story S1.6 Step 2) |
 | phpMyAdmin | 5.2.3 | Compose stack `pma` image `phpmyadmin/phpmyadmin:5.2.3` (see `compose.dev.yml`); confirmed via the image's `/var/www/html/package.json` |
 
-This is the single pinned Elgg core version — the active pin, moved to 4.3.10
-by Story S1.10 Step 1 (the 3.3.25 first-hop value is preserved as the
+This is the single pinned Elgg core version — the active pin, moved to 5.1.12
+by Story S1.11 Step 1 (the 4.3.10 second-hop value is preserved as the
 resolution record in the Upgrade-Stage Pin section below); it is the
 reference value for all subsequent steps in the upgrade sequence
 (REQ-FR-PU-5).
 
 The pinned PHP runtime sits directly beneath the core version so future steps
-can cite them as a pair. Constraint note: the pinned Elgg 4.3.10 core declares
-`"php": ">=7.4"` (requirement card via `composer show -a elgg/elgg 4.3.10`,
-recorded in the Upgrade-Stage Pin section below); 7.4.27 satisfies that
-constraint.
+can cite them as a pair. Constraint note: the pinned Elgg 5.1.12 core declares
+`"php": ">=8.0"` (Packagist p2 metadata, recorded in the Upgrade-Stage Pin
+section below); the 7.4.27 runtime does not satisfy it, so Story S1.11 Step 1
+moves the runtime pin to the PHP 8.3 line — the first runtime move since the
+baseline (the sprint story's Developer Note: "PHP version changes from here
+on").
 
 The database server pin (Story S1.2 Step 5) targets production parity:
 production reports `10.11.18-MariaDB-log` via phpMyAdmin server info and the
@@ -48,7 +50,34 @@ documents every required variable with placeholder values and no real
 secrets; copy it to `.env` and supply real values locally. `.env` is
 git-ignored, so real secrets never enter the repository.
 
+## Upgrade-Stage Pin (Story S1.11 Step 1)
+
+The third sequential upgrade step (Elgg 4 → Elgg 5) resolved the sprint
+story's exact-version pinning flags from the official release information:
+the Packagist p2 metadata for elgg/elgg
+(`repo.packagist.org/p2/elgg/elgg.json`, queried 2026-11-16) and the upstream
+runtime image tag listing (Docker Hub `coldtrick/elgg_webserver`, queried
+2026-11-16):
+
+| Component | Pinned version | Source |
+| --- | --- | --- |
+| Elgg core (upgrade target) | 5.1.12 | Newest stable 5.x release in the Packagist version list — the 5.x line ends at 5.1.12 (the 6.x line begins above it; no 5.2.x exists) |
+| PHP runtime | 8.3 (exact patch confirmed at the Step 3 image rebuild) | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); the pinned 7.4.27 runtime does not satisfy it, so the runtime pin moves. 8.3 satisfies the constraint, exists upstream (`coldtrick/elgg_webserver:8.3`), and matches the PHP 8.3 platform pin the journey's Elgg 7.1.0 target standardizes on (`docs/tech_stack.md`) |
+
+With Step 1 complete, the Pinned Versions table above carries this pair as
+the active pin — the core row moved from the 4.3.10 second-hop value, which
+the S1.10 section below preserves as the resolution record. The MariaDB,
+cron, and phpMyAdmin pins are untouched by this step. This step records the
+pins only: the `src/composer.json`/`src/composer.lock` declaration lands at
+Step 2 and the runtime image rebuild at Step 3, so the pin-consistency guard
+tests (`BaselineVersionTest`, `CiPinnedRuntimeTest`,
+`ProductionVersionPinTest`) read the previous surfaces until those steps
+land — the expected transient mismatch, per the story's step order.
+
 ## Upgrade-Stage Pin (Story S1.10 Step 1)
+
+Superseded as the active pin by Story S1.11 Step 1 (section above); preserved
+as the resolution record for the second hop.
 
 The second sequential upgrade step (Elgg 3 → Elgg 4) resolved the sprint
 story's two "latest stable" pinning flags from Packagist, queried via
