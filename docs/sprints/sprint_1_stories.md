@@ -281,6 +281,7 @@ Dependencies: S1.10
 Developer Notes:
 
 - PHP version changes from here on — rebuild images with the pinned per-step base image
+- Database copy reuse: upgrade against the verified copy restored in the previous upgrade steps — no fresh production restore at this step (deferred to S1.13)
 
 Definition of Done:
 
@@ -306,6 +307,7 @@ Dependencies: S1.11
 Developer Notes:
 
 - Confirm no deprecated-API usage that would block the final Elgg 7 step
+- Database copy reuse: upgrade against the same verified copy reused since S1.11 — no fresh production restore at this step (deferred to S1.13)
 
 Definition of Done:
 
@@ -321,7 +323,7 @@ As a developer, I want the final sequential upgrade executed and deployed so the
 Acceptance Criteria:
 
 - elgg/elgg 7.1.0 pinned with PHP 8.3 (per `docs/tech_stack.md`)
-- Official upgrade tooling executed against a copy of the production database
+- Official upgrade tooling executed against a fresh copy of the production database, restored from the live production database (still running Elgg 2.3.17) at this final step
 - Site verified functional post-upgrade on PHP 8.3 with no deprecation/fatal noise
 - Production deployed at this upgrade point with pre-upgrade backup (REQ-DEPL-4)
 - Runbook updated; upgrade sequence complete
@@ -331,6 +333,7 @@ Dependencies: S1.12
 Developer Notes:
 
 - This completes REQ-FR-PU-5; feature restoration follows in S1.14–S1.16
+- The fresh restore replaces the reused copy from the intermediate upgrade steps, capturing any production changes made since the upgrade sequence started
 
 Definition of Done:
 
