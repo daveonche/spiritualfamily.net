@@ -8,7 +8,7 @@ Ground-zero version reference for the Spiritual Family Network upgrade journey
 | Component | Pinned version | Source |
 | --- | --- | --- |
 | Elgg core | 5.1.12 | Story S1.11 Step 1 pin (Packagist p2 resolution, 2026-11-16); declared in `src/composer.json` (`"elgg/elgg": "5.1.12"`) and `src/composer.lock` (tracked — the baked-image pin) at Story S1.11 Step 2 |
-| PHP runtime | 8.2 (exact patch confirmed at the Step 3 image rebuild) | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); its exact-pinned laminas/laminas-mime 2.11.0 requires `~8.0.0 || ~8.1.0 || ~8.2.0`, excluding 8.3 (Story S1.11 Step 2 discovery); upstream base `coldtrick/elgg_webserver:8.2` (see `docker/app/Dockerfile`); app image `sfn/elgg_webserver:8.2-composer2` built at Story S1.11 Step 3 |
+| PHP runtime | 8.2 (exact patch confirmed at the Step 3 image rebuild) | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); its exact-pinned laminas/laminas-mime 2.11.0 requires `~8.0.0 \|\| ~8.1.0 \|\| ~8.2.0`, excluding 8.3 (Story S1.11 Step 2 discovery); upstream base `coldtrick/elgg_webserver:8.2` (see `docker/app/Dockerfile`); app image `sfn/elgg_webserver:8.2-composer2` built at Story S1.11 Step 3 |
 | Database server | MariaDB 10.11.18 | Compose stack `dbm` image `mariadb:10.11.18` (see `compose.yml`); confirmed via `SELECT VERSION()` → `10.11.18-MariaDB-ubu2204` |
 | Cron service base | alpine:3.23.3 | Compose stack `cron` image `sfn/elgg_cron:3.23.3`, built locally from `alpine:3.23.3` (see `docker/cron/Dockerfile`); the image tag carries the pinned base version (Story S1.6 Step 2) |
 | phpMyAdmin | 5.2.3 | Compose stack `pma` image `phpmyadmin/phpmyadmin:5.2.3` (see `compose.dev.yml`); confirmed via the image's `/var/www/html/package.json` |
@@ -66,7 +66,7 @@ runtime image tag listing (Docker Hub `coldtrick/elgg_webserver`, queried
 | Component | Pinned version | Source |
 | --- | --- | --- |
 | Elgg core (upgrade target) | 5.1.12 | Newest stable 5.x release in the Packagist version list — the 5.x line ends at 5.1.12 (the 6.x line begins above it; no 5.2.x exists) |
-| PHP runtime | 8.2 (exact patch confirmed at the Step 3 image rebuild) | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); the pinned 7.4.27 runtime does not satisfy it, so the runtime pin moves. Step 1 pinned 8.3; Step 2's resolution corrected it to 8.2 — elgg 5.1.12 exact-pins laminas/laminas-mime 2.11.0, whose `~8.0.0 || ~8.1.0 || ~8.2.0` constraint excludes 8.3, making (5.1.12, 8.3) unresolvable. 8.2 is the highest line the pinned tree supports and exists upstream (`coldtrick/elgg_webserver:8.2`); the PHP 8.3 runtime arrives with the Elgg 7.1.0 target (Story S1.13, per `docs/tech_stack.md`) |
+| PHP runtime | 8.2 (exact patch confirmed at the Step 3 image rebuild) | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); the pinned 7.4.27 runtime does not satisfy it, so the runtime pin moves. Step 1 pinned 8.3; Step 2's resolution corrected it to 8.2 — elgg 5.1.12 exact-pins laminas/laminas-mime 2.11.0, whose `~8.0.0 \|\| ~8.1.0 \|\| ~8.2.0` constraint excludes 8.3, making (5.1.12, 8.3) unresolvable. 8.2 is the highest line the pinned tree supports and exists upstream (`coldtrick/elgg_webserver:8.2`); the PHP 8.3 runtime arrives with the Elgg 7.1.0 target (Story S1.13, per `docs/tech_stack.md`) |
 
 With Step 1 complete, the Pinned Versions table above carries this pair as
 the active pin — the core row moved from the 4.3.10 second-hop value, which
