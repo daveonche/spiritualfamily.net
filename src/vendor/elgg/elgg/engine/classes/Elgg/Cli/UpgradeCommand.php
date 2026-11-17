@@ -38,7 +38,7 @@ class UpgradeCommand extends BaseCommand {
 		$async = (bool) $this->argument('async');
 		$force = $this->option('force');
 
-		$return = 0;
+		$return = self::SUCCESS;
 
 		// run Phinx (database) migrations
 		ElggApplication::migrate();
@@ -80,13 +80,14 @@ class UpgradeCommand extends BaseCommand {
 				foreach ($errors as $error) {
 					$this->error($error);
 				}
-				$return = 1;
+				
+				$return = self::FAILURE;
 			}
 		);
 
 		_elgg_services()->plugins->generateEntities();
 		
-		if ($return !== 0 || !$async) {
+		if ($return !== self::SUCCESS || !$async) {
 			return $return;
 		}
 
@@ -96,7 +97,7 @@ class UpgradeCommand extends BaseCommand {
 		$app->start();
 
 		// run async upgrades
-		$upgrades = _elgg_services()->upgrades->getPendingUpgrades($async);
+		$upgrades = _elgg_services()->upgrades->getPendingUpgrades(true);
 		$job = _elgg_services()->upgrades->run($upgrades);
 
 		$job->done(
@@ -113,7 +114,8 @@ class UpgradeCommand extends BaseCommand {
 				foreach ($errors as $error) {
 					$this->error($error);
 				}
-				$return = 1;
+				
+				$return = self::FAILURE;
 			}
 		);
 

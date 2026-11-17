@@ -2,13 +2,8 @@
 
 namespace Elgg;
 
-use ElggFile;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-/**
- * @group UploadService
- * @group UnitTests
- */
 class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 
 	/**
@@ -33,7 +28,7 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 		$dir = (new EntityDirLocator($this->owner_guid))->getPath();
 		$this->owner_dir_path = _elgg_services()->config->dataroot . $dir;
 
-		_elgg_services()->hooks->backup();
+		_elgg_services()->events->backup();
 		_elgg_services()->events->backup();
 
 		// Events service is trying to connect to the DB
@@ -43,16 +38,12 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 		$request = $this->prepareHttpRequest();
 		_elgg_services()->set('request', $request);
 		_elgg_services()->set('uploads', new UploadService($request));
-
-		$session = \ElggSession::getMock();
-		_elgg_services()->set('session', $session);
-		_elgg_services()->session->start();
 	}
 
 	public function down() {
 		elgg_delete_directory($this->owner_dir_path);
 		
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 		_elgg_services()->events->restore();
 	}
 
@@ -62,8 +53,7 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testCanGetUploadedFile() {
-
-		$tmp = new ElggFile();
+		$tmp = new \ElggFile();
 		$tmp->owner_guid = $this->owner_guid;
 		$tmp->setFilename('tmp.gif');
 		$tmp->open('write');
@@ -86,8 +76,7 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testCanGetUploadedFileByIndex() {
-
-		$tmp = new ElggFile();
+		$tmp = new \ElggFile();
 		$tmp->owner_guid = $this->owner_guid;
 		$tmp->setFilename('tmp.gif');
 		$tmp->open('write');
@@ -97,7 +86,7 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 		$tmp_gif = $tmp->getFilenameOnFilestore();
 
 
-		$tmp = new ElggFile();
+		$tmp = new \ElggFile();
 		$tmp->owner_guid = $this->owner_guid;
 		$tmp->setFilename('tmp.png');
 		$tmp->open('write');
@@ -133,8 +122,7 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testCanAcceptUploadedFile() {
-
-		$tmp = new ElggFile();
+		$tmp = new \ElggFile();
 		$tmp->owner_guid = $this->owner_guid;
 		$tmp->setFilename('tmp.gif');
 		$tmp->open('write');
@@ -150,7 +138,7 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 
 		_elgg_services()->request->files->set('upload', $upload);
 
-		$file = new ElggFile();
+		$file = new \ElggFile();
 		$file->owner_guid = $this->owner_guid;
 
 		$uploaded_files = _elgg_services()->uploads->getFiles('upload');
@@ -167,8 +155,7 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testCanFilterUploadAction() {
-
-		$tmp = new ElggFile();
+		$tmp = new \ElggFile();
 		$tmp->owner_guid = $this->owner_guid;
 		$tmp->setFilename('tmp.gif');
 		$tmp->open('write');
@@ -183,7 +170,7 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 
 		_elgg_services()->request->files->set('upload', $upload);
 
-		$file = new ElggFile();
+		$file = new \ElggFile();
 		$file->owner_guid = $this->owner_guid;
 
 		$uploaded_files = _elgg_services()->uploads->getFiles('upload');
@@ -199,12 +186,12 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 			$upload_event_calls++;
 		});
 
-		_elgg_services()->hooks->registerHandler('upload', 'file', function(\Elgg\Hook $hook) use (&$upload_hook_calls) {
-			$this->assertNull($hook->getValue());
-			$this->assertEquals('upload', $hook->getName());
-			$this->assertEquals('file', $hook->getType());
-			$this->assertInstanceOf(\ElggFile::class, $hook->getParam('file'));
-			$this->assertInstanceOf(UploadedFile::class, $hook->getParam('upload'));
+		_elgg_services()->events->registerHandler('upload', 'file', function(\Elgg\Event $event) use (&$upload_hook_calls) {
+			$this->assertNull($event->getValue());
+			$this->assertEquals('upload', $event->getName());
+			$this->assertEquals('file', $event->getType());
+			$this->assertInstanceOf(\ElggFile::class, $event->getParam('file'));
+			$this->assertInstanceOf(UploadedFile::class, $event->getParam('upload'));
 			$upload_hook_calls++;
 			return false;
 		});
@@ -214,7 +201,7 @@ class UploadServiceUnitTest extends \Elgg\UnitTestCase {
 		$this->assertEquals(1, $upload_hook_calls);
 		$this->assertFalse($file->exists());
 
-		_elgg_services()->hooks->registerHandler('upload', 'file', function() use (&$upload_hook_calls) {
+		_elgg_services()->events->registerHandler('upload', 'file', function() use (&$upload_hook_calls) {
 			$upload_hook_calls++;
 			return true;
 		});

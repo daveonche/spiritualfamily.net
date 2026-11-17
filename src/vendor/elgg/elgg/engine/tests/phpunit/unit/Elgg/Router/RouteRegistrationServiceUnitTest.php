@@ -2,7 +2,7 @@
 
 namespace Elgg\Router;
 
-use Elgg\Exceptions\InvalidParameterException;
+use Elgg\Exceptions\InvalidArgumentException;
 use Elgg\UnitTestCase;
 
 class RouteRegistrationServiceUnitTest extends UnitTestCase {
@@ -34,14 +34,14 @@ class RouteRegistrationServiceUnitTest extends UnitTestCase {
 	}
 	
 	public function testRegisterRouterWithoutPath() {
-		$this->expectException(InvalidParameterException::class);
+		$this->expectException(InvalidArgumentException::class);
 		$this->service->register('view:object:blog', [
 			'resource' => 'blog/view',
 		]);
 	}
 	
 	public function testRegisterRouterWithoutControllerParam() {
-		$this->expectException(InvalidParameterException::class);
+		$this->expectException(InvalidArgumentException::class);
 		$this->service->register('view:object:blog', [
 			'path' => '/blog/view/{guid}/{title?}',
 		]);
@@ -103,7 +103,7 @@ class RouteRegistrationServiceUnitTest extends UnitTestCase {
 		];
 		
 		$url = $this->service->generateUrl('view:object:blog', $params);
-		$this->assertFalse($url);
+		$this->assertNull($url);
 	}
 	
 	public function testGenerateUrlMissingRequiredParameter() {
@@ -121,7 +121,7 @@ class RouteRegistrationServiceUnitTest extends UnitTestCase {
 		];
 		
 		$url = $this->service->generateUrl('view:object:blog', $params);
-		$this->assertFalse($url);
+		$this->assertNull($url);
 	}
 	
 	public function testGenerateUrlIncorrectRequiredParameterType() {
@@ -140,7 +140,7 @@ class RouteRegistrationServiceUnitTest extends UnitTestCase {
 		];
 		
 		$url = $this->service->generateUrl('view:object:blog', $params);
-		$this->assertFalse($url);
+		$this->assertNull($url);
 	}
 	
 	public function testGenerateUrlForDeprecatedRoute() {
@@ -210,7 +210,7 @@ class RouteRegistrationServiceUnitTest extends UnitTestCase {
 		$url = $this->service->generateUrl('invalid:username', [
 			'username' => $username,
 		]);
-		$this->assertFalse($url);
+		$this->assertNull($url);
 	}
 	
 	/**

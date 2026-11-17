@@ -2,7 +2,7 @@
 
 namespace Elgg\Lib;
 
-use Elgg\Exceptions\InvalidArgumentException;
+use Elgg\Exceptions\RangeException;
 use Elgg\IntegrationTestCase;
 use Elgg\Router\Route;
 
@@ -45,13 +45,11 @@ class PageOwnerIntegrationTest extends IntegrationTestCase {
 			[999, 1, 1],
 			[999, 0, 0], // different behaviour in getter function
 			[999, -1, 0],
-			[999, false, 0],
-			[999, null, 0],
 		];
 	}
 		
 	public function testSettingNegativeOwner() {
-		$this->expectException(InvalidArgumentException::class);
+		$this->expectException(RangeException::class);
 		_elgg_services()->pageOwner->setPageOwnerGuid(-1);
 	}
 	
@@ -90,54 +88,6 @@ class PageOwnerIntegrationTest extends IntegrationTestCase {
 			['collection', 'username'],
 			['collection', 'guid'],
 			['collection', 'container_guid'],
-		];
-	}
-	
-	public function testPageOwnerDetectedFromInputUsername() {
-		self::createApplication(['isolate'=> true]);
-		
-		$user = $this->createUser();
-		
-		_elgg_services()->request->setParam('username', $user->username);
-		
-		$guid = _elgg_services()->pageOwner->getPageOwnerGuid();
-		$this->assertEquals($user->guid, $guid);
-	}
-	
-	public function testPageOwnerDetectedFromInputOwnerGUID() {
-		self::createApplication(['isolate'=> true]);
-		
-		$user = $this->createUser();
-		
-		_elgg_services()->request->setParam('owner_guid', $user->guid);
-		
-		$guid = _elgg_services()->pageOwner->getPageOwnerGuid();
-		$this->assertEquals($user->guid, $guid);
-	}
-	
-	/**
-	 * @dataProvider segmentsProvider
-	 */
-	public function testPageOwnerDetectedFromURLSegments($segment1, $match_on, $test_match_on) {
-		$user = $this->createUser(['container_guid' => 1]);
-		
-		self::createApplication([
-			'isolate'=> true,
-			'request' => $this->prepareHttpRequest("foo/{$segment1}/{$user->$match_on}"),
-		]);
-				
-		$guid = _elgg_services()->pageOwner->getPageOwnerGuid();
-		$this->assertEquals($user->{$test_match_on}, $guid);
-	}
-	
-	public function segmentsProvider() {
-		return [
-			['owner', 'username', 'guid'],
-			['friends', 'username', 'guid'],
-			['view', 'guid', 'container_guid'],
-			['edit', 'guid', 'container_guid'],
-			['add', 'guid', 'guid'],
-			['group', 'guid', 'guid'],
 		];
 	}
 }

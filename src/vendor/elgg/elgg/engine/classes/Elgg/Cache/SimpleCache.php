@@ -62,9 +62,9 @@ class SimpleCache {
 	 *
 	 * @return string
 	 */
-	public function getUrl($view, $subview = '') {
+	public function getUrl(string $view, string $subview = ''): string {
 		// handle `getUrl('js', 'js/blog/save_draft')`
-		if (($view === 'js' || $view === 'css') && 0 === strpos($subview, $view . '/')) {
+		if (($view === 'js' || $view === 'css') && str_starts_with($subview, $view . '/')) {
 			$view = $subview;
 			$subview = '';
 		}

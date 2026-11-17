@@ -46,11 +46,10 @@ class DatabaseSeedCommand extends Command {
 	 * {@inheritdoc}
 	 */
 	protected function command() {
-
 		if (!class_exists('\Faker\Generator')) {
 			elgg_log(elgg_echo('cli:database:seed:log:error:faker'), 'ERROR');
 
-			return 1;
+			return self::FAILURE;
 		}
 
 		set_time_limit(0);
@@ -58,18 +57,21 @@ class DatabaseSeedCommand extends Command {
 		if (elgg_is_logged_in()) {
 			elgg_log(elgg_echo('cli:database:seed:log:error:logged_in'), 'ERROR');
 
-			return 2;
+			return self::INVALID;
 		}
 
 		_elgg_services()->set('mailer', new \Laminas\Mail\Transport\InMemory());
+		_elgg_services()->events->registerHandler('enqueue', 'notification', '\Elgg\Values::getFalse', 99999);
 
 		$options = [
-			'limit' => (int) $this->option('limit') ? : 20,
+			'limit' => $this->option('limit'),
 			'image_folder' => $this->option('image_folder'),
 			'type' => $this->option('type'),
 			'create_since' => $this->option('create_since'),
 			'create_until' => $this->option('create_until'),
 			'create' => (bool) $this->argument('create'),
+			'interactive' => !(bool) $this->option('no-interaction'),
+			'cli_command' => $this,
 		];
 		
 		try {
@@ -77,9 +79,9 @@ class DatabaseSeedCommand extends Command {
 		} catch (\Exception $e) {
 			elgg_log($e->getMessage(), 'ERROR');
 
-			return $e->getCode() ? : 3;
+			return $e->getCode() ?: 3;
 		}
 
-		return 0;
+		return self::SUCCESS;
 	}
 }

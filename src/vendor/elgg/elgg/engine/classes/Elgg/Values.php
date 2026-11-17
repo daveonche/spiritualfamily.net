@@ -5,11 +5,9 @@ namespace Elgg;
 use DateTime as PHPDateTime;
 use Elgg\I18n\DateTime as ElggDateTime;
 use Elgg\Exceptions\DataFormatException;
-use Exception;
-
 
 /**
- * Functions for use as plugin hook/event handlers or other situations where you need a
+ * Functions for use as event handlers or other situations where you need a
  * globally accessible callable.
  */
 class Values {
@@ -41,6 +39,7 @@ class Values {
 	 * @since 1.12.0
 	 */
 	public static function getNull() {
+		return null;
 	}
 
 	/**
@@ -87,7 +86,7 @@ class Values {
 			} else {
 				$dt = new ElggDateTime();
 			}
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			throw new DataFormatException($e->getMessage());
 		}
 
@@ -112,14 +111,15 @@ class Values {
 			if (!isset($arg)) {
 				continue;
 			}
+			
 			if (is_object($arg) && isset($arg->id)) {
 				$ids[] = (int) $arg->id;
-			} else if (is_array($arg)) {
+			} elseif (is_array($arg)) {
 				foreach ($arg as $a) {
 					$el_ids = self::normalizeIds($a);
 					$ids = array_merge($ids, $el_ids);
 				}
-			} else if (is_numeric($arg)) {
+			} elseif (is_numeric($arg)) {
 				$ids[] = (int) $arg;
 			} else {
 				$arg = print_r($arg, true);
@@ -148,14 +148,15 @@ class Values {
 			if (!isset($arg)) {
 				continue;
 			}
+			
 			if (is_object($arg) && isset($arg->guid)) {
 				$guids[] = (int) $arg->guid;
-			} else if (is_array($arg)) {
+			} elseif (is_array($arg)) {
 				foreach ($arg as $a) {
 					$el_guids = self::normalizeGuids($a);
 					$guids = array_merge($guids, $el_guids);
 				}
-			} else if (is_numeric($arg)) {
+			} elseif (is_numeric($arg)) {
 				$guids[] = (int) $arg;
 			} else {
 				$arg = print_r($arg, true);
@@ -167,15 +168,15 @@ class Values {
 	}
 
 	/**
-	 * Return array with __view_output set to prevent view output during view_vars hook
+	 * Return array with __view_output set to prevent view output during view_vars event
 	 *
-	 * @see   ViewsService->renderView()
+	 * @see ViewsService->renderView()
 	 *
 	 * @return array
 	 * @since 3.0
 	 */
 	public static function preventViewOutput() {
-		return ['__view_output' => ''];
+		return [ViewsService::OUTPUT_KEY => ''];
 	}
 	
 	/**
@@ -188,8 +189,7 @@ class Values {
 	 * @return bool
 	 * @since 3.0.0
 	 */
-	public static function isEmpty($value) {
-		
+	public static function isEmpty($value): bool {
 		if ($value === 0 || $value === '0' || $value === 0.0) {
 			return false;
 		}
@@ -204,8 +204,8 @@ class Values {
 	 *
 	 * @param mixed $n         input integer or string
 	 * @param int   $precision number of digits in decimal place (default = 0)
-	 * @return string|int
 	 *
+	 * @return string|int
 	 * @since 3.1
 	 */
 	public static function shortFormatOutput($n, $precision = 0) {

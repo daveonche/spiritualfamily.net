@@ -3,10 +3,9 @@
 namespace Elgg\Developers;
 
 /**
- * Track events and hooks
+ * Track events
  *
  * @since 4.0
- * @internal
  */
 class HandlerLogger {
 	
@@ -24,36 +23,18 @@ class HandlerLogger {
 			return;
 		}
 		
-		self::track($event->getName(), $event->getType(), $event);
+		self::track($event->getName(), $event->getType());
 	}
 	
 	/**
-	 * Track an Elgg hook
+	 * Track the actual event
 	 *
-	 * @param \Elgg\Hook $hook 'all', 'all'
-	 *
-	 * @return void
-	 */
-	public static function trackHook(\Elgg\Hook $hook) : void {
-		$handlers = elgg()->hooks->getOrderedHandlers($hook->getName(), $hook->getType());
-		if (count($handlers) === 1) {
-			// only this handler
-			return;
-		}
-		
-		self::track($hook->getName(), $hook->getType(), $hook);
-	}
-	
-	/**
-	 * Track the actual event / plugin hook
-	 *
-	 * @param string $name   name of the event / hook
-	 * @param string $type   type of the event / hook
-	 * @param mixed  $source source event / hook
+	 * @param string $name name of the event
+	 * @param string $type type of the event
 	 *
 	 * @return void
 	 */
-	protected static function track(string $name, string $type, $source) : void {
+	protected static function track(string $name, string $type) : void {
 		// filter out some very common events
 		$filter = [
 			'classes',
@@ -72,18 +53,18 @@ class HandlerLogger {
 		// 0 => this function
 		// 1 => calling function in this class
 		// 2 => call_user_func_array
-		// 3 => hook class call
-		// 4 => hook class trigger
+		// 3 => event class call
+		// 4 => event class trigger
 		$stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-		if ($source instanceof \Elgg\Event) {
-			$event_type = 'Event';
-		} else {
-			$event_type = 'Hook';
-		}
+		$event_type = 'Event';
 		
 		$trigger_functions = [
 			'elgg_trigger_event',
-			'elgg_trigger_plugin_hook',
+			'elgg_trigger_event_results',
+			'elgg_trigger_after_event',
+			'elgg_trigger_before_event',
+			'triggerResults',
+			'triggerResultsSequence',
 			'triggerSequence',
 			'triggerBefore',
 			'triggerAfter',

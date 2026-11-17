@@ -3,7 +3,7 @@
 namespace Elgg;
 
 use Elgg\Database\Plugins;
-use Elgg\Exceptions\Http\BadRequestException ;
+use Elgg\Exceptions\Http\BadRequestException;
 use Elgg\Exceptions\Http\PageNotFoundException;
 use Elgg\Exceptions\RuntimeException;
 use Elgg\Http\Request as HttpRequest;
@@ -28,9 +28,9 @@ class Router {
 	use Profilable;
 
 	/**
-	 * @var PluginHooksService
+	 * @var EventsService
 	 */
-	protected $hooks;
+	protected $events;
 
 	/**
 	 * @var RouteCollection
@@ -60,22 +60,22 @@ class Router {
 	/**
 	 * Constructor
 	 *
-	 * @param PluginHooksService $hooks    Hook service
-	 * @param RouteCollection    $routes   Route collection
-	 * @param UrlMatcher         $matcher  URL Matcher
-	 * @param HandlersService    $handlers Handlers service
-	 * @param ResponseFactory    $response Response
-	 * @param Plugins            $plugins  Plugins
+	 * @param EventsService   $events   Events service
+	 * @param RouteCollection $routes   Route collection
+	 * @param UrlMatcher      $matcher  URL Matcher
+	 * @param HandlersService $handlers Handlers service
+	 * @param ResponseFactory $response Response
+	 * @param Plugins         $plugins  Plugins
 	 */
 	public function __construct(
-		PluginHooksService $hooks,
+		EventsService $events,
 		RouteCollection $routes,
 		UrlMatcher $matcher,
 		HandlersService $handlers,
 		ResponseFactory $response,
 		Plugins $plugins
 	) {
-		$this->hooks = $hooks;
+		$this->events = $events;
 		$this->routes = $routes;
 		$this->matcher = $matcher;
 		$this->handlers = $handlers;
@@ -86,7 +86,7 @@ class Router {
 	/**
 	 * Routes the request to a registered page handler
 	 *
-	 * This function triggers a plugin hook `'route', $identifier` so that plugins can
+	 * This function triggers a `'route', $identifier` event so that plugins can
 	 * modify the routing or handle a request.
 	 *
 	 * @param \Elgg\Http\Request $request The request to handle.
@@ -150,7 +150,7 @@ class Router {
 		try {
 			$parameters = $this->matcher->match($path);
 
-			$resource = elgg_extract('_resource', $parameters);
+			$resource = (string) elgg_extract('_resource', $parameters);
 			unset($parameters['_resource']);
 
 			$handler = elgg_extract('_handler', $parameters);
@@ -172,7 +172,6 @@ class Router {
 			unset($parameters['_required_plugins']);
 			
 			unset($parameters['_detect_page_owner']);
-			unset($parameters['_legacy_page_owner_detection']);
 			
 			foreach ($required_plugins as $plugin_id) {
 				if (!$this->plugins->isActive($plugin_id)) {
@@ -200,17 +199,17 @@ class Router {
 
 			if ($handler) {
 				return $this->getResponseFromHandler($handler, $envelope);
-			} else if ($controller) {
-				$result =  $this->handlers->call($controller, $envelope, null);
+			} elseif ($controller) {
+				$result = $this->handlers->call($controller, $envelope, null);
 				if ($result[1] instanceof ResponseBuilder) {
 					return $result[1];
 				}
-			} else if ($file) {
+			} elseif ($file) {
 				return $this->getResponseFromFile($file, $envelope);
-			} else {
-				$output = elgg_view_resource($resource, $parameters);
-				return elgg_ok_response($output);
 			}
+			
+			$output = elgg_view_resource($resource, $parameters);
+			return elgg_ok_response($output);
 		} catch (ResourceNotFoundException $ex) {
 			throw new PageNotFoundException();
 		} catch (MethodNotAllowedException $ex) {
@@ -233,7 +232,7 @@ class Router {
 
 		$path = trim($request->getPath(), '/');
 		$segments = explode('/', $path);
-		$identifier = array_shift($segments) ? : '';
+		$identifier = array_shift($segments) ?: '';
 
 		ob_start();
 		try {
@@ -287,7 +286,7 @@ class Router {
 	}
 
 	/**
-	 * Filter a request through the route:rewrite hook
+	 * Filter a request through the 'route:rewrite' event
 	 *
 	 * @param \Elgg\Http\Request $request Elgg request
 	 *
@@ -306,13 +305,12 @@ class Router {
 			'identifier' => $identifier,
 			'segments' => $segments,
 		];
-		$new = $this->hooks->trigger('route:rewrite', $identifier, $old, $old);
+		$new = $this->events->triggerResults('route:rewrite', $identifier, $old, $old);
 		if ($new === $old) {
 			return $request;
 		}
 
-		if (
-			!isset($new['identifier']) ||
+		if (!isset($new['identifier']) ||
 			!isset($new['segments']) ||
 			!is_string($new['identifier']) ||
 			!is_array($new['segments'])

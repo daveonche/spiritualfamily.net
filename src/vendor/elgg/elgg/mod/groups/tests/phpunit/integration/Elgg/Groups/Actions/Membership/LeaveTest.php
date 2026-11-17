@@ -23,7 +23,7 @@ class LeaveTest extends ActionResponseTestCase {
 		
 		$this->group = $this->createGroup();
 		$this->user = $this->createUser();
-		elgg_get_session()->setLoggedInUser($this->user);
+		_elgg_services()->session_manager->setLoggedInUser($this->user);
 	}
 	
 	public function down() {
@@ -32,7 +32,7 @@ class LeaveTest extends ActionResponseTestCase {
 	}
 	
 	public function testLoggedInUserRequired() {
-		elgg_get_session()->removeLoggedInUser();
+		_elgg_services()->session_manager->removeLoggedInUser();
 		
 		$this->expectException(\Elgg\Exceptions\Http\Gatekeeper\LoggedInGatekeeperException::class);
 		$this->executeAction('groups/leave');
@@ -58,7 +58,7 @@ class LeaveTest extends ActionResponseTestCase {
 	}
 	
 	public function testGroupOwnerCantLeave() {
-		elgg_get_session()->setLoggedInUser($this->group->getOwnerEntity());
+		_elgg_services()->session_manager->setLoggedInUser($this->group->getOwnerEntity());
 		
 		$response = $this->executeAction('groups/leave', [
 			'user_guid' => $this->group->owner_guid,
@@ -71,7 +71,7 @@ class LeaveTest extends ActionResponseTestCase {
 	
 	public function testNonMemberCantLeave() {
 		$other_user = $this->createUser();
-		elgg_get_session()->setLoggedInUser($other_user);
+		_elgg_services()->session_manager->setLoggedInUser($other_user);
 		
 		$response = $this->executeAction('groups/leave', [
 			'user_guid' => $other_user->guid,
@@ -91,7 +91,7 @@ class LeaveTest extends ActionResponseTestCase {
 		]);
 		
 		$this->assertInstanceOf(\Elgg\Http\OkResponse::class, $response);
-		$this->assertEquals(REFERER, $response->getForwardURL());
+		$this->assertEquals(REFERRER, $response->getForwardURL());
 
 		$this->assertSystemMessageEmitted(elgg_echo('groups:left'));
 		

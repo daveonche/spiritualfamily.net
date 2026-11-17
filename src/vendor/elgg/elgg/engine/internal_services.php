@@ -13,14 +13,14 @@ return [
 	'adminNotices' => DI\autowire(\Elgg\Database\AdminNotices::class),
 	'ajax' => DI\autowire(\Elgg\Ajax\Service::class),
 	'amdConfig' => DI\factory(function (ContainerInterface $c) {
-		$obj = new \Elgg\Amd\Config($c->hooks);
+		$obj = new \Elgg\Amd\Config($c->events);
 		$obj->setBaseUrl($c->simpleCache->getRoot());
 		return $obj;
 	}),
 	'annotationsTable' => DI\autowire(\Elgg\Database\AnnotationsTable::class),
 	'apiUsersTable' => DI\autowire(\Elgg\Database\ApiUsersTable::class),
 	'authentication' => DI\autowire(\Elgg\AuthenticationService::class),
-	'autoP' => DI\autowire(\ElggAutoP::class),
+	'autoParagraph' => DI\autowire(\Elgg\Views\AutoParagraph::class),
 	'boot' => DI\autowire(\Elgg\BootService::class)->constructorParameter('cache', DI\get('bootCache')),
 	'bootCache' => DI\factory(function (ContainerInterface $c) {
 		$flags = ELGG_CACHE_PERSISTENT | ELGG_CACHE_FILESYSTEM | ELGG_CACHE_RUNTIME;
@@ -49,7 +49,7 @@ return [
 	'delayedEmailService' => DI\autowire(\Elgg\Email\DelayedEmailService::class),
 	'emails' => DI\autowire(\Elgg\EmailService::class)->constructorParameter('mailer', DI\get('mailer')),
 	'entityCache' => DI\factory(function (ContainerInterface $c) {
-		return new \Elgg\Cache\EntityCache($c->session, $c->sessionCache->entities);
+		return new \Elgg\Cache\EntityCache($c->sessionCache->entities);
     }),
 	'entity_capabilities' => DI\autowire(\Elgg\EntityCapabilitiesService::class),
 	'entityPreloader' => DI\autowire(\Elgg\EntityPreloader::class),
@@ -63,7 +63,7 @@ return [
 		return new \Elgg\Cache\CompositeCache('elgg_system_cache', $c->config, $flags);
     }),
 	'filestore' => DI\factory(function (ContainerInterface $c) {
-		return new \ElggDiskFilestore($c->config->dataroot);
+		return new \Elgg\Filesystem\Filestore\DiskFilestore($c->config->dataroot);
     }),
 	'gatekeeper' => DI\autowire(\Elgg\Gatekeeper::class),
 	'group_tools' => DI\autowire(\Elgg\Groups\Tools::class),
@@ -71,13 +71,10 @@ return [
 	'hmac' => DI\autowire(\Elgg\Security\HmacFactory::class),
 	'hmacCacheTable' => DI\autowire(\Elgg\Database\HMACCacheTable::class),
 	'html_formatter' => DI\autowire(\Elgg\Views\HtmlFormatter::class),
-	'hooks' => DI\autowire(\Elgg\PluginHooksService::class),
 	'iconService' => DI\autowire(\Elgg\EntityIconService::class),
 	'imageFetcher' => DI\autowire(\Elgg\Assets\ImageFetcherService::class),
 	'imageService' => DI\autowire(\Elgg\ImageService::class),
-	'invoker' => DI\factory(function (ContainerInterface $c) {
-		return new \Elgg\Invoker($c->session, elgg());
-    }),
+	'invoker' => DI\autowire(\Elgg\Invoker::class)->constructorParameter('dic', function() { return elgg(); }),
 	'locale' => DI\autowire(\Elgg\I18n\LocaleService::class),
 	'localFileCache' => DI\factory(function (ContainerInterface $c) {
 		$flags = ELGG_CACHE_LOCALFILESYSTEM | ELGG_CACHE_RUNTIME;
@@ -121,11 +118,6 @@ return [
 	'pluginsCache' => DI\factory(function (ContainerInterface $c) {
 		return new \Elgg\Cache\CompositeCache('plugins', $c->config, ELGG_CACHE_RUNTIME);
     }),
-	'privateSettingsCache' => DI\factory(function (ContainerInterface $c) {
-		$cache = $c->dataCache->private_settings;
-		return new \Elgg\Cache\PrivateSettingsCache($cache);
-    }),
-	'privateSettings' => DI\autowire(\Elgg\Database\PrivateSettingsTable::class),
 	'publicDb' => DI\autowire(\Elgg\Application\Database::class),
 	'queryCache' => DI\factory(function (ContainerInterface $c) {
 		$config_disabled = $c->config->db_disable_query_cache === true;
@@ -162,15 +154,16 @@ return [
         return \ElggSession::fromDatabase($c->config, $c->db);
     }),
 	'sessionCache' => DI\autowire(\Elgg\Cache\SessionCache::class),
+	'session_manager' => DI\autowire(\Elgg\SessionManagerService::class),
 	'simpleCache' => DI\autowire(\Elgg\Cache\SimpleCache::class),
-	// siteSecret definition is created during initConfig of \Elgg\Di\InternalContainer
+	'siteSecret' => DI\autowire(\Elgg\Security\SiteSecret::class),
 	'stickyForms' => DI\autowire(\Elgg\Forms\StickyForms::class),
 	'systemCache' => DI\autowire(\Elgg\Cache\SystemCache::class)->constructorParameter('cache', DI\get('fileCache')),
 	'serverCache' => DI\autowire(\Elgg\Cache\SystemCache::class)->constructorParameter('cache', DI\get('localFileCache')),
 	'subscriptions' => DI\autowire(\Elgg\Notifications\SubscriptionsService::class),
 	'system_messages' => DI\autowire(\Elgg\SystemMessagesService::class),
 	'table_columns' => DI\autowire(\Elgg\Views\TableColumn\ColumnFactory::class),
-	'temp_filestore' => DI\autowire(\ElggTempDiskFilestore::class),
+	'temp_filestore' => DI\autowire(\Elgg\Filesystem\Filestore\TempDiskFilestore::class),
 	'timer' => DI\autowire(\Elgg\Timer::class),
 	'translator' => DI\autowire(\Elgg\I18n\Translator::class),
 	'uploads' => DI\autowire(\Elgg\UploadService::class),
@@ -186,17 +179,13 @@ return [
 	'userCapabilities' => DI\autowire(\Elgg\UserCapabilities::class),
 	'usersApiSessionsTable' => DI\autowire(\Elgg\Database\UsersApiSessionsTable::class),
 	'users_remember_me_cookies_table' => DI\autowire(\Elgg\Database\UsersRememberMeCookiesTable::class),
-	'usersTable' => DI\autowire(\Elgg\Database\UsersTable::class),
 	'upgradeLocator' => DI\autowire(\Elgg\Upgrade\Locator::class),
 	'views' => DI\autowire(\Elgg\ViewsService::class),
 	'viewCacher' => DI\autowire(\Elgg\Cache\ViewCacher::class),
 	'widgets' => DI\autowire(\Elgg\WidgetsService::class),
 	
 	// map classes to alias to allow autowiring
-	\ElggAutoP::class => DI\get('autoP'),
-	\ElggDiskFilestore::class => DI\get('filestore'),
 	\ElggSession::class => DI\get('session'),
-	\ElggTempDiskFilestore::class => DI\get('temp_filestore'),
 	\Elgg\ActionsService::class => DI\get('actions'),
 	\Elgg\Ajax\Service::class => DI\get('ajax'),
 	\Elgg\Amd\Config::class => DI\get('amdConfig'),
@@ -212,7 +201,6 @@ return [
 	\Elgg\Cache\DataCache::class => DI\get('dataCache'),
 	\Elgg\Cache\EntityCache::class => DI\get('entityCache'),
 	\Elgg\Cache\MetadataCache::class => DI\get('metadataCache'),
-	\Elgg\Cache\PrivateSettingsCache::class => DI\get('privateSettingsCache'),
 	\Elgg\Cache\QueryCache::class => DI\get('queryCache'),
 	\Elgg\Cache\SessionCache::class => DI\get('sessionCache'),
 	\Elgg\Cache\SimpleCache::class => DI\get('simpleCache'),
@@ -236,19 +224,18 @@ return [
 	\Elgg\Database\MetadataTable::class => DI\get('metadataTable'),
 	\Elgg\Database\Mutex::class => DI\get('mutex'),
 	\Elgg\Database\Plugins::class => DI\get('plugins'),
-	\Elgg\Database\PrivateSettingsTable::class => DI\get('privateSettings'),
 	\Elgg\Database\RelationshipsTable::class => DI\get('relationshipsTable'),
 	\Elgg\Database\RiverTable::class => DI\get('riverTable'),
 	\Elgg\Database\Seeder::class => DI\get('seeder'),
-	\Elgg\Database\SiteSecret::class => DI\get('siteSecret'),
 	\Elgg\Database\UsersApiSessionsTable::class => DI\get('usersApiSessionsTable'),
 	\Elgg\Database\UsersRememberMeCookiesTable::class => DI\get('users_remember_me_cookies_table'),
-	\Elgg\Database\UsersTable::class => DI\get('usersTable'),
 	\Elgg\EntityPreloader::class => DI\get('entityPreloader'),
 	\Elgg\EmailService::class => DI\get('emails'),
 	\Elgg\Email\DelayedEmailService::class => DI\get('delayedEmailService'),
 	\Elgg\EntityIconService::class => DI\get('iconService'),
 	\Elgg\EventsService::class => DI\get('events'),
+	\Elgg\Filesystem\Filestore\DiskFilestore::class => DI\get('filestore'),
+	\Elgg\Filesystem\Filestore\TempDiskFilestore::class => DI\get('temp_filestore'),
 	\Elgg\Filesystem\MimeTypeService::class => DI\get('mimetype'),
 	\Elgg\FormsService::class => DI\get('forms'),
 	\Elgg\Forms\FieldsService::class => DI\get('fields'),
@@ -271,7 +258,6 @@ return [
 	\Elgg\Page\PageOwnerService::class => DI\get('pageOwner'),
 	\Elgg\PasswordService::class => DI\get('passwords'),
 	\Elgg\PersistentLoginService::class => DI\get('persistentLogin'),
-	\Elgg\PluginHooksService::class => DI\get('hooks'),
 	\Elgg\RedirectService::class => DI\get('redirects'),
 	\Elgg\Router::class => DI\get('router'),
 	\Elgg\Router\RequestContext::class => DI\get('requestContext'),
@@ -284,7 +270,9 @@ return [
 	\Elgg\Security\Csrf::class => DI\get('csrf'),
 	\Elgg\Security\HmacFactory::class => DI\get('hmac'),
 	\Elgg\Security\PasswordGeneratorService::class => DI\get('passwordGenerator'),
+	\Elgg\Security\SiteSecret::class => DI\get('siteSecret'),
 	\Elgg\Security\UrlSigner::class => DI\get('urlSigner'),
+	\Elgg\SessionManagerService::class => DI\get('session_manager'),
 	\Elgg\SystemMessagesService::class => DI\get('system_messages'),
 	\Elgg\Timer::class => DI\get('timer'),
 	\Elgg\UpgradeService::class => DI\get('upgrades'),
@@ -293,6 +281,7 @@ return [
 	\Elgg\UserCapabilities::class => DI\get('userCapabilities'),
 	\Elgg\Users\Accounts::class => DI\get('accounts'),
 	\Elgg\ViewsService::class => DI\get('views'),
+	\Elgg\Views\AutoParagraph::class => DI\get('autoParagraph'),
 	\Elgg\Views\HtmlFormatter::class => DI\get('html_formatter'),
 	\Elgg\Views\TableColumn\ColumnFactory::class => DI\get('table_columns'),
 	\Elgg\WidgetsService::class => DI\get('widgets'),

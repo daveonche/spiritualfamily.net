@@ -5,12 +5,6 @@ namespace Elgg\Actions;
 use Elgg\ActionResponseTestCase;
 use Elgg\Http\OkResponse;
 
-/**
- * @group ActionsService
- * @group AccountActions
- * @group Settings
- * @group UserSettings
- */
 class UserSettingsIntegrationTest extends ActionResponseTestCase {
 
 	public function up() {
@@ -20,21 +14,21 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 		_elgg_services()->config->minusername = 4;
 		_elgg_services()->config->allow_registration = true;
 
-		_elgg_services()->hooks->backup();
+		_elgg_services()->events->backup();
 		_elgg_services()->events->backup();
 
-		elgg_register_plugin_hook_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setLanguage');
-		elgg_register_plugin_hook_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setPassword');
-		elgg_register_plugin_hook_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setDefaultAccess');
-		elgg_register_plugin_hook_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setName');
-		elgg_register_plugin_hook_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setUsername');
-		elgg_register_plugin_hook_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setEmail');
+		elgg_register_event_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setLanguage');
+		elgg_register_event_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setPassword');
+		elgg_register_event_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setDefaultAccess');
+		elgg_register_event_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setName');
+		elgg_register_event_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setUsername');
+		elgg_register_event_handler('usersettings:save', 'user', 'Elgg\Users\Settings::setEmail');
 		
-		elgg_register_plugin_hook_handler('registeruser:validate:password', 'all', [_elgg_services()->passwordGenerator, 'registerUserPasswordValidation']);
+		elgg_register_event_handler('registeruser:validate:password', 'all', [_elgg_services()->passwordGenerator, 'registerUserPasswordValidation']);
 	}
 
 	public function down() {
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 		_elgg_services()->events->restore();
 
 		parent::down();
@@ -43,7 +37,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 	public function testPasswordChangeFailsWithoutValidCurrentPassword() {
 		$user = $this->createUser();
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -63,7 +57,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 		$user = $this->createUser();
 		$user->setPassword($pwd);
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -83,7 +77,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 		$user = $this->createUser();
 		$user->setPassword($pwd);
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -105,7 +99,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 
 		$old_hash = $user->password_hash;
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$new_pwd = elgg_generate_password();
 
@@ -128,7 +122,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 
 		$name = $user->name;
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -147,7 +141,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 
 		$new_name = $this->faker->name;
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -165,13 +159,13 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 
 		$other = $this->createUser();
 		$user = $this->createUser();
-		$admin = $this->createUser([], [
+		$admin = $this->createUser([
 			'admin' => 'yes',
 		]);
 
 		$username = $user->username;
 
-		_elgg_services()->session->setLoggedInUser($admin);
+		_elgg_services()->session_manager->setLoggedInUser($admin);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -188,13 +182,13 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 	public function testUsernameChangeSucceeds() {
 
 		$user = $this->createUser();
-		$admin = $this->createUser([], [
+		$admin = $this->createUser([
 			'admin' => 'yes',
 		]);
 
 		$new_username = $this->getRandomUsername();
 
-		_elgg_services()->session->setLoggedInUser($admin);
+		_elgg_services()->session_manager->setLoggedInUser($admin);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -210,7 +204,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 
 	public function testLanguageChangeSucceeds() {
 
-		$user = $this->createUser([], ['language' => 'en']);
+		$user = $this->createUser(['language' => 'en']);
 
 		// Go through the allowed languages and find the first non-English language to change the user to
 		// this is done in case the database has a limited number of allowed languages
@@ -228,7 +222,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 			$this->markTestSkipped();
 		}
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -249,7 +243,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 
 		$email = $user->email;
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -271,7 +265,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 
 		$email = $user->email;
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -298,7 +292,7 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 
 		$new_email = $this->getRandomEmail();
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,
@@ -318,9 +312,9 @@ class UserSettingsIntegrationTest extends ActionResponseTestCase {
 		elgg()->config->allow_user_default_access = true;
 
 		$user = $this->createUser();
-		$user->setPrivateSetting('elgg_default_access', ACCESS_PUBLIC);
+		$user->setMetadata('elgg_default_access', ACCESS_PUBLIC);
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('usersettings/save', [
 			'guid' => $user->guid,

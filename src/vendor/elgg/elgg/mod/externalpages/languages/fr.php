@@ -11,13 +11,15 @@ return array(
 	 * Menu items and titles
 	 */
 	'admin:configure_utilities:expages' => "Pages du site",
+	'menu:expages:header' => "Pages du site",
+	
 	'expages:edit:viewpage' => "Voir la page sur le site",
 	'expages:about' => "À propos",
 	'expages:terms' => "Mentions légales",
 	'expages:privacy' => "Informations personnelles",
 	'expages:contact' => "Contact",
 
-	'expages:notset' => "Cette page n'a pas été définie pour le moment.",
+	'expages:notset' => "Cette page n'a pas encore été définie.",
 
 	/**
 	 * Status messages

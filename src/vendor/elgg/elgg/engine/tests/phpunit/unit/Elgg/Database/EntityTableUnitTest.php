@@ -4,13 +4,6 @@ namespace Elgg\Database;
 
 use Elgg\Exceptions\Database\UserFetchFailureException;
 
-/**
- * @group Database
- * @group EntityTable
- * @group ElggEntity
- * @group EntityCache
- * @group UnitTests
- */
 class EntityTableUnitTest extends \Elgg\UnitTestCase {
 
 	public function testCanGetUserForPermissionsCheckWhileLoggedOut() {
@@ -22,9 +15,9 @@ class EntityTableUnitTest extends \Elgg\UnitTestCase {
 
 	public function testCanGetUserForPermissionsCheckWhileLoggedIn() {
 		$user = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
-		$this->assertEquals($user, _elgg_services()->session->getLoggedInUser());
+		$this->assertEquals($user, _elgg_services()->session_manager->getLoggedInUser());
 		
 		$this->assertEquals($user, _elgg_services()->entityTable->getUserForPermissionsCheck());
 
@@ -71,19 +64,14 @@ class EntityTableUnitTest extends \Elgg\UnitTestCase {
 		$this->assertEquals($last_action, $object->last_action);
 	}
 	
-	public function testGetRowWithoutGUID() {
-		$this->assertFalse(_elgg_services()->entityTable->getRow(null));
-	}
-	
 	public function testGetRowWithNonExistingGUID() {
-		$this->assertFalse(_elgg_services()->entityTable->getRow(-1));
+		$this->assertNull(_elgg_services()->entityTable->getRow(-1));
 	}
 	
 	public function testGetRowWithExistingGUID() {
 		$object = $this->createObject();
 		
 		$result = _elgg_services()->entityTable->getRow($object->guid);
-		$this->assertNotFalse($result);
 		$this->assertNotEmpty($result); // should be a \stdClass with data
 	}
 }

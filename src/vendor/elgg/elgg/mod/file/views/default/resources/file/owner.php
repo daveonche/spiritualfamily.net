@@ -3,18 +3,11 @@
  * Show a listing of files owned by a user
  */
 
-use Elgg\Exceptions\Http\EntityNotFoundException;
-
-$username = elgg_extract('username', $vars);
-
-$user = get_user_by_username($username);
-if (!$user) {
-	throw new EntityNotFoundException();
-}
+$user = elgg_get_page_owner_entity();
 
 elgg_push_collection_breadcrumbs('object', 'file', $user);
 
-elgg_register_title_button('file', 'add', 'object', 'file');
+elgg_register_title_button('add', 'object', 'file');
 
 $title = elgg_echo('collection:object:file:owner', [$user->getDisplayName()]);
 

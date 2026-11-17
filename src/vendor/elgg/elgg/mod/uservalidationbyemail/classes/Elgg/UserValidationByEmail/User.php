@@ -5,7 +5,7 @@ namespace Elgg\UserValidationByEmail;
 use Elgg\Exceptions\LoginException;
 
 /**
- * Hook callbacks for users
+ * Event callbacks for users
  *
  * @since 4.0
  * @internal
@@ -15,13 +15,13 @@ class User {
 	/**
 	 * Disables a user upon registration
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'user'
+	 * @param \Elgg\Event $event 'register', 'user'
 	 *
 	 * @return void
 	 */
-	public static function disableUserOnRegistration(\Elgg\Hook $hook) {
+	public static function disableUserOnRegistration(\Elgg\Event $event) {
 		
-		$user = $hook->getUserParam();
+		$user = $event->getUserParam();
 		// no clue what's going on, so don't react.
 		if (!$user instanceof \ElggUser) {
 			return;
@@ -29,7 +29,7 @@ class User {
 	
 		// another plugin is requesting that registration be terminated
 		// no need for uservalidationbyemail
-		if (!$hook->getValue()) {
+		if (!$event->getValue()) {
 			return;
 		}
 	
@@ -42,7 +42,7 @@ class User {
 		elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES, function () use ($user) {
 			if ($user->isEnabled()) {
 				// Don't do a recursive disable.  Any entities owned by the user at this point
-				// are products of plugins that hook into create user and might need
+				// are products of plugins that listen to the create user event and might need
 				// access to the entities.
 				// @todo That ^ sounds like a specific case...would be nice to track it down...
 				$user->disable('uservalidationbyemail_new_user', false);

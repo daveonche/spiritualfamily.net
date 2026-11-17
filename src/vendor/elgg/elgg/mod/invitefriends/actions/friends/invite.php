@@ -5,8 +5,6 @@
 
 use Elgg\Email;
 
-elgg_make_sticky_form('invitefriends');
-
 $site = elgg_get_site_entity();
 // create the from address
 $from = \Elgg\Email\Address::getFormattedEmailAddress($site->getEmailAddress(), $site->getDisplayName());
@@ -42,7 +40,7 @@ foreach ($emails as $email_address) {
 		continue;
 	}
 
-	if (get_user_by_email($email_address)) {
+	if (elgg_get_user_by_email($email_address)) {
 		$error = true;
 		$already_members[] = $email_address;
 		continue;
@@ -82,7 +80,5 @@ if ($error) {
 	
 	return elgg_error_response();
 }
-
-elgg_clear_sticky_form('invitefriends');
 
 return elgg_ok_response('', elgg_echo('invitefriends:success'));

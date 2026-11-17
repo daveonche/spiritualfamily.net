@@ -3,6 +3,7 @@
 namespace Elgg\Pages;
 
 use Elgg\Database\Seeds\Seed;
+use Elgg\Exceptions\Seeding\MaxAttemptsException;
 
 /**
  * Add page seed
@@ -18,19 +19,17 @@ class Seeder extends Seed {
 		$this->advance($this->getCount());
 
 		$create_page = function () {
-			$metadata = [
-				'write_access_id' => ACCESS_LOGGED_IN,
-			];
-
-			$attributes = [
-				'subtype' => 'page',
-			];
-
-			$page = $this->createObject($attributes, $metadata);
-			if (!$page) {
-				return;
+			try {
+				/* @var $age \ElggPage */
+				$page = $this->createObject([
+					'subtype' => 'page',
+					'write_access_id' => ACCESS_LOGGED_IN,
+				]);
+			} catch (MaxAttemptsException $e) {
+				// unable to create a page with the given options
+				return null;
 			}
-
+			
 			$this->createComments($page);
 			$this->createLikes($page);
 
@@ -71,7 +70,6 @@ class Seeder extends Seed {
 	 * {@inheritdoc}
 	 */
 	public function unseed() {
-
 		/* @var $pages \ElggBatch */
 		$pages = elgg_get_entities([
 			'type' => 'object',
@@ -88,6 +86,8 @@ class Seeder extends Seed {
 				$this->log("Deleted page {$page->guid}");
 			} else {
 				$this->log("Failed to delete page {$page->guid}");
+				$pages->reportFailure();
+				continue;
 			}
 
 			$this->advance();

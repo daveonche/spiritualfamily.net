@@ -16,6 +16,7 @@ return array(
 	'edit:object:blog' => 'Изменить публикацию',
 	'notification:object:blog:publish' => "Отправить уведомление при публикации блога",
 	'notifications:mute:object:blog' => "о блоге '%s'",
+	'menu:blog_archive:header' => "Архив блога",
 
 	'blog:revisions' => 'Редакции',
 	'blog:archives' => 'Архив',
@@ -29,14 +30,11 @@ return array(
 	'blog:save_status' => 'Сохранено: ',
 
 	'blog:revision' => 'Редакция',
-	'blog:auto_saved_revision' => 'Автосохраненная редакция',
-
+	
 	// messages
 	'blog:message:saved' => 'Публикация сохранена.',
 	'blog:error:cannot_save' => 'Не удается сохранить публикацию.',
-	'blog:error:cannot_auto_save' => 'Не удается автоматически сохранить публикацию.',
 	'blog:error:cannot_write_to_container' => 'Недостаточно прав для сохранения блога в группе.',
-	'blog:messages:warning:draft' => 'Это не сохраненный черновик публикации!',
 	'blog:edit_revision_notice' => '(Старая версия)',
 	'blog:none' => 'Нет публикаций в блоге',
 	'blog:error:missing:title' => 'Введите название!',
@@ -57,6 +55,8 @@ return array(
 
 Просмотреть и прокомментировать запись в блоге:
 %s',
+	
+	'notification:mentions:object:blog:subject' => '%s упомянул вас в записи блога',
 
 	// widget
 	'widgets:blog:name' => 'Записи блога',

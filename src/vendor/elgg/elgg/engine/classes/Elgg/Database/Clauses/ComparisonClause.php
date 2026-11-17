@@ -3,7 +3,7 @@
 namespace Elgg\Database\Clauses;
 
 use Elgg\Database\QueryBuilder;
-use Elgg\Exceptions\InvalidParameterException;
+use Elgg\Exceptions\DomainException;
 use Elgg\Values;
 
 /**
@@ -56,7 +56,7 @@ class ComparisonClause extends Clause {
 	/**
 	 * {@inheritdoc}
 	 *
-	 * @throws InvalidParameterException
+	 * @throws DomainException
 	 */
 	public function prepare(QueryBuilder $qb, $table_alias = null) {
 		$x = $this->x;
@@ -73,9 +73,10 @@ class ComparisonClause extends Clause {
 			$parts = [];
 			foreach ($y as $val) {
 				$val = $qb->param($val, $type);
-				if ($case_sensitive && $type == ELGG_VALUE_STRING) {
-					$val = "BINARY $val";
+				if ($case_sensitive && $type === ELGG_VALUE_STRING) {
+					$val = "BINARY {$val}";
 				}
+				
 				$parts[] = $qb->expr()->$func($x, $val);
 			}
 
@@ -85,79 +86,79 @@ class ComparisonClause extends Clause {
 		$match_expr = null;
 		$comparison = strtolower($this->comparison);
 		switch ($comparison) {
-			case '=' :
-			case 'eq' :
-			case 'in' :
+			case '=':
+			case 'eq':
+			case 'in':
 				if ($this->case_sensitive && $this->type == ELGG_VALUE_STRING) {
 					$x = "CAST($x as BINARY)";
 				}
+				
 				if (is_array($y) || $comparison === 'in') {
 					if (!Values::isEmpty($y)) {
 						$param = isset($type) ? $qb->param($y, $type) : $y;
 						$match_expr = $qb->expr()->in($x, $param);
 					}
-				} else if (isset($y)) {
+				} elseif (isset($y)) {
 					$param = isset($type) ? $qb->param($y, $type) : $y;
 					$match_expr = $qb->expr()->eq($x, $param);
 				}
-
 				return $match_expr;
 
-			case '!=' :
-			case '<>' :
-			case 'neq' :
-			case 'not in' :
+			case '!=':
+			case '<>':
+			case 'neq':
+			case 'not in':
 				if ($this->case_sensitive && $this->type == ELGG_VALUE_STRING) {
 					$x = "CAST($x as BINARY)";
 				}
+				
 				if (is_array($y) || $comparison === 'not in') {
 					if (!empty($y)) {
 						$param = isset($type) ? $qb->param($y, $type) : $y;
 						$match_expr = $qb->expr()->notIn($x, $param);
 					}
-				} else if (isset($y)) {
+				} elseif (isset($y)) {
 					$param = isset($type) ? $qb->param($y, $type) : $y;
 					$match_expr = $qb->expr()->neq($x, $param);
 				}
-
 				return $match_expr;
 
-			case 'like' :
+			case 'like':
 				return $compare_with('like');
 
-			case 'not like' :
+			case 'not like':
 				return $compare_with('notLike', 'AND');
 
 			case '>':
-			case 'gt' :
+			case 'gt':
 				return $compare_with('gt');
 
-			case '<' :
-			case 'lt' :
+			case '<':
+			case 'lt':
 				return $compare_with('lt');
 
-			case '>=' :
-			case 'gte' :
+			case '>=':
+			case 'gte':
 				return $compare_with('gte');
 
-			case '<=' :
-			case 'lte' :
+			case '<=':
+			case 'lte':
 				return $compare_with('lte');
 
-			case 'is null' :
+			case 'is null':
 				return $qb->expr()->isNull($x);
 
-			case 'is not null' :
+			case 'is not null':
 				return $qb->expr()->isNotNull($x);
 
-			case 'exists' :
+			case 'exists':
 				return "EXISTS ($y)";
 
-			case 'not exists' :
+			case 'not exists':
 				return "NOT EXISTS ($y)";
 
-			default :
-				throw new InvalidParameterException("'{$this->comparison}' is not a supported comparison operator");
+			default:
+				throw new DomainException("'{$this->comparison}' is not a supported comparison operator");
 		}
 	}
 }

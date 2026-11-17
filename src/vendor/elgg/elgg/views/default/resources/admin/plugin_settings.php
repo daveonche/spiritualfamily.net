@@ -11,9 +11,10 @@ use Elgg\Exceptions\Http\PageNotFoundException;
 // Make sure the 'site' css isn't loaded
 elgg_unregister_external_file('css', 'elgg');
 
-$plugin_id = elgg_extract('plugin_id', $vars);
+$plugin_id = (string) elgg_extract('plugin_id', $vars);
+
 $plugin = elgg_get_plugin_from_id($plugin_id);
-if (!$plugin instanceof ElggPlugin) {
+if (!$plugin instanceof \ElggPlugin) {
 	throw new EntityNotFoundException();
 }
 
@@ -22,7 +23,7 @@ if (!elgg_view_exists("plugins/{$plugin_id}/settings")) {
 }
 
 // build page elements
-$title = elgg_echo("admin:plugin_settings") . ': ' . $plugin->getDisplayName();
+$title = elgg_echo('admin:plugin_settings') . ': ' . $plugin->getDisplayName();
 
 $content = elgg_view('admin/plugin_settings', [
 	'entity' => $plugin,

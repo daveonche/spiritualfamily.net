@@ -1,16 +1,16 @@
 <?php
-
 /**
  * Discussion topic add/edit form body
  *
  */
+
 $title = elgg_extract('title', $vars, '');
 $desc = elgg_extract('description', $vars, '');
 $status = elgg_extract('status', $vars, '');
 $tags = elgg_extract('tags', $vars, '');
 $access_id = elgg_extract('access_id', $vars, ACCESS_DEFAULT);
-$container_guid = elgg_extract('container_guid', $vars);
-$guid = elgg_extract('guid', $vars, null);
+$container_guid = (int) elgg_extract('container_guid', $vars);
+$guid = (int) elgg_extract('guid', $vars);
 
 $container_entity = get_entity($container_guid);
 $show_container_input = true;
@@ -89,7 +89,7 @@ echo elgg_view_field([
 	'#class' => 'discussion-access',
 	'name' => 'access_id',
 	'value' => $access_id,
-	'entity' => get_entity($guid),
+	'entity' => elgg_extract('entity', $vars),
 	'entity_type' => 'object',
 	'entity_subtype' => 'discussion',
 ]);
@@ -111,6 +111,6 @@ echo elgg_view_field([
 
 $footer = elgg_view_field([
 	'#type' => 'submit',
-	'value' => elgg_echo('save'),
+	'text' => elgg_echo('save'),
 ]);
 elgg_set_form_footer($footer);

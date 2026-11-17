@@ -477,12 +477,12 @@ class AddFontAwesomeClassesHandler {
 	/**
 	 * Converts icon classes to correct FontAwesome classes
 	 *
-	 * @param \Elgg\Hook $hook 'view_vars', 'output/icon'
+	 * @param \Elgg\Event $event 'view_vars', 'output/icon'
 	 *
 	 * @return array
 	 */
-	public function __invoke(\Elgg\Hook $hook) {
-		$vars = $hook->getValue();
+	public function __invoke(\Elgg\Event $event) {
+		$vars = $event->getValue();
 		
 		$classes = elgg_extract_class($vars);
 		
@@ -517,9 +517,7 @@ class AddFontAwesomeClassesHandler {
 			$classes[] = "fa-{$base_icon}";
 		}
 
-		$classes = array_unique($classes);
-
-		$vars['class'] = elgg_trigger_deprecated_plugin_hook('classes', 'icon', null, $classes, "The 'classes', 'icon' hook is deprecated. Use the 'view_vars', 'output/icon' hook instead.", '4.3');
+		$vars['class'] = array_unique($classes);
 	
 		return $vars;
 	}

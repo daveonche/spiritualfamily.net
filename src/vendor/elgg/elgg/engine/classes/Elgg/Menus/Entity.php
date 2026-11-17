@@ -3,6 +3,7 @@
 namespace Elgg\Menus;
 
 use Elgg\Menu\MenuItems;
+use Elgg\Upgrade\Batch;
 
 /**
  * Register menu items to the entity menu
@@ -15,25 +16,34 @@ class Entity {
 	/**
 	 * Register the edit menu item
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'menu:entity'
+	 * @param \Elgg\Event $event 'register', 'menu:entity'
 	 *
 	 * @return void|MenuItems
 	 */
-	public static function registerEdit(\Elgg\Hook $hook) {
-		$entity = $hook->getEntityParam();
+	public static function registerEdit(\Elgg\Event $event) {
+		$entity = $event->getEntityParam();
 		if (!($entity instanceof \ElggEntity) || $entity instanceof \ElggUser) {
 			// users mostly use the hover menu for their actions
 			return;
 		}
 		
-		$edit_url = elgg_generate_entity_url($entity, 'edit');
+		/* @var $return MenuItems */
+		$return = $event->getValue();
 		
-		if (empty($edit_url) || !$entity->canEdit()) {
+		if ($return->get('edit')) {
+			// a menu item for editting already exists
 			return;
 		}
 		
-		/* @var $return MenuItems */
-		$return = $hook->getValue();
+		if (!$entity->canEdit()) {
+			// checking this before generating the url to prevent notices from deprecated routes
+			return;
+		}
+		
+		$edit_url = elgg_generate_entity_url($entity, 'edit');
+		if (empty($edit_url)) {
+			return;
+		}
 		
 		$return[] = \ElggMenuItem::factory([
 			'name' => 'edit',
@@ -50,12 +60,12 @@ class Entity {
 	/**
 	 * Register the delete menu item
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'menu:entity'
+	 * @param \Elgg\Event $event 'register', 'menu:entity'
 	 *
 	 * @return void|MenuItems
 	 */
-	public static function registerDelete(\Elgg\Hook $hook) {
-		$entity = $hook->getEntityParam();
+	public static function registerDelete(\Elgg\Event $event) {
+		$entity = $event->getEntityParam();
 		if (!$entity instanceof \ElggEntity || $entity instanceof \ElggUser || $entity instanceof \ElggPlugin || $entity instanceof \ElggUpgrade) {
 			// users mostly use the hover menu for their actions
 			// plugins can't be removed
@@ -72,7 +82,7 @@ class Entity {
 		}
 		
 		/* @var $return MenuItems */
-		$return = $hook->getValue();
+		$return = $event->getValue();
 		
 		$return[] = \ElggMenuItem::factory([
 			'name' => 'delete',
@@ -88,20 +98,49 @@ class Entity {
 	}
 	
 	/**
-	 * Registers menu items for the entity menu of a plugin
+	 * Registers menu items for the entity menu of a comment
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'menu:entity:object:plugin'
+	 * @param \Elgg\Event $event 'register', 'menu:entity:object:comment'
 	 *
 	 * @return void|MenuItems
 	 */
-	public static function registerPlugin(\Elgg\Hook $hook) {
-		$entity = $hook->getEntityParam();
+	public static function registerComment(\Elgg\Event $event) {
+		$entity = $event->getEntityParam();
+		if (!$entity instanceof \ElggComment || !$entity->canEdit()) {
+			return;
+		}
+		
+		/* @var $return MenuItems */
+		$return = $event->getValue();
+		
+		$return[] = \ElggMenuItem::factory([
+			'name' => 'edit',
+			'icon' => 'edit',
+			'text' => elgg_echo('edit'),
+			'title' => elgg_echo('edit:this'),
+			'href' => false,
+			'priority' => 900,
+			'data-comment-guid' => $entity->guid,
+		]);
+		
+		return $return;
+	}
+	
+	/**
+	 * Registers menu items for the entity menu of a plugin
+	 *
+	 * @param \Elgg\Event $event 'register', 'menu:entity:object:plugin'
+	 *
+	 * @return void|MenuItems
+	 */
+	public static function registerPlugin(\Elgg\Event $event) {
+		$entity = $event->getEntityParam();
 		if (!$entity instanceof \ElggPlugin || !$entity->canEdit()) {
 			return;
 		}
 		
 		/* @var $return MenuItems */
-		$return = $hook->getValue();
+		$return = $event->getValue();
 		
 		if (elgg_view_exists("plugins/{$entity->getID()}/settings")) {
 			$return[] = \ElggMenuItem::factory([
@@ -184,18 +223,18 @@ class Entity {
 	/**
 	 * Add menu items to the entity menu of ElggUpgrade
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'menu:entity:object:elgg_upgrade'
+	 * @param \Elgg\Event $event 'register', 'menu:entity:object:elgg_upgrade'
 	 *
 	 * @return void|MenuItems
 	 */
-	public static function registerUpgrade(\Elgg\Hook $hook) {
-		$entity = $hook->getEntityParam();
+	public static function registerUpgrade(\Elgg\Event $event) {
+		$entity = $event->getEntityParam();
 		if (!$entity instanceof \ElggUpgrade || !$entity->canEdit()) {
 			return;
 		}
 		
 		/* @var $return MenuItems */
-		$result = $hook->getValue();
+		$result = $event->getValue();
 		
 		if (!$entity->isCompleted()) {
 			$result[] = \ElggMenuItem::factory([
@@ -209,8 +248,9 @@ class Entity {
 				'data-guid' => $entity->guid,
 				'priority' => 600,
 			]);
-		} elseif ($batch = $entity->getBatch()) {
-			if (!$batch->shouldBeSkipped()) {
+		} else {
+			$batch = $entity->getBatch();
+			if ($batch instanceof Batch && !$batch->shouldBeSkipped()) {
 				// only show reset if it will have an effect
 				$result[] = \ElggMenuItem::factory([
 					'name' => 'reset',
@@ -230,17 +270,17 @@ class Entity {
 	/**
 	 * Add the user hover admin section to the entity menu of an ElggUser, if requested
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'menu:entity'
+	 * @param \Elgg\Event $event 'register', 'menu:entity'
 	 *
 	 * @return void|MenuItems
 	 */
-	public static function registerUserHoverAdminSection(\Elgg\Hook $hook) {
-		$entity = $hook->getEntityParam();
+	public static function registerUserHoverAdminSection(\Elgg\Event $event) {
+		$entity = $event->getEntityParam();
 		if (!$entity instanceof \ElggUser || !elgg_is_admin_logged_in()) {
 			return;
 		}
 		
-		if (!(bool) $hook->getParam('add_user_hover_admin_section', false)) {
+		if (!(bool) $event->getParam('add_user_hover_admin_section', false)) {
 			return;
 		}
 		
@@ -249,7 +289,7 @@ class Entity {
 		]);
 		
 		/* @var $result MenuItems */
-		$result = $hook->getValue();
+		$result = $event->getValue();
 		
 		/* @var $menu_item \ElggMenuItem */
 		foreach ($user_hover->getItems() as $menu_item) {

@@ -19,7 +19,7 @@ final class PasswordService {
 	 */
 	public function __construct() {
 		if (!function_exists('password_hash')) {
-			throw new RuntimeException("password_hash and associated functions are required.");
+			throw new RuntimeException('password_hash and associated functions are required.');
 		}
 	}
 
@@ -62,57 +62,6 @@ final class PasswordService {
 	/**
 	 * Generate and send a password request email to a given user's registered email address.
 	 *
-	 * @param int $user_guid User GUID
-	 *
-	 * @return false|array
-	 * @see notify_user()
-	 *
-	 * @deprecated 4.3 use requestNewPassword()
-	 */
-	public function sendNewPasswordRequest($user_guid) {
-		$user_guid = (int) $user_guid;
-
-		$user = _elgg_services()->entityTable->get($user_guid);
-		if (!$user instanceof \ElggUser) {
-			return false;
-		}
-
-		// generate code
-		$code = elgg_generate_password();
-		$user->setPrivateSetting('passwd_conf_code', $code);
-		$user->setPrivateSetting('passwd_conf_time', time());
-
-		// generate link
-		$link = elgg_generate_url('account:password:change', [
-			'u' => $user_guid,
-			'c' => $code,
-		]);
-		$link = _elgg_services()->urlSigner->sign($link, '+1 day');
-
-		// generate email
-		$ip_address = _elgg_services()->request->getClientIp();
-		$message = _elgg_services()->translator->translate('email:changereq:body', [
-			$ip_address,
-			$link,
-		], $user->language);
-		
-		$subject = _elgg_services()->translator->translate('email:changereq:subject', [], $user->language);
-
-		$params = [
-			'action' => 'requestnewpassword',
-			'object' => $user,
-			'ip_address' => $ip_address,
-			'link' => $link,
-			'apply_muting' => false,
-			'add_mute_link' => false,
-		];
-		
-		return notify_user($user->guid, elgg_get_site_entity()->guid, $subject, $message, $params, 'email');
-	}
-
-	/**
-	 * Generate and send a password request email to a given user's registered email address.
-	 *
 	 * @param \ElggUser $user the user to notify
 	 *
 	 * @return void
@@ -120,8 +69,8 @@ final class PasswordService {
 	public function requestNewPassword(\ElggUser $user): void {
 		// generate code
 		$code = elgg_generate_password();
-		$user->setPrivateSetting('passwd_conf_code', $code);
-		$user->setPrivateSetting('passwd_conf_time', time());
+		$user->passwd_conf_code = $code;
+		$user->passwd_conf_time = time();
 
 		// generate link
 		$link = elgg_generate_url('account:password:change', [
@@ -152,31 +101,6 @@ final class PasswordService {
 	}
 
 	/**
-	 * Set a user's new password and save the entity.
-	 *
-	 * @param \ElggUser|int $user     The user GUID or entity
-	 * @param string        $password Text (which will then be converted into a hash and stored)
-	 *
-	 * @return bool
-	 *
-	 * @deprecated 4.3
-	 */
-	public function forcePasswordReset($user, $password) {
-		if (!$user instanceof \ElggUser) {
-			$user = _elgg_services()->entityTable->get($user, 'user');
-			if (!$user instanceof \ElggUser) {
-				return false;
-			}
-		}
-
-		$user->setPassword($password);
-
-		return elgg_call(ELGG_IGNORE_ACCESS, function() use ($user) {
-			return $user->save();
-		});
-	}
-
-	/**
 	 * Validate and change password for a user.
 	 *
 	 * @param \ElggUser $user      The user
@@ -195,8 +119,8 @@ final class PasswordService {
 			$reset = false;
 		}
 
-		$saved_code = $user->getPrivateSetting('passwd_conf_code');
-		$code_time = (int) $user->getPrivateSetting('passwd_conf_time');
+		$saved_code = $user->passwd_conf_code;
+		$code_time = (int) $user->passwd_conf_time;
 		$codes_match = _elgg_services()->crypto->areEqual($saved_code, $conf_code);
 
 		if (!$saved_code || !$codes_match) {
@@ -210,8 +134,8 @@ final class PasswordService {
 
 		$user->setPassword($password);
 		
-		$user->removePrivateSetting('passwd_conf_code');
-		$user->removePrivateSetting('passwd_conf_time');
+		unset($user->passwd_conf_code);
+		unset($user->passwd_conf_time);
 		
 		// reset the logins failures
 		elgg_reset_authentication_failures($user);

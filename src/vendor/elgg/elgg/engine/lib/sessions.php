@@ -12,7 +12,7 @@ use Elgg\Exceptions\LoginException;
  * @return \ElggSession
  * @since 1.9
  */
-function elgg_get_session() {
+function elgg_get_session(): ?\ElggSession {
 	return _elgg_services()->session;
 }
 
@@ -21,8 +21,8 @@ function elgg_get_session() {
  *
  * @return \ElggUser|null
  */
-function elgg_get_logged_in_user_entity() {
-	return _elgg_services()->session->getLoggedInUser();
+function elgg_get_logged_in_user_entity(): ?\ElggUser {
+	return _elgg_services()->session_manager->getLoggedInUser();
 }
 
 /**
@@ -31,8 +31,8 @@ function elgg_get_logged_in_user_entity() {
  * @see elgg_get_logged_in_user_entity()
  * @return int
  */
-function elgg_get_logged_in_user_guid() {
-	return _elgg_services()->session->getLoggedInUserGuid();
+function elgg_get_logged_in_user_guid(): int {
+	return _elgg_services()->session_manager->getLoggedInUserGuid();
 }
 
 /**
@@ -40,8 +40,8 @@ function elgg_get_logged_in_user_guid() {
  *
  * @return bool
  */
-function elgg_is_logged_in() {
-	return _elgg_services()->session->isLoggedIn();
+function elgg_is_logged_in(): bool {
+	return _elgg_services()->session_manager->isLoggedIn();
 }
 
 /**
@@ -49,8 +49,8 @@ function elgg_is_logged_in() {
  *
  * @return bool
  */
-function elgg_is_admin_logged_in() {
-	return _elgg_services()->session->isAdminLoggedIn();
+function elgg_is_admin_logged_in(): bool {
+	return _elgg_services()->session_manager->isAdminLoggedIn();
 }
 
 /**
@@ -62,7 +62,7 @@ function elgg_is_admin_logged_in() {
  * @return bool
  * @since 1.9
  */
-function elgg_set_cookie(\ElggCookie $cookie) {
+function elgg_set_cookie(\ElggCookie $cookie): bool {
 	return _elgg_services()->responseFactory->setCookie($cookie);
 }
 
@@ -79,7 +79,7 @@ function elgg_set_cookie(\ElggCookie $cookie) {
  * @since 4.3
  */
 function elgg_login(\ElggUser $user, bool $persistent = false): void {
-	_elgg_services()->session->login($user, $persistent);
+	_elgg_services()->session_manager->login($user, $persistent);
 }
 
 /**
@@ -89,7 +89,7 @@ function elgg_login(\ElggUser $user, bool $persistent = false): void {
  * @since 4.3
  */
 function elgg_logout(): bool {
-	return _elgg_services()->session->logout();
+	return _elgg_services()->session_manager->logout();
 }
 
 /**
@@ -126,7 +126,7 @@ function elgg_reset_authentication_failures(\ElggUser $user): void {
  * @return bool
  * @since 4.3
  */
-function elgg_is_authentication_failure_limit_reached(\ElggUser $user, int $limit = null, int $lifetime = null) {
+function elgg_is_authentication_failure_limit_reached(\ElggUser $user, int $limit = null, int $lifetime = null): bool {
 	return _elgg_services()->accounts->isAuthenticationFailureLimitReached($user, $limit, $lifetime);
 }
 
@@ -135,17 +135,17 @@ function elgg_is_authentication_failure_limit_reached(\ElggUser $user, int $limi
  *
  * @param \ElggUser $user Logged in user
  *
- * @return string|int url to redirect to. Uses int to indicate REFERER
+ * @return string url to redirect to
  * @since 4.3
  */
-function elgg_get_login_forward_url(\ElggUser $user) {
+function elgg_get_login_forward_url(\ElggUser $user): string {
 	$session = _elgg_services()->session;
 	if ($session->has('last_forward_from')) {
 		$forward_url = $session->get('last_forward_from');
 		$session->remove('last_forward_from');
 		$forward_source = 'last_forward_from';
 	} elseif (get_input('returntoreferer')) {
-		$forward_url = REFERER;
+		$forward_url = REFERRER;
 		$forward_source = 'return_to_referer';
 	} else {
 		// forward to main index page
@@ -158,5 +158,5 @@ function elgg_get_login_forward_url(\ElggUser $user) {
 		'source' => $forward_source,
 	];
 
-	return elgg_trigger_plugin_hook('login:forward', 'user', $params, $forward_url);
+	return elgg_trigger_event_results('login:forward', 'user', $params, $forward_url);
 }

@@ -8,10 +8,6 @@ use Elgg\Mocks\Di\InternalContainer;
 use Elgg\UnitTestCase;
 use Elgg\Helpers\CustomUser;
 
-/**
- * @group Boot
- * @group Application
- */
 class BootHandlerUnitTest extends UnitTestCase {
 
 	/**
@@ -150,12 +146,12 @@ class BootHandlerUnitTest extends UnitTestCase {
 		]);
 
 		$app->internal_services->session->set('guid', $user->guid);
-		$app->internal_services->session->setUserToken($user); // normally this is done during login()
+		$app->internal_services->session_manager->setUserToken($user); // normally this is done during login()
 
 		$user->invalidateCache();
 
 		$app->bootCore();
 
-		$this->assertInstanceOf(CustomUser::class, $app->internal_services->session->getLoggedInUser());
+		$this->assertInstanceOf(CustomUser::class, $app->internal_services->session_manager->getLoggedInUser());
 	}
 }

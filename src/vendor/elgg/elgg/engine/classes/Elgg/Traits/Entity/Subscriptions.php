@@ -23,9 +23,9 @@ trait Subscriptions {
 	 * @throws InvalidArgumentException
 	 * @return bool
 	 */
-	public function addSubscription(int $user_guid = 0, $methods = [], string $type = null, string $subtype = null, string $action = null): bool {
+	public function addSubscription(int $user_guid = 0, string|array $methods = [], string $type = null, string $subtype = null, string $action = null): bool {
 		if ($user_guid === 0) {
-			$user_guid = _elgg_services()->session->getLoggedInUserGuid();
+			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
 		
 		if (!empty($user_guid) && is_array($methods) && empty($methods)) {
@@ -62,9 +62,9 @@ trait Subscriptions {
 	 * @throws InvalidArgumentException
 	 * @return bool
 	 */
-	public function hasSubscription(int $user_guid = 0, $methods = [], string $type = null, string $subtype = null, string $action = null): bool {
+	public function hasSubscription(int $user_guid = 0, string|array $methods = [], string $type = null, string $subtype = null, string $action = null): bool {
 		if ($user_guid === 0) {
-			$user_guid = _elgg_services()->session->getLoggedInUserGuid();
+			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
 		
 		$methods = $this->normalizeSubscriptionMethods($methods);
@@ -86,9 +86,9 @@ trait Subscriptions {
 	 * @throws InvalidArgumentException
 	 * @return bool
 	 */
-	public function hasSubscriptions(int $user_guid = 0, $methods = []): bool {
+	public function hasSubscriptions(int $user_guid = 0, string|array $methods = []): bool {
 		if ($user_guid === 0) {
-			$user_guid = _elgg_services()->session->getLoggedInUserGuid();
+			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
 		
 		$methods = $this->normalizeSubscriptionMethods($methods);
@@ -108,9 +108,9 @@ trait Subscriptions {
 	 * @throws InvalidArgumentException
 	 * @return bool
 	 */
-	public function removeSubscription(int $user_guid = 0, $methods = [], string $type = null, string $subtype = null, string $action = null): bool {
+	public function removeSubscription(int $user_guid = 0, string|array $methods = [], string $type = null, string $subtype = null, string $action = null): bool {
 		if ($user_guid === 0) {
-			$user_guid = _elgg_services()->session->getLoggedInUserGuid();
+			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
 		
 		$methods = $this->normalizeSubscriptionMethods($methods);
@@ -131,9 +131,9 @@ trait Subscriptions {
 	 *
 	 * @return bool
 	 */
-	public function removeSubscriptions(int $user_guid = 0, $methods = []): bool {
+	public function removeSubscriptions(int $user_guid = 0, string|array $methods = []): bool {
 		if ($user_guid === 0) {
-			$user_guid = _elgg_services()->session->getLoggedInUserGuid();
+			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
 		
 		$methods = (array) $methods;
@@ -152,9 +152,9 @@ trait Subscriptions {
 	 *
 	 * @return \ElggRelationship[]
 	 */
-	public function getSubscriptions(int $user_guid = 0, $methods = [], string $type = null, string $subtype = null, string $action = null): array {
+	public function getSubscriptions(int $user_guid = 0, string|array $methods = [], string $type = null, string $subtype = null, string $action = null): array {
 		if ($user_guid === 0) {
-			$user_guid = _elgg_services()->session->getLoggedInUserGuid();
+			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
 		
 		$methods = (array) $methods;
@@ -169,7 +169,7 @@ trait Subscriptions {
 	 *
 	 * @return \ElggEntity[]
 	 */
-	public function getSubscribers($methods = []): array {
+	public function getSubscribers(string|array $methods = []): array {
 		$methods = (array) $methods;
 		
 		return _elgg_services()->subscriptions->getSubscribers($this->guid, $methods);
@@ -184,7 +184,7 @@ trait Subscriptions {
 	 */
 	public function muteNotifications(int $user_guid = 0): bool {
 		if ($user_guid === 0) {
-			$user_guid = _elgg_services()->session->getLoggedInUserGuid();
+			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
 		
 		return _elgg_services()->subscriptions->muteNotifications($user_guid, $this->guid);
@@ -199,7 +199,7 @@ trait Subscriptions {
 	 */
 	public function hasMutedNotifications(int $user_guid = 0): bool {
 		if ($user_guid === 0) {
-			$user_guid = _elgg_services()->session->getLoggedInUserGuid();
+			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
 		
 		return _elgg_services()->subscriptions->hasMutedNotifications($user_guid, $this->guid);
@@ -214,7 +214,7 @@ trait Subscriptions {
 	 */
 	public function unmuteNotifications(int $user_guid = 0): bool {
 		if ($user_guid === 0) {
-			$user_guid = _elgg_services()->session->getLoggedInUserGuid();
+			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
 		
 		return _elgg_services()->subscriptions->unmuteNotifications($user_guid, $this->guid);
@@ -228,14 +228,7 @@ trait Subscriptions {
 	 * @throws InvalidArgumentException
 	 * @return string[]
 	 */
-	protected function normalizeSubscriptionMethods($methods = []): array {
-		if (!is_string($methods) && !is_array($methods)) {
-			$dbt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-			$caller = $dbt[1]['function'] ?? 'unknown';
-			
-			throw new InvalidArgumentException(elgg_echo('Entity:Subscriptions:InvalidMethodsException', [$caller]));
-		}
-		
+	protected function normalizeSubscriptionMethods(string|array $methods = []): array {
 		$methods = (array) $methods;
 		
 		foreach ($methods as $method) {

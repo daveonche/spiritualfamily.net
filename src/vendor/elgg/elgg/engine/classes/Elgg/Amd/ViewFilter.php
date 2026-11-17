@@ -9,6 +9,7 @@ namespace Elgg\Amd;
  * @internal
  */
 class ViewFilter {
+	
 	/**
 	 * Given the view name, returns the AMD name.
 	 *
@@ -23,9 +24,10 @@ class ViewFilter {
 		}
 
 		// must be in "js/" dir
-		if (0 !== strpos($name, 'js/')) {
+		if (!str_starts_with($name, 'js/')) {
 			return '';
 		}
+		
 		$name = substr($name, 3);
 
 		// Don't allow extension. We matched ".js" above

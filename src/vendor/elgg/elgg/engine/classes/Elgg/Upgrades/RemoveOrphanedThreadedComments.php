@@ -6,7 +6,7 @@ use Elgg\Database\QueryBuilder;
 use Elgg\Upgrade\AsynchronousUpgrade;
 use Elgg\Upgrade\Result;
 
-class RemoveOrphanedThreadedComments implements AsynchronousUpgrade {
+class RemoveOrphanedThreadedComments extends AsynchronousUpgrade {
 	
 	/**
 	 * {@inheritDoc}

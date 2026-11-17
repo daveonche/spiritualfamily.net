@@ -4,13 +4,9 @@ namespace Elgg\Database\Clauses;
 
 use Elgg\Database\QueryBuilder;
 use Elgg\Database\Select;
-use Elgg\Exceptions\InvalidParameterException;
+use Elgg\Exceptions\DomainException;
 use Elgg\UnitTestCase;
 
-/**
- * @group QueryBuilder
- * @group QueryBuilderWhere
- */
 class AnnotationWhereClauseUnitTest extends UnitTestCase {
 
 	/**
@@ -289,7 +285,7 @@ class AnnotationWhereClauseUnitTest extends UnitTestCase {
 
 		$qb = Select::fromTable('entities', 'alias');
 		
-		$this->expectException(InvalidParameterException::class);
+		$this->expectException(DomainException::class);
 		$qb->addClause($query);
 	}
 

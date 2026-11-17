@@ -5,6 +5,8 @@
 /mod/*
 /composer.phar
 /cache
+/caches/
+/phpunit.xml
 
 # don't ignore example settings
 !/elgg-config/settings.example.php
@@ -42,6 +44,7 @@
 !/mod/site_notifications/
 !/mod/system_log/
 !/mod/tagcloud/
+!/mod/theme_sandbox/
 !/mod/thewire/
 !/mod/uservalidationbyemail/
 !/mod/web_services/

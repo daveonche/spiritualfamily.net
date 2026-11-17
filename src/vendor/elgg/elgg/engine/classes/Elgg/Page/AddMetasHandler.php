@@ -12,27 +12,30 @@ class AddMetasHandler {
 	/**
 	 * Add metas to HTML head
 	 *
-	 * @param \Elgg\Hook $hook 'head', 'page'
+	 * @param \Elgg\Event $event 'head', 'page'
 	 *
 	 * @return array
 	 */
-	public function __invoke(\Elgg\Hook $hook) {
-		$head_params = $hook->getValue();
+	public function __invoke(\Elgg\Event $event) {
+		$head_params = $event->getValue();
 		
 		$head_params['metas']['content-type'] = [
 			'http-equiv' => 'Content-Type',
 			'content' => 'text/html; charset=utf-8',
 		];
 		
-		$head_params['metas']['description'] = [
-			'name' => 'description',
-			'content' => elgg_get_site_entity()->description,
-		];
+		$description = elgg_get_site_entity()->description;
+		if (!empty($description)) {
+			$head_params['metas']['description'] = [
+				'name' => 'description',
+				'content' => $description,
+			];
+		}
 		
 		// https://developer.chrome.com/multidevice/android/installtohomescreen
 		$head_params['metas']['viewport'] = [
 			'name' => 'viewport',
-			'content' => 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+			'content' => 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=1',
 		];
 		
 		$head_params['metas']['mobile-web-app-capable'] = [

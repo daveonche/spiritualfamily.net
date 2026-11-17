@@ -1,30 +1,30 @@
 <?php
+
 use Elgg\WebServices\Di\RestApiErrorHandler;
 
 /**
  * GenericResult Result superclass.
  */
 abstract class GenericResult {
+	
 	/**
-	 * The status of the result.
-	 * @var int
+	 * The status of the result
 	 */
-	private $status_code;
+	protected int $status_code;
 
 	/**
 	 * Message returned along with the status which is almost always an error message.
-	 * This must be human readable, understandable and localised.
-	 * @var string
+	 * This must be human-readable, understandable and localised
 	 */
-	private $message;
+	protected string $message;
 
 	/**
 	 * Result store.
-	 * Attach result specific informaton here.
+	 * Attach result specific information here.
 	 *
 	 * @var mixed Should probably be an object of some sort.
 	 */
-	private $result;
+	protected $result;
 
 	/**
 	 * Set a status code and optional message.
@@ -34,7 +34,7 @@ abstract class GenericResult {
 	 *
 	 * @return void
 	 */
-	protected function setStatusCode($status, $message = "") {
+	protected function setStatusCode(int $status, string $message = ''): void {
 		$this->status_code = $status;
 		$this->message = $message;
 	}
@@ -46,32 +46,32 @@ abstract class GenericResult {
 	 *
 	 * @return void
 	 */
-	protected function setResult($result) {
+	protected function setResult($result): void {
 		$this->result = $result;
 	}
 
 	/**
 	 * Return the current status code
 	 *
-	 * @return string
+	 * @return int
 	 */
-	protected function getStatusCode() {
+	protected function getStatusCode(): int {
 		return $this->status_code;
 	}
 
 	/**
 	 * Return the current status message
 	 *
-	 * @return string
+	 * @return null|string
 	 */
-	protected function getStatusMessage() {
+	protected function getStatusMessage(): ?string {
 		return $this->message;
 	}
 
 	/**
 	 * Return the current result
 	 *
-	 * @return string
+	 * @return mixed
 	 */
 	protected function getResult() {
 		return $this->result;
@@ -82,7 +82,7 @@ abstract class GenericResult {
 	 *
 	 * DEVNOTE: The API is only interested in data, we can not easily serialise
 	 * custom classes without the need for 1) the other side being PHP, 2) you need to have the class
-	 * definition installed, 3) its the right version!
+	 * definition installed, 3) it's the right version!
 	 *
 	 * Therefore, I'm not bothering.
 	 *
@@ -92,15 +92,13 @@ abstract class GenericResult {
 	 * if ELGG_DEBUG is set then additional information about the runtime environment and
 	 * authentication will be returned.
 	 *
-	 * @return stdClass Object containing the serialised result.
+	 * @return \stdClass Object containing the serialised result.
 	 */
-	public function export() {
-		global $_PAM_HANDLERS_MSG;
-		
-		$result = new stdClass;
+	public function export(): \stdClass {
+		$result = new \stdClass;
 
 		$result->status = $this->getStatusCode();
-		if ($this->getStatusMessage() != "") {
+		if ($this->getStatusMessage() != '') {
 			$result->message = $this->getStatusMessage();
 		}
 
@@ -113,10 +111,6 @@ abstract class GenericResult {
 			$errors = RestApiErrorHandler::instance()->getErrors();
 			if (!empty($errors)) {
 				$result->runtime_errors = $errors;
-			}
-
-			if (!empty($_PAM_HANDLERS_MSG)) {
-				$result->pam = $_PAM_HANDLERS_MSG;
 			}
 		}
 

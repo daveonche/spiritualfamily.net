@@ -3,8 +3,9 @@
 namespace Elgg\WebServices;
 
 use Elgg\Collections\CollectionItemInterface;
-use Elgg\Exceptions\InvalidParameterException;
-use Elgg\IntegrationTestCase;
+use Elgg\Exceptions\DomainException;
+use Elgg\Exceptions\InvalidArgumentException;
+use Elgg\Plugins\IntegrationTestCase;
 
 class ApiMethodIntegrationTest extends IntegrationTestCase {
 
@@ -27,38 +28,30 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 	public function testConstructor() {
 		$api = new ApiMethod('foo', [$this, 'callbackTest']);
 		
-		$this->assertEquals('foo', $api->getID());
+		$this->assertEquals('GET:foo', $api->getID());
 		$this->assertEquals('(' . __CLASS__ . ')->callbackTest', $api->describeCallable());
 	}
 	
 	public function testSetterWithProtectedValues() {
 		$api = $this->getApiMethod();
 		
-		$this->assertEquals('foo', $api->getID());
+		$this->assertEquals('GET:foo', $api->getID());
 		$this->assertEquals('(' . __CLASS__ . ')->callbackTest', $api->describeCallable());
 		
 		$api->method = 'bar';
-		$this->assertEquals('foo', $api->getID());
+		$this->assertEquals('GET:foo', $api->getID());
 		
 		$api->callback = 'something';
 		$this->assertEquals('(' . __CLASS__ . ')->callbackTest', $api->describeCallable());
 	}
 	
-	public function testGetterForProtectedValues() {
-		$api = $this->getApiMethod();
-		
-		$this->assertNull($api->method);
-		$this->assertNull($api->callback);
-	}
-	
 	public function testCollectionItemInterface() {
 		$api = $this->getApiMethod();
 		
-		$interfaces = class_implements($api);
-		$this->assertTrue(in_array(CollectionItemInterface::class, $interfaces));
+		$this->assertInstanceOf(CollectionItemInterface::class, $api);
 		
 		$this->assertEquals(1, $api->getPriority());
-		$this->assertEquals('foo', $api->getID());
+		$this->assertEquals('GET:foo', $api->getID());
 	}
 	
 	/**
@@ -67,7 +60,7 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 	public function testArrayParams($name) {
 		$api = $this->getApiMethod();
 		
-		$this->expectException(\TypeError::class);
+		$this->expectException(InvalidArgumentException::class);
 		$api->$name = 'string';
 	}
 	
@@ -83,7 +76,7 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 	public function testStringParams($name) {
 		$api = $this->getApiMethod();
 		
-		$this->expectException(\TypeError::class);
+		$this->expectException(InvalidArgumentException::class);
 		$api->$name = [];
 	}
 	
@@ -100,7 +93,7 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 	public function testBooleanParams($name) {
 		$api = $this->getApiMethod();
 		
-		$this->expectException(\TypeError::class);
+		$this->expectException(InvalidArgumentException::class);
 		$api->$name = 'foo';
 	}
 	
@@ -115,14 +108,14 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 	public function testSetParamsToInvalidArrayStructure() {
 		$api = $this->getApiMethod();
 		
-		$this->expectException(InvalidParameterException::class);
+		$this->expectException(InvalidArgumentException::class);
 		$api->params = ['string'];
 	}
 	
 	public function testSetParamsToArrayWithMissingType() {
 		$api = $this->getApiMethod();
 		
-		$this->expectException(InvalidParameterException::class);
+		$this->expectException(InvalidArgumentException::class);
 		$api->params = [
 			'username' => [],
 		];
@@ -158,7 +151,7 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 	public function testSetCallMethodToUnsupportedValue() {
 		$api = $this->getApiMethod();
 		
-		$this->expectException(InvalidParameterException::class);
+		$this->expectException(DomainException::class);
 		$api->call_method = 'PUT';
 	}
 	

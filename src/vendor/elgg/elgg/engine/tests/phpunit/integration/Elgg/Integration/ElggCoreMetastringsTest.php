@@ -2,29 +2,24 @@
 
 namespace Elgg\Integration;
 
+use Elgg\Database\Select;
 use Elgg\IntegrationTestCase;
-use ElggAnnotation;
 
-/**
- * Elgg Metastrings test
- *
- * @group IntegrationTests
- * @group Metadata
- * @group Annotations
- */
 class ElggCoreMetastringsTest extends IntegrationTestCase {
 
-	public $metastringTypes = [
+	protected array $metastringTypes = [
 		'metadata',
-		'annotation'
+		'annotation',
 	];
-	public $metastringTables = [
+	protected array $metastringTables = [
 		'metadata' => 'metadata',
 		'annotation' => 'annotations',
 	];
 
+	protected \ElggObject $object;
+
 	public function up() {
-		_elgg_services()->session->setLoggedInUser($this->getAdmin());
+		_elgg_services()->session_manager->setLoggedInUser($this->getAdmin());
 		$this->object = $this->createObject();
 	}
 
@@ -148,7 +143,6 @@ class ElggCoreMetastringsTest extends IntegrationTestCase {
 	}
 	
 	public function testDeleteByID() {
-		$db_prefix = _elgg_services()->config->dbprefix;
 		
 		// the following variables are used dynamically
 		$annotation = $this->createAnnotations(1);
@@ -156,9 +150,12 @@ class ElggCoreMetastringsTest extends IntegrationTestCase {
 
 		foreach ($this->metastringTypes as $type) {
 			$id = ${$type}[0];
-			$table = $db_prefix . $this->metastringTables[$type];
-			$q = "SELECT * FROM $table WHERE id = $id";
-			$test = elgg()->db->getData($q);
+			$table = $this->metastringTables[$type];
+			
+			$select = Select::fromTable($table)->select('*');
+			$select->where($select->compare('id', '=', $id, ELGG_VALUE_ID));
+			
+			$test = elgg()->db->getData($select);
 
 			$this->assertEquals($id, $test[0]->id);
 			
@@ -169,7 +166,7 @@ class ElggCoreMetastringsTest extends IntegrationTestCase {
 			}
 			
 			$this->assertTrue($item->delete());
-			$this->assertEquals([], elgg()->db->getData($q));
+			$this->assertEquals([], elgg()->db->getData($select));
 		}
 	}
 
@@ -194,7 +191,6 @@ class ElggCoreMetastringsTest extends IntegrationTestCase {
 	}
 
 	public function testGetMetastringObjectFromIDWithDisabledAnnotation() {
-
 		$name = 'test_annotation_name' . rand();
 		$value = 'test_annotation_value' . rand();
 
@@ -205,11 +201,11 @@ class ElggCoreMetastringsTest extends IntegrationTestCase {
 		elgg_call(ELGG_IGNORE_ACCESS, function() use ($id) {
 			$annotation = elgg_get_annotation_from_id($id);
 	
-			$this->assertInstanceOf(ElggAnnotation::class, $annotation);
+			$this->assertInstanceOf(\ElggAnnotation::class, $annotation);
 	
 			$this->assertTrue($annotation->disable());
 
-			$this->assertFalse(elgg_get_annotation_from_id($id));
+			$this->assertNull(elgg_get_annotation_from_id($id));
 	
 			$result = elgg_call(ELGG_SHOW_DISABLED_ENTITIES, function() use ($id) {
 				$annotation = elgg_get_annotation_from_id($id);
@@ -244,17 +240,17 @@ class ElggCoreMetastringsTest extends IntegrationTestCase {
 		$annotations = $this->createAnnotations(1);
 		$annotation_id = $annotations[0];
 		$annotation = elgg_get_annotation_from_id($annotation_id);
-
-		$table = _elgg_services()->config->dbprefix . $this->metastringTables['annotation'];
 		
-		$q = "SELECT * FROM {$table} WHERE id = {$annotation_id}";
-		$test = elgg()->db->getData($q);
+		$select = Select::fromTable($this->metastringTables['annotation'])->select('*');
+		$select->where($select->compare('id', '=', $annotation_id, ELGG_VALUE_ID));
+			
+		$test = elgg()->db->getData($select);
 
 		// disable
 		$this->assertEquals('yes', $test[0]->enabled);
 		$this->assertTrue($annotation->disable());
 
-		$test = elgg()->db->getData($q);
+		$test = elgg()->db->getData($select);
 		$this->assertEquals('no', $test[0]->enabled);
 
 		// enable
@@ -263,13 +259,13 @@ class ElggCoreMetastringsTest extends IntegrationTestCase {
 		});
 		$this->assertTrue($result);
 
-		$test = elgg()->db->getData($q);
+		$test = elgg()->db->getData($select);
 		$this->assertEquals('yes', $test[0]->enabled);
 
 		$this->assertTrue($annotation->delete());
 	}
 
-	public function testKeepMeFromDeletingEverything() {
+	public function testKeepMeFromDeletingAllMetadata() {
 		$options = [
 			'limit' => 10,
 			'guid' => ELGG_ENTITIES_ANY_VALUE,
@@ -280,11 +276,28 @@ class ElggCoreMetastringsTest extends IntegrationTestCase {
 			'metadata_values' => false,
 		];
 
-		$this->assertFalse(elgg_delete_metadata($options));
+		$this->expectException(\Elgg\Exceptions\InvalidArgumentException::class);
+		elgg_delete_metadata($options);
 
 		$options['guid'] = -1;
 		$this->assertNull(elgg_delete_metadata($options));
+	}
+	
+	public function testDeleteAllMetadataWithInvalidGUID() {
+		$options = [
+			'limit' => 10,
+			'guids' => false,
+			'metadata_name' => ELGG_ENTITIES_ANY_VALUE,
+			'metadata_names' => false,
+			'metadata_value' => ELGG_ENTITIES_ANY_VALUE,
+			'metadata_values' => false,
+			'guid' => -1,
+		];
 
+		$this->assertTrue(elgg_delete_metadata($options));
+	}
+	
+	public function testKeepMeFromDeletingAllAnnotations() {
 		// annotations
 		$options = [
 			'limit' => 10,
@@ -300,6 +313,6 @@ class ElggCoreMetastringsTest extends IntegrationTestCase {
 
 		$this->assertFalse(elgg_delete_annotations($options));
 		$options['guid'] = -1;
-		$this->assertNull(elgg_delete_annotations($options));
+		$this->assertTrue(elgg_delete_annotations($options));
 	}
 }

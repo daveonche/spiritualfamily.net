@@ -1,5 +1,6 @@
 <?php
 
+use Elgg\File\Forms\PrepareFields;
 use Elgg\File\GroupToolContainerLogicCheck;
 use Elgg\File\Notifications\CreateFileEventHandler;
 
@@ -21,6 +22,9 @@ return [
 			],
 		],
 	],
+	'upgrades' => [
+		'Elgg\File\Upgrades\MoveFiles',
+	],
 	'actions' => [
 		'file/upload' => [],
 	],
@@ -36,12 +40,18 @@ return [
 		'collection:object:file:owner' => [
 			'path' => '/file/owner/{username}',
 			'resource' => 'file/owner',
+			'middleware' => [
+				\Elgg\Router\Middleware\UserPageOwnerGatekeeper::class,
+			],
 		],
 		'collection:object:file:friends' => [
 			'path' => '/file/friends/{username}',
 			'resource' => 'file/friends',
 			'required_plugins' => [
 				'friends',
+			],
+			'middleware' => [
+				\Elgg\Router\Middleware\UserPageOwnerGatekeeper::class,
 			],
 		],
 		'collection:object:file:group' => [
@@ -50,12 +60,16 @@ return [
 			'required_plugins' => [
 				'groups',
 			],
+			'middleware' => [
+				\Elgg\Router\Middleware\GroupPageOwnerGatekeeper::class,
+			],
 		],
 		'add:object:file' => [
 			'path' => '/file/add/{guid}',
 			'resource' => 'file/upload',
 			'middleware' => [
 				\Elgg\Router\Middleware\Gatekeeper::class,
+				\Elgg\Router\Middleware\PageOwnerGatekeeper::class,
 			],
 		],
 		'edit:object:file' => [
@@ -70,15 +84,10 @@ return [
 			'resource' => 'file/view',
 		],
 	],
-	'hooks' => [
+	'events' => [
 		'container_logic_check' => [
 			'object' => [
 				GroupToolContainerLogicCheck::class => [],
-			],
-		],
-		'entity:icon:file' => [
-			'object' => [
-				'Elgg\File\Icons::setIconFile' => [],
 			],
 		],
 		'entity:icon:sizes' => [
@@ -86,16 +95,12 @@ return [
 				'Elgg\File\Icons::setIconSizes' => [],
 			],
 		],
-		'entity:icon:url' => [
-			'object' => [
-				'Elgg\File\Icons::setIconUrl' => [],
+		'form:prepare:fields' => [
+			'file/upload' => [
+				PrepareFields::class => [],
 			],
 		],
 		'register' => [
-			'menu:embed' => [
-				'Elgg\File\Menus\Embed::registerFile' => [],
-				'Elgg\File\Menus\Embed::registerFileUpload' => [],
-			],
 			'menu:owner_block' => [
 				'Elgg\File\Menus\OwnerBlock::registerUserItem' => [],
 				'Elgg\File\Menus\OwnerBlock::registerGroupItem' => [],
@@ -110,13 +115,6 @@ return [
 		'seeds' => [
 			'database' => [
 				'Elgg\File\Seeder::register' => [],
-			],
-		],
-	],
-	'events' => [
-		'delete' => [
-			'object' => [
-				'Elgg\File\Icons::deleteIconOnElggFileDelete' => ['priority' => 999],
 			],
 		],
 	],
@@ -135,14 +133,15 @@ return [
 		'extensions/item' => [
 			'file/enclosure' => [],
 		],
-		'theme_sandbox/icons' => [
-			'file/theme_sandbox/icons/files' => [],
+		'object/elements/imprint/contents' => [
+			'object/file/imprint/filetype' => [],
 		],
 	],
 	'notifications' => [
 		'object' => [
 			'file' => [
 				'create' => CreateFileEventHandler::class,
+				'mentions' => \Elgg\Notifications\MentionsEventHandler::class,
 			],
 		],
 	],

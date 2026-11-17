@@ -3,15 +3,14 @@
 namespace Elgg\Users;
 
 use Elgg\Config;
-use Elgg\Database\UsersTable;
 use Elgg\Email;
 use Elgg\Email\Address;
 use Elgg\EmailService;
-use Elgg\Exceptions\InvalidParameterException;
+use Elgg\EventsService;
 use Elgg\Exceptions\Configuration\RegistrationException;
+use Elgg\Exceptions\InvalidArgumentException;
 use Elgg\I18n\Translator;
 use Elgg\PasswordService;
-use Elgg\PluginHooksService;
 use Elgg\Security\PasswordGeneratorService;
 use Elgg\Validation\ValidationResults;
 
@@ -36,14 +35,9 @@ class Accounts {
 	protected $passwords;
 
 	/**
-	 * @var UsersTable
+	 * @var EventsService
 	 */
-	protected $users;
-
-	/**
-	 * @var PluginHooksService
-	 */
-	protected $hooks;
+	protected $events;
 	
 	/**
 	 * @var EmailService
@@ -61,8 +55,7 @@ class Accounts {
 	 * @param Config                   $config             Config
 	 * @param Translator               $translator         Translator
 	 * @param PasswordService          $passwords          Passwords
-	 * @param UsersTable               $users              Users table
-	 * @param PluginHooksService       $hooks              Plugin hooks service
+	 * @param EventsService            $events             Events service
 	 * @param EmailService             $email              Email service
 	 * @param PasswordGeneratorService $password_generator Password generator service
 	 */
@@ -70,16 +63,14 @@ class Accounts {
 		Config $config,
 		Translator $translator,
 		PasswordService $passwords,
-		UsersTable $users,
-		PluginHooksService $hooks,
+		EventsService $events,
 		EmailService $email,
 		PasswordGeneratorService $password_generator
 	) {
 		$this->config = $config;
 		$this->translator = $translator;
 		$this->passwords = $passwords;
-		$this->users = $users;
-		$this->hooks = $hooks;
+		$this->events = $events;
 		$this->email = $email;
 		$this->password_generator = $password_generator;
 	}
@@ -97,7 +88,7 @@ class Accounts {
 	 *
 	 * @return ValidationResults
 	 */
-	public function validateAccountData($username, $password, $name, $email, $allow_multiple_emails = false) {
+	public function validateAccountData(string $username, string|array $password, string $name, string $email, bool $allow_multiple_emails = false): ValidationResults {
 
 		return elgg_call(ELGG_SHOW_DISABLED_ENTITIES, function () use ($username, $email, $password, $name, $allow_multiple_emails) {
 			$results = new ValidationResults();
@@ -140,17 +131,16 @@ class Accounts {
 	/**
 	 * Assert that given registration details are valid and can be used to register the user
 	 *
-	 * @param string $username              The username of the new user
-	 * @param string $password              The password
-	 * @param string $name                  The user's display name
-	 * @param string $email                 The user's email address
-	 * @param bool   $allow_multiple_emails Allow the same email address to be
-	 *                                      registered multiple times?
+	 * @param string       $username              The username of the new user
+	 * @param string|array $password              The password
+	 * @param string       $name                  The user's display name
+	 * @param string       $email                 The user's email address
+	 * @param bool         $allow_multiple_emails Allow the same email address to be registered multiple times?
 	 *
 	 * @return void
 	 * @throws RegistrationException
 	 */
-	public function assertValidAccountData($username, $password, $name, $email, $allow_multiple_emails = false) {
+	public function assertValidAccountData(string $username, string|array $password, string $name, string $email, bool $allow_multiple_emails = false): void {
 
 		$results = $this->validateAccountData($username, $password, $name, $email, $allow_multiple_emails);
 
@@ -159,7 +149,6 @@ class Accounts {
 				throw new RegistrationException($result->getError());
 			}
 		}
-
 	}
 
 	/**
@@ -239,7 +228,7 @@ class Accounts {
 	 * @return void
 	 * @throws RegistrationException
 	 */
-	public function assertValidUsername($username, $assert_unregistered = false) {
+	public function assertValidUsername(string $username, bool $assert_unregistered = false): void {
 
 		if (elgg_strlen($username) < $this->config->minusername) {
 			$msg = $this->translator->translate('registration:usernametooshort', [$this->config->minusername]);
@@ -265,7 +254,7 @@ class Accounts {
 		// @todo Tidy into main unicode
 		$blacklist2 = '\'/\\"*& ?#%^(){}[]~?<>;|¬`@+=,:';
 
-		$blacklist2 = $this->hooks->trigger(
+		$blacklist2 = $this->events->triggerResults(
 			'username:character_blacklist',
 			'user',
 			['blacklist' => $blacklist2],
@@ -280,7 +269,7 @@ class Accounts {
 			}
 		}
 
-		$result = $this->hooks->trigger(
+		$result = $this->events->triggerResults(
 			'registeruser:validate:username',
 			'all',
 			['username' => $username],
@@ -293,10 +282,10 @@ class Accounts {
 
 		if ($assert_unregistered) {
 			$exists = elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES, function () use ($username) {
-				return $this->users->getByUsername($username);
+				return elgg_get_user_by_username($username);
 			});
 
-			if ($exists) {
+			if ($exists instanceof \ElggUser) {
 				throw new RegistrationException($this->translator->translate('registration:userexists'));
 			}
 		}
@@ -311,7 +300,7 @@ class Accounts {
 	 * @return void
 	 * @throws RegistrationException
 	 */
-	public function assertValidPassword($password) {
+	public function assertValidPassword(string|array $password): void {
 
 		if (is_array($password)) {
 			list($password, $password2) = $password;
@@ -325,7 +314,7 @@ class Accounts {
 			}
 		}
 		
-		$result = $this->hooks->trigger(
+		$result = $this->events->triggerResults(
 			'registeruser:validate:password',
 			'all',
 			['password' => $password],
@@ -346,7 +335,7 @@ class Accounts {
 	 * @return void
 	 * @throws RegistrationException
 	 */
-	public function assertCurrentPassword(\ElggUser $user, $password) {
+	public function assertCurrentPassword(\ElggUser $user, string $password): void {
 		if (!$this->passwords->verify($password, $user->password_hash)) {
 			throw new RegistrationException($this->translator->translate('LoginException:PasswordFailure'));
 		}
@@ -361,12 +350,12 @@ class Accounts {
 	 * @return void
 	 * @throws RegistrationException
 	 */
-	public function assertValidEmail($address, $assert_unregistered = false) {
+	public function assertValidEmail(string $address, bool $assert_unregistered = false): void {
 		if (!$this->isValidEmail($address)) {
 			throw new RegistrationException($this->translator->translate('registration:notemail'));
 		}
 
-		$result = $this->hooks->trigger(
+		$result = $this->events->triggerResults(
 			'registeruser:validate:email',
 			'all',
 			['email' => $address],
@@ -379,10 +368,10 @@ class Accounts {
 
 		if ($assert_unregistered) {
 			$exists = elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES, function () use ($address) {
-				return $this->users->getByEmail($address);
+				return elgg_get_user_by_email($address);
 			});
 
-			if ($exists) {
+			if ($exists instanceof \ElggUser) {
 				throw new RegistrationException($this->translator->translate('registration:dupeemail'));
 			}
 		}
@@ -395,7 +384,7 @@ class Accounts {
 	 *
 	 * @return bool
 	 */
-	public function isValidEmail($address) {
+	public function isValidEmail(string $address): bool {
 		return filter_var($address, FILTER_VALIDATE_EMAIL) === $address;
 	}
 	
@@ -406,16 +395,16 @@ class Accounts {
 	 * @param string    $email E-mail address
 	 *
 	 * @return bool
-	 * @throws InvalidParameterException
+	 * @throws InvalidArgumentException
 	 */
-	public function requestNewEmailValidation(\ElggUser $user, $email) {
+	public function requestNewEmailValidation(\ElggUser $user, string $email): bool {
 		if (!$this->isValidEmail($email)) {
-			throw new InvalidParameterException($this->translator->translate('registration:notemail'));
+			throw new InvalidArgumentException($this->translator->translate('registration:notemail'));
 		}
 		
 		$site = elgg_get_site_entity();
 		
-		$user->setPrivateSetting('new_email', $email);
+		$user->new_email = $email;
 		
 		$url = elgg_generate_url('account:email:confirm', [
 			'guid' => $user->guid,
@@ -444,12 +433,11 @@ class Accounts {
 	 * @since 4.3
 	 */
 	public function registerAuthenticationFailure(\ElggUser $user): void {
-		$fails = (int) $user->getPrivateSetting('authentication_failures');
+		$fails = (int) $user->authentication_failures;
 		$fails++;
 
-		$user->setPrivateSetting('authentication_failures', $fails);
-		$user->setPrivateSetting("authentication_failure_{$fails}", time());
-		
+		$user->authentication_failures = $fails;
+		$user->{"authentication_failure_{$fails}"} = time();
 	}
 	
 	/**
@@ -461,16 +449,16 @@ class Accounts {
 	 * @since 4.3
 	 */
 	public function resetAuthenticationFailures(\ElggUser $user): void {
-		$fails = (int) $user->getPrivateSetting('authentication_failures');
+		$fails = (int) $user->authentication_failures;
 		if (empty($fails)) {
 			return;
 		}
 		
 		for ($n = 1; $n <= $fails; $n++) {
-			$user->removePrivateSetting("authentication_failure_{$n}");
+			unset($user->{"authentication_failure_{$n}"});
 		}
 
-		$user->removePrivateSetting('authentication_failures');
+		unset($user->authentication_failures);
 	}
 	
 	/**
@@ -487,7 +475,7 @@ class Accounts {
 		$limit = $limit ?? $this->config->authentication_failures_limit;
 		$lifetime = $lifetime ?? $this->config->authentication_failures_lifetime;
 		
-		$fails = (int) $user->getPrivateSetting('authentication_failures');
+		$fails = (int) $user->authentication_failures;
 		if (empty($fails) || $fails < $limit) {
 			return false;
 		}
@@ -495,7 +483,7 @@ class Accounts {
 		$failure_count = 0;
 		$min_time = time() - $lifetime;
 		for ($n = $fails; $n > 0; $n--) {
-			$failure_timestamp = $user->getPrivateSetting("authentication_failure_{$n}");
+			$failure_timestamp = $user->{"authentication_failure_{$n}"};
 			if ($failure_timestamp > $min_time) {
 				$failure_count++;
 			}

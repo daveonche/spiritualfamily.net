@@ -1,5 +1,7 @@
 <?php
 
+use Elgg\Messages\Forms\PrepareFields;
+
 require_once(__DIR__ . '/lib/functions.php');
 
 return [
@@ -27,7 +29,6 @@ return [
 			'path' => '/messages/inbox/{username}',
 			'resource' => 'messages/inbox',
 			'middleware' => [
-				\Elgg\Router\Middleware\Gatekeeper::class,
 				\Elgg\Router\Middleware\UserPageOwnerCanEditGatekeeper::class,
 			],
 		],
@@ -35,12 +36,11 @@ return [
 			'path' => '/messages/sent/{username}',
 			'resource' => 'messages/sent',
 			'middleware' => [
-				\Elgg\Router\Middleware\Gatekeeper::class,
 				\Elgg\Router\Middleware\UserPageOwnerCanEditGatekeeper::class,
 			],
 		],
 		'add:object:messages' => [
-			'path' => '/messages/add/{guid?}',
+			'path' => '/messages/add',
 			'resource' => 'messages/send',
 			'middleware' => [
 				\Elgg\Router\Middleware\Gatekeeper::class,
@@ -50,7 +50,7 @@ return [
 			'path' => '/messages/read/{guid}',
 			'resource' => 'messages/read',
 			'middleware' => [
-				\Elgg\Router\Middleware\Gatekeeper::class,
+				\Elgg\Router\Middleware\UserPageOwnerCanEditGatekeeper::class,
 			],
 		],
 	],
@@ -59,15 +59,15 @@ return [
 			'messages/css' => [],
 		],
 	],
-	'hooks' => [
-		'container_permissions_check' => [
-			'object' => [
-				'Elgg\Messages\Permissions::canEditContainer' => [],
+	'events' => [
+		'delete:after' => [
+			'user' => [
+				'Elgg\Messages\User::purgeMessages' => [],
 			],
 		],
-		'permissions_check' => [
-			'object' => [
-				'Elgg\Messages\Permissions::canEdit' => [],
+		'form:prepare:fields' => [
+			'messages/send' => [
+				PrepareFields::class => [],
 			],
 		],
 		'register' => [
@@ -82,13 +82,6 @@ return [
 			],
 			'menu:user_hover' => [
 				'Elgg\Messages\Menus\UserHover::register' => [],
-			],
-		],
-	],
-	'events' => [
-		'delete:after' => [
-			'user' => [
-				'Elgg\Messages\User::purgeMessages' => [],
 			],
 		],
 	],

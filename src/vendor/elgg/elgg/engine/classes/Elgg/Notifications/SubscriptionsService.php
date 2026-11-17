@@ -4,11 +4,11 @@ namespace Elgg\Notifications;
 
 use Elgg\Database;
 use Elgg\Database\RelationshipsTable;
-use Elgg\PluginHooksService;
 use Elgg\Database\Select;
 use Elgg\Database\Delete;
 use Elgg\Database\QueryBuilder;
 use Elgg\Database\Entities;
+use Elgg\EventsService;
 use Elgg\Exceptions\InvalidArgumentException;
 
 /**
@@ -40,21 +40,21 @@ class SubscriptionsService {
 	protected $relationshipsTable;
 	
 	/**
-	 * @var PluginHooksService
+	 * @var EventsService
 	 */
-	protected $hooks;
+	protected $events;
 
 	/**
 	 * Constructor
 	 *
 	 * @param Database           $db                 Database service
 	 * @param RelationshipsTable $relationshipsTable Relationship database table
-	 * @param PluginHooksService $hooks              Plugin hooks service
+	 * @param EventsService      $events             Events service
 	 */
-	public function __construct(Database $db, RelationshipsTable $relationshipsTable, PluginHooksService $hooks) {
+	public function __construct(Database $db, RelationshipsTable $relationshipsTable, EventsService $events) {
 		$this->db = $db;
 		$this->relationshipsTable = $relationshipsTable;
-		$this->hooks = $hooks;
+		$this->events = $events;
 	}
 
 	/**
@@ -586,6 +586,7 @@ class SubscriptionsService {
 			if (!in_array('delayed_email', $user_methods) || !in_array('email', $user_methods)) {
 				return $user_methods;
 			}
+			
 			$pos = array_search('delayed_email', $user_methods);
 			unset($user_methods[$pos]);
 			
@@ -608,7 +609,7 @@ class SubscriptionsService {
 			'callback' => function ($row) {
 				return (int) $row->guid;
 			},
-			'private_setting_name_value_pairs' => [
+			'metadata_name_value_pairs' => [
 				[
 					'name' => 'timed_muting_start',
 					'value' => time(),

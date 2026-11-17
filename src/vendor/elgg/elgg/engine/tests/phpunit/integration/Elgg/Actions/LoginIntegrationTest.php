@@ -8,10 +8,6 @@ use Elgg\Http\OkResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Cookie;
 
-/**
- * @group ActionsService
- * @group AccountActions
- */
 class LoginIntegrationTest extends ActionResponseTestCase {
 
 	/**
@@ -31,7 +27,7 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 
 	public function testLoginWithUsernameAndPassword() {
 
-		$user = $this->user = $this->createUser([], [
+		$user = $this->user = $this->createUser([
 			'password' => 123456,
 			'language' => 'de',
 		]);
@@ -52,15 +48,15 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 		$this->assertNotEmpty($messages['success']);
 		$this->assertEquals(elgg_echo('loginok', [], $user->language), array_shift($messages['success']));
 
-		$this->assertEquals($user, _elgg_services()->session->getLoggedInUser());
-
+		$this->assertEquals($user, _elgg_services()->session_manager->getLoggedInUser());
+		
 		// validate that the session id was migrated
 		$this->assertNotEquals($session_id, _elgg_services()->session->getID());
 	}
 
 	public function testLoginWithEmailAndPassword() {
 
-		$user = $this->user = $this->createUser([], [
+		$user = $this->user = $this->createUser([
 			'password' => 123456,
 		]);
 
@@ -76,15 +72,15 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 
 		$this->assertInstanceOf(OkResponse::class, $response);
 
-		$this->assertEquals($user, _elgg_services()->session->getLoggedInUser());
-
+		$this->assertEquals($user, _elgg_services()->session_manager->getLoggedInUser());
+		
 		// validate that the session id was migrated
 		$this->assertNotEquals($session_id, _elgg_services()->session->getID());
 	}
 
 	public function testLoginFailsWithEmptyPassword() {
 
-		$user = $this->user = $this->createUser([], [
+		$user = $this->user = $this->createUser([
 			'password' => 123456,
 		]);
 
@@ -100,7 +96,7 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 
 	public function testLoginFailsWithIncorrectPassword() {
 
-		$user = $this->user = $this->createUser([], [
+		$user = $this->user = $this->createUser([
 			'password' => 123456,
 		]);
 
@@ -117,15 +113,15 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 	
 	public function testLoginFailsWithDisabledUser() {
 
-		elgg()->hooks->backup();
+		elgg()->events->backup();
 
 		$username = $this->getRandomUsername();
-		$user = $this->user = $this->createUser([], [
+		$user = $this->user = $this->createUser([
 			'username' => $username,
 			'password' => 123456,
 		]);
 
-		elgg()->hooks->restore();
+		elgg()->events->restore();
 
 		elgg_call(ELGG_IGNORE_ACCESS, function () use ($user) {
 			$user->setValidationStatus(true, 'login_test');
@@ -135,7 +131,7 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 		
 		/* @var $user \ElggUser */
 		$user = elgg_call(ELGG_SHOW_DISABLED_ENTITIES, function() use ($username) {
-			return get_user_by_username($username);
+			return elgg_get_user_by_username($username);
 		});
 		
 		$this->assertFalse($user->isEnabled());
@@ -163,7 +159,7 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 
 	public function testLoginFailsWithBannedUser() {
 
-		$user = $this->user = $this->createUser([], [
+		$user = $this->user = $this->createUser([
 			'password' => 123456,
 			'banned' => true,
 		]);
@@ -180,15 +176,15 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 		$this->assertEquals(elgg_echo('LoginException:BannedUser'), $response->getContent());
 	}
 
-	public function testCanPreventLoginWithHook() {
+	public function testCanPreventLoginWithEvent() {
 
-		$handler = function(\Elgg\Event $hook) {
+		$handler = function(\Elgg\Event $event) {
 			return false;
 		};
 
 		_elgg_services()->events->registerHandler('login:before', 'user', $handler);
 
-		$user = $this->user = $this->createUser([], [
+		$user = $this->user = $this->createUser([
 			'password' => 123456,
 			'language' => 'de',
 		]);
@@ -204,7 +200,7 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('LoginException:Unknown'), $response->getContent());
 
-		$this->assertEmpty(_elgg_services()->session->getLoggedInUser());
+		$this->assertEmpty(_elgg_services()->session_manager->getLoggedInUser());
 
 		_elgg_services()->events->unregisterHandler('before:login', 'user', $handler);
 	}
@@ -247,7 +243,7 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 
 	public function testCanPersistLogin() {
 
-		$user = $this->user = $this->createUser([], [
+		$user = $this->user = $this->createUser([
 			'password' => 123456,
 			'language' => 'de',
 		]);
@@ -266,9 +262,9 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 		$this->assertNotEmpty($messages['success']);
 		$this->assertEquals(elgg_echo('loginok', [], $user->language), array_shift($messages['success']));
 		
-		$this->assertEquals($user, _elgg_services()->session->getLoggedInUser());
+		$this->assertEquals($user, _elgg_services()->session_manager->getLoggedInUser());
 		
-		_elgg_services()->session->removeLoggedInUser();
+		_elgg_services()->session_manager->removeLoggedInUser();
 		
 		ob_start();
 		$response = _elgg_services()->responseFactory->respond($action_response);
@@ -298,7 +294,7 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 
 	public function testRespectsLastForwardFrom() {
 
-		$user = $this->user = $this->createUser([], [
+		$user = $this->user = $this->createUser([
 			'password' => 123456,
 		]);
 
@@ -307,17 +303,17 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 		$last_forward_form = elgg_normalize_site_url('where_i_came_from');
 		$forward_to = elgg_normalize_site_url('where_i_want_to_be');
 
-		$hook_calls = 0;
+		$event_calls = 0;
 
-		$forward_handler = function (\Elgg\Hook $hook) use ($user, $last_forward_form, $forward_to, &$hook_calls) {
-			$this->assertEquals($last_forward_form, $hook->getValue());
-			$this->assertEquals('last_forward_from', $hook->getParam('source'));
-			$this->assertEquals($user, $hook->getParam('user'));
-			$hook_calls++;
+		$forward_handler = function (\Elgg\Event $event) use ($user, $last_forward_form, $forward_to, &$event_calls) {
+			$this->assertEquals($last_forward_form, $event->getValue());
+			$this->assertEquals('last_forward_from', $event->getParam('source'));
+			$this->assertEquals($user, $event->getParam('user'));
+			$event_calls++;
 			return $forward_to;
 		};
 
-		elgg_register_plugin_hook_handler('login:forward', 'user', $forward_handler);
+		elgg_register_event_handler('login:forward', 'user', $forward_handler);
 
 		_elgg_services()->session->set('last_forward_from', $last_forward_form);
 
@@ -327,15 +323,15 @@ class LoginIntegrationTest extends ActionResponseTestCase {
 			'persistent' => false,
 		]);
 
-		$this->assertEquals(1, $hook_calls);
+		$this->assertEquals(1, $event_calls);
 
 		$this->assertInstanceOf(OkResponse::class, $response);
 		$this->assertEquals($forward_to, $response->getForwardURL());
 
-		$this->assertEquals($user, _elgg_services()->session->getLoggedInUser());
+		$this->assertEquals($user, _elgg_services()->session_manager->getLoggedInUser());
 
-		_elgg_services()->session->removeLoggedInUser();
+		_elgg_services()->session_manager->removeLoggedInUser();
 
-		elgg_unregister_plugin_hook_handler('login:forward', 'user', $forward_handler);
+		elgg_unregister_event_handler('login:forward', 'user', $forward_handler);
 	}
 }

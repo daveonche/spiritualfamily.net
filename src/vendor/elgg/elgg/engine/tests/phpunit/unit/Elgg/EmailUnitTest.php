@@ -5,10 +5,6 @@ namespace Elgg;
 use Elgg\Email\Address;
 use Laminas\Mime\Mime;
 
-/**
- * @group EmailService
- * @group UnitTests
- */
 class EmailUnitTest extends UnitTestCase {
 
 	public function up() {
@@ -29,12 +25,12 @@ class EmailUnitTest extends UnitTestCase {
 
 	public function testFactoryFromElggUser() {
 
-		$from = $this->createUser([], [
+		$from = $this->createUser([
 			'email' => 'from@elgg.org',
 			'name' => 'From',
 		]);
 		
-		$to = $this->createUser([], [
+		$to = $this->createUser([
 			'email' => 'to@elgg.org',
 			'name' => 'To',
 		]);

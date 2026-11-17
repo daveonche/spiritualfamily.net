@@ -8,9 +8,11 @@ namespace Elgg\Notifications;
  * @since 4.0
  */
 class CreateCommentEventHandler extends NotificationEventHandler {
-
+	
 	/**
 	 * Tells if the recipient is the owner of the entity commented on
+	 *
+	 * @param \ElggUser $recipient the recipient to check
 	 *
 	 * @return bool
 	 */
@@ -45,7 +47,7 @@ class CreateCommentEventHandler extends NotificationEventHandler {
 		$key = $this->recipientIsCommentContainerOwner($recipient) ? 'generic_comment:notification:owner:body' : 'generic_comment:notification:user:body';
 		
 		return elgg_echo($key, [
-			elgg_get_excerpt($entity->description, 1000),
+			elgg_get_excerpt((string) $entity->description, 1000),
 			$entity->getURL(),
 		], $recipient->getLanguage());
 	}

@@ -8,73 +8,15 @@ use Elgg\WebServices\Middleware\ViewtypeMiddleware;
 use Elgg\WebServices\Di\ApiRegistrationService;
 
 /**
- * Expose a function as a web service.
- *
- * Limitations: Currently cannot expose functions which expect objects.
- * It also cannot handle arrays of bools or arrays of arrays.
- * Also, input will be filtered to protect against XSS attacks through the web services.
- *
- * The list of parameters should be in the format:
- *     "variable" = array (
- *         type => 'int' | 'bool' | 'float' | 'string' | 'array'
- *         required => true (default) | false
- *         default => value (optional)
- *     )
- *
- * @param string   $method            The api name to expose - for example "myapi.dosomething"
- * @param callable $function          Callable to handle API call
- * @param array    $parameters        (optional) List of parameters in the same order as in
- *                                    your function. Default values may be set for parameters which
- *                                    allow REST api users flexibility in what parameters are passed.
- *                                    Generally, optional parameters should be after required
- *                                    parameters. If an optional parameter is not set and has no default,
- *                                    the API callable will receive null.
- *
- * @param string   $description       (optional) human readable description of the function.
- * @param string   $call_method       (optional) Define what http method must be used for
- *                                    this function. Default: GET
- * @param bool     $require_api_auth  (optional) (default is false) Does this method
- *                                    require API authorization? (example: API key)
- * @param bool     $require_user_auth (optional) (default is false) Does this method
- *                                    require user authorization?
- * @param bool     $assoc             (optional) If set to true, the callback function will receive a single argument
- *                                    that contains an associative array of parameter => input pairs for the method.
- *
- * @return bool
- */
-function elgg_ws_expose_function(
-	$method,
-	$function,
-	$parameters = null,
-	$description = "",
-	$call_method = "GET",
-	$require_api_auth = false,
-	$require_user_auth = false,
-	$assoc = false
-) {
-
-	ApiRegistrationService::instance()->registerApiMethod(
-		$method,
-		$function,
-		$parameters ?: [],
-		$description,
-		$call_method,
-		$require_api_auth,
-		$require_user_auth,
-		$assoc
-	);
-
-	return true;
-}
-
-/**
  * Unregister a web services method
  *
- * @param string $method The api name that was exposed
+ * @param string $method              The API name that was exposed
+ * @param string $http_request_method The HTTP call method (GET|POST|...)
+ *
  * @return void
  */
-function elgg_ws_unexpose_function($method) {
-	ApiRegistrationService::instance()->unregisterApiMethod($method);
+function elgg_ws_unexpose_function(string $method, string $http_request_method = 'GET'): void {
+	ApiRegistrationService::instance()->unregisterApiMethod($method, $http_request_method);
 }
 
 /**
@@ -85,7 +27,7 @@ function elgg_ws_unexpose_function($method) {
  *
  * @return bool Depending on success
  */
-function elgg_ws_register_service_handler($handler, $function) {
+function elgg_ws_register_service_handler(string $handler, $function): bool {
 	
 	$route_config = [
 		'path' => "/services/api/{$handler}/{view}/{segments?}",
@@ -125,6 +67,6 @@ function elgg_ws_register_service_handler($handler, $function) {
  * @param string $handler web services type
  * @return void
  */
-function elgg_ws_unregister_service_handler($handler) {
+function elgg_ws_unregister_service_handler(string $handler): void {
 	elgg_unregister_route("default:service:{$handler}");
 }

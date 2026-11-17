@@ -4,6 +4,7 @@
  * This file contains functions for saving and retrieving data from files.
  */
 
+use Elgg\Project\Paths;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -34,7 +35,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  * @return bool
  * @since 2.3
  */
-function elgg_save_resized_image($source, $destination = null, array $params = []) {
+function elgg_save_resized_image(string $source, string $destination = null, array $params = []): bool {
 	return _elgg_services()->imageService->resize($source, $destination, $params);
 }
 
@@ -45,44 +46,34 @@ function elgg_save_resized_image($source, $destination = null, array $params = [
  * @param bool   $leave_base_directory Leave the base directory intact (default: false)
  *
  * @return bool
- *
  * @since 3.1
  */
-function elgg_delete_directory(string $directory, bool $leave_base_directory = false) {
-
+function elgg_delete_directory(string $directory, bool $leave_base_directory = false): bool {
+	$directory = Paths::sanitize($directory);
 	if (!file_exists($directory)) {
 		return true;
 	}
-
+	
 	if (!is_dir($directory)) {
 		return false;
 	}
-
-	// sanity check: must be a directory
-	if (!$handle = opendir($directory)) {
-		return false;
-	}
-
-	// loop through all files
-	while (($file = readdir($handle)) !== false) {
-		if (in_array($file, ['.', '..'])) {
+	
+	$dh = new \DirectoryIterator($directory);
+	/* @var $file_info \DirectoryIterator */
+	foreach ($dh as $file_info) {
+		if ($file_info->isDot()) {
 			continue;
 		}
-
-		$path = "$directory/$file";
-		if (is_dir($path)) {
+		
+		if ($file_info->isDir()) {
 			// recurse down through directory
-			if (!elgg_delete_directory($path)) {
+			if (!elgg_delete_directory($directory . $file_info->getFilename())) {
 				return false;
 			}
-		} else {
-			// delete file
-			unlink($path);
+		} elseif ($file_info->isFile()) {
+			unlink($file_info->getPathname());
 		}
 	}
-
-	// close file handler
-	closedir($handle);
 	
 	if ($leave_base_directory) {
 		return true;
@@ -100,9 +91,10 @@ function elgg_delete_directory(string $directory, bool $leave_base_directory = f
  * @param \ElggFile $file       File object or entity (must have the default filestore)
  * @param bool      $use_cookie Limit URL validity to current session only
  * @param string    $expires    URL expiration, as a string suitable for strtotime()
- * @return string
+ *
+ * @return string|null
  */
-function elgg_get_download_url(\ElggFile $file, $use_cookie = true, $expires = '+2 hours') {
+function elgg_get_download_url(\ElggFile $file, bool $use_cookie = true, string $expires = '+2 hours'): ?string {
 	return $file->getDownloadURL($use_cookie, $expires);
 }
 
@@ -115,9 +107,10 @@ function elgg_get_download_url(\ElggFile $file, $use_cookie = true, $expires = '
  * @param \ElggFile $file       File object or entity (must have the default filestore)
  * @param bool      $use_cookie Limit URL validity to current session only
  * @param string    $expires    URL expiration, as a string suitable for strtotime()
- * @return string
+ *
+ * @return string|null
  */
-function elgg_get_inline_url(\ElggFile $file, $use_cookie = false, $expires = '') {
+function elgg_get_inline_url(\ElggFile $file, bool $use_cookie = false, string $expires = ''): ?string {
 	return $file->getInlineURL($use_cookie, $expires);
 }
 
@@ -130,10 +123,11 @@ function elgg_get_inline_url(\ElggFile $file, $use_cookie = false, $expires = ''
  *
  * @param \ElggEntity $entity Entity
  * @param string      $size   Size
+ *
  * @return string
  * @since 2.2
  */
-function elgg_get_embed_url(\ElggEntity $entity, $size) {
+function elgg_get_embed_url(\ElggEntity $entity, string $size): string {
 	return elgg_generate_url('serve-icon', [
 		'guid' => $entity->guid,
 		'size' => $size,
@@ -144,9 +138,10 @@ function elgg_get_embed_url(\ElggEntity $entity, $size) {
  * Returns an array of uploaded file objects regardless of upload status/errors
  *
  * @param string $input_name Form input name
+ *
  * @return UploadedFile[]
  */
-function elgg_get_uploaded_files($input_name) {
+function elgg_get_uploaded_files(string $input_name): array {
 	return _elgg_services()->uploads->getFiles($input_name);
 }
 
@@ -156,9 +151,9 @@ function elgg_get_uploaded_files($input_name) {
  * @param string $input_name         Form input name
  * @param bool   $check_for_validity If there is an uploaded file, is it required to be valid
  *
- * @return UploadedFile|false
+ * @return UploadedFile|null
  */
-function elgg_get_uploaded_file($input_name, $check_for_validity = true) {
+function elgg_get_uploaded_file(string $input_name, bool $check_for_validity = true): ?UploadedFile {
 	return _elgg_services()->uploads->getFile($input_name, $check_for_validity);
 }
 
@@ -168,6 +163,6 @@ function elgg_get_uploaded_file($input_name, $check_for_validity = true) {
  * @return ElggTempFile
  * @since 3.0
  */
-function elgg_get_temp_file() {
+function elgg_get_temp_file(): \ElggTempFile {
 	return new ElggTempFile();
 }

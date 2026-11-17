@@ -6,26 +6,17 @@ use Elgg\Ajax\Service;
 use Elgg\Amd\Config;
 use Elgg\Config as Config2;
 use Elgg\EventsService;
-use Elgg\Exceptions\InvalidArgumentException;
 use Elgg\HandlersService;
-use Elgg\PluginHooksService;
 use Elgg\SystemMessagesService;
-use ElggSession;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
-/**
- * @group HttpService
- * @group HttpResponses
- * @group UnitTests
- */
 class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 
 	/**
-	 *
-	 * @var ElggSession
+	 * @var \ElggSession
 	 */
 	private $session;
 
@@ -35,19 +26,9 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 	private $config;
 
 	/**
-	 * @var PluginHooksService
-	 */
-	private $hooks;
-
-	/**
 	 * @var Request
 	 */
 	private $request;
-
-	/**
-	 * @var Input
-	 */
-	private $input;
 
 	/**
 	 * @var Config
@@ -75,17 +56,14 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 	private $events;
 
 	public function up() {
-		$this->session = ElggSession::getMock();
-		$this->session->start();
-
+		$this->session = _elgg_services()->session;
 		$this->config = _elgg_services()->config;
 		$this->events = new EventsService(new HandlersService());
-		$this->hooks = new PluginHooksService($this->events);
 		$this->request = $this->createRequest('', 'GET');
 
-		$this->amd_config = new Config($this->hooks);
+		$this->amd_config = new Config($this->events);
 		$this->system_messages = new SystemMessagesService($this->session);
-		$this->ajax = new Service($this->hooks, $this->system_messages, $this->request, $this->amd_config);
+		$this->ajax = new Service($this->events, $this->system_messages, $this->request, $this->amd_config);
 
 		_elgg_services()->logger->disable();
 	}
@@ -96,13 +74,12 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 		$svc->set('session', $this->session);
 		$svc->set('config', $this->config);
 		$svc->set('events', $this->events);
-		$svc->set('hooks', $this->hooks);
 		$svc->set('request', $this->request);
 		$svc->set('amd_config', $this->amd_config);
 		$svc->set('system_messages', $this->system_messages);
 		$svc->set('ajax', $this->ajax);
 
-		$this->response_factory = new ResponseFactory($this->request, $this->hooks, $this->ajax, $this->events);
+		$this->response_factory = new ResponseFactory($this->request, $this->ajax, $this->events);
 		$svc->set('responseFactory', $this->response_factory);
 		return $this->response_factory;
 	}
@@ -143,7 +120,6 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testCanPrepareResponse() {
-
 		$service = $this->createService();
 
 		elgg_set_http_header('X-Elgg-Testing: 1');
@@ -206,7 +182,6 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testCanSendReponse() {
-
 		$service = $this->createService();
 
 		ob_start();
@@ -220,7 +195,6 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testSendsReponseOnlyOnce() {
-
 		$service = $this->createService();
 
 		ob_start();
@@ -235,7 +209,6 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testCanNotSendModifiedResponse() {
-
 		$service = $this->createService();
 
 		$response = $service->prepareResponse('foo');
@@ -347,7 +320,6 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testCanDetectXhrRequest() {
-
 		$service = $this->createService();
 		$this->assertFalse($service->isXhr());
 

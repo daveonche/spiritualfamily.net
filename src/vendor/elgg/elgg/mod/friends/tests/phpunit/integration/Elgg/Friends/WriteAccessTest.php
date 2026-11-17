@@ -2,13 +2,9 @@
 
 namespace Elgg\Friends;
 
-use Elgg\Plugins\PluginTesting;
+use Elgg\Plugins\IntegrationTestCase;
 
-/**
- * @group IntegrationTests
- */
-class WriteAccessTest extends \Elgg\IntegrationTestCase {
-	use PluginTesting;
+class WriteAccessTest extends IntegrationTestCase {
 	
 	/**
 	 * @var \ElggUser
@@ -17,7 +13,7 @@ class WriteAccessTest extends \Elgg\IntegrationTestCase {
 	
 	public function up() {
 		$this->user = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($this->user);
+		_elgg_services()->session_manager->setLoggedInUser($this->user);
 	}
 
 	public function testFriendsInWriteAccessArray() {

@@ -22,8 +22,7 @@ $vars['class'] = elgg_extract_class($vars, 'elgg-input-checkbox');
 
 $defaults = [
 	'default' => 0,
-	'disabled' => false,
-	'type' => 'checkbox'
+	'type' => 'checkbox',
 ];
 
 $vars = array_merge($defaults, $vars);
@@ -65,7 +64,9 @@ if (!empty($label)) {
 	if ($switch && ($html_tag !== 'label')) {
 		$input = elgg_format_element('label', [], $input);
 	}
+	
 	echo elgg_format_element($html_tag, ['class' => $label_class], "$input $label");
-} else {
-	echo $input;
+	return;
 }
+
+echo $input;

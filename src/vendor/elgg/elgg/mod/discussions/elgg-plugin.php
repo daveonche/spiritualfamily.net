@@ -1,9 +1,8 @@
 <?php
 
+use Elgg\Discussions\Forms\PrepareFields;
 use Elgg\Discussions\GroupToolContainerLogicCheck;
 use Elgg\Discussions\Notifications\CreateDiscussionEventHandler;
-
-require_once(__DIR__ . '/lib/functions.php');
 
 return [
 	'plugin' => [
@@ -41,12 +40,14 @@ return [
 		'collection:object:discussion:owner' => [
 			'path' => '/discussion/owner/{username}',
 			'resource' => 'discussion/owner',
+			'middleware' => [
+				\Elgg\Router\Middleware\UserPageOwnerGatekeeper::class,
+			],
 		],
 		'collection:object:discussion:my_groups' => [
 			'path' => '/discussion/my_groups/{username}',
 			'resource' => 'discussion/my_groups',
 			'middleware' => [
-				\Elgg\Router\Middleware\Gatekeeper::class,
 				\Elgg\Router\Middleware\UserPageOwnerCanEditGatekeeper::class,
 			],
 		],
@@ -56,12 +57,16 @@ return [
 			'required_plugins' => [
 				'groups',
 			],
+			'middleware' => [
+				\Elgg\Router\Middleware\GroupPageOwnerGatekeeper::class,
+			],
 		],
 		'add:object:discussion' => [
 			'path' => '/discussion/add/{guid}',
 			'resource' => 'discussion/add',
 			'middleware' => [
 				\Elgg\Router\Middleware\Gatekeeper::class,
+				\Elgg\Router\Middleware\PageOwnerGatekeeper::class,
 			],
 		],
 		'edit:object:discussion' => [
@@ -76,7 +81,7 @@ return [
 			'resource' => 'discussion/view',
 		],
 	],
-	'hooks' => [
+	'events' => [
 		'container_logic_check' => [
 			'object' => [
 				'Elgg\Discussions\Permissions::containerLogic' => [],
@@ -86,6 +91,11 @@ return [
 		'entity:url' => [
 			'object' => [
 				'Elgg\Discussions\Widgets::widgetURL' => [],
+			],
+		],
+		'form:prepare:fields' => [
+			'discussion/save' => [
+				PrepareFields::class => [],
 			],
 		],
 		'get' => [
@@ -133,6 +143,7 @@ return [
 		'object' => [
 			'discussion' => [
 				'create' => CreateDiscussionEventHandler::class,
+				'mentions' => \Elgg\Notifications\MentionsEventHandler::class,
 			],
 		],
 	],

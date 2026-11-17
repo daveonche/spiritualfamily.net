@@ -42,20 +42,20 @@ class ElggSite extends \ElggEntity {
 		$this->attributes['access_id'] = ACCESS_PUBLIC;
 		$this->attributes['time_updated'] = null;
 		$this->attributes['last_action'] = null;
-		$this->attributes['enabled'] = "yes";
+		$this->attributes['enabled'] = 'yes';
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getType() {
+	public function getType(): string {
 		return 'site';
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function save() : bool {
+	public function save(): bool {
 		$db = $this->getDatabase();
 		$qb = \Elgg\Database\Select::fromTable('entities', 'e');
 		$qb->select('e.*')
@@ -86,7 +86,7 @@ class ElggSite extends \ElggEntity {
 	 * @return bool
 	 * @throws SecurityException
 	 */
-	public function delete($recursive = true) {
+	public function delete(bool $recursive = true): bool {
 		if ($this->guid == 1) {
 			throw new SecurityException('You cannot delete the current site');
 		}
@@ -105,7 +105,7 @@ class ElggSite extends \ElggEntity {
 	 * @return bool
 	 * @throws SecurityException
 	 */
-	public function disable($reason = "", $recursive = true) {
+	public function disable(string $reason = '', bool $recursive = true): bool {
 		if ($this->guid == 1) {
 			throw new SecurityException('You cannot disable the current site');
 		}
@@ -118,9 +118,10 @@ class ElggSite extends \ElggEntity {
 	 */
 	public function __set($name, $value) {
 		if ($name === 'url') {
-			_elgg_services()->logger->warning("ElggSite::url cannot be set");
+			_elgg_services()->logger->warning('ElggSite::url cannot be set');
 			return;
 		}
+		
 		parent::__set($name, $value);
 	}
 
@@ -131,6 +132,7 @@ class ElggSite extends \ElggEntity {
 		if ($name === 'url') {
 			return $this->getURL();
 		}
+		
 		return parent::__get($name);
 	}
 
@@ -139,14 +141,14 @@ class ElggSite extends \ElggEntity {
 	 *
 	 * @return string The URL
 	 */
-	public function getURL() {
+	public function getURL(): string {
 		return _elgg_services()->config->wwwroot;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function isCacheable() {
+	public function isCacheable(): bool {
 		return false;
 	}
 
@@ -167,7 +169,7 @@ class ElggSite extends \ElggEntity {
 	 * @return string
 	 * @since 1.9
 	 */
-	public function getDomain() {
+	public function getDomain(): string {
 		$breakdown = parse_url($this->url);
 		return $breakdown['host'];
 	}
@@ -180,7 +182,7 @@ class ElggSite extends \ElggEntity {
 	 * @return string
 	 * @since 3.0.0
 	 */
-	public function getEmailAddress() {
+	public function getEmailAddress(): string {
 		$email = $this->email;
 		if (empty($email)) {
 			// If all else fails, use the domain of the site.
@@ -194,7 +196,7 @@ class ElggSite extends \ElggEntity {
 	/**
 	 * {@inheritDoc}
 	 */
-	public function updateLastAction($posted = null) {
+	public function updateLastAction(int $posted = null): int {
 		// setting last action on ElggSite makes no sense... just returning current value to be compliant
 		return $this->last_action;
 	}

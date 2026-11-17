@@ -8,18 +8,29 @@ use Elgg\IntegrationTestCase;
  * Elgg Test \ElggWidget
  */
 class WidgetsServiceIntegrationTest extends IntegrationTestCase {
-
+	
+	public function testHandlerRegistration() {
+		$this->assertFalse(elgg_is_widget_type('test_handler'));
+		elgg_unregister_widget_type('test_handler');
+		
+		elgg_register_widget_type(['id' => 'test_handler', 'context' => []]);
+		$this->assertTrue(elgg_is_widget_type('test_handler'));
+		
+		elgg_unregister_widget_type('test_handler');
+		$this->assertFalse(elgg_is_widget_type('test_handler'));
+	}
+	
 	/**
 	 * Tests if widget type is invalid if a required plugin is not active
 	 */
 	public function testCanGetWidgetWithInActiveRequiredPlugin() {
-		$this->assertTrue(elgg_register_widget_type([
+		elgg_register_widget_type([
 			'id' => 'test_required_widget',
 			'name' => 'Widget name1',
 			'description' => 'Widget description1',
 			'context' => ['profile'],
 			'required_plugin' => 'dummy_plugin',
-		]));
+		]);
 		
 		$types = elgg_get_widget_types('profile');
 		$this->assertArrayNotHasKey('test_required_widget', $types);
@@ -29,13 +40,13 @@ class WidgetsServiceIntegrationTest extends IntegrationTestCase {
 	 * Tests if widget type is valid if a required plugin is active
 	 */
 	public function testCanGetWidgetWithActiveRequiredPlugin() {
-		$this->assertTrue(elgg_register_widget_type([
+		elgg_register_widget_type([
 			'id' => 'test_required_widget',
 			'name' => 'Widget name1',
 			'description' => 'Widget description1',
 			'context' => ['profile'],
 			'required_plugin' => 'profile',
-		]));
+		]);
 		
 		$test_plugin = \ElggPlugin::fromId('profile');
 		$should_deactivate = false;
@@ -59,11 +70,11 @@ class WidgetsServiceIntegrationTest extends IntegrationTestCase {
 		$admin->makeAdmin();
 		
 		// make sure there is no logged in user
-		elgg()->session->removeLoggedInUser();
+		elgg()->session_manager->removeLoggedInUser();
 		
 		$this->assertFalse(elgg_can_edit_widget_layout('random_layout'));
 		
-		elgg()->session->setLoggedInUser($owner);
+		elgg()->session_manager->setLoggedInUser($owner);
 		$this->assertFalse(elgg_can_edit_widget_layout('random_layout'));
 		
 		elgg_set_page_owner_guid($owner->guid);
@@ -73,11 +84,11 @@ class WidgetsServiceIntegrationTest extends IntegrationTestCase {
 		$this->assertFalse(elgg_can_edit_widget_layout('random_layout', $editor->guid));
 		$this->assertTrue(elgg_can_edit_widget_layout('random_layout', $admin->guid));
 		
-		$hook = $this->registerTestingHook('permissions_check', 'widget_layout', 'Elgg\Values::getTrue');
+		$event = $this->registerTestingEvent('permissions_check', 'widget_layout', 'Elgg\Values::getTrue');
 		$this->assertTrue(elgg_can_edit_widget_layout('random_layout', $editor->guid));
-		$hook->assertNumberOfCalls(1);
-		$hook->assertParamBefore('context', 'random_layout');
-		$hook->assertParamBefore('user', $editor);
-		$hook->assertParamBefore('page_owner', $owner);
+		$event->assertNumberOfCalls(1);
+		$event->assertParamBefore('context', 'random_layout');
+		$event->assertParamBefore('user', $editor);
+		$event->assertParamBefore('page_owner', $owner);
 	}
 }

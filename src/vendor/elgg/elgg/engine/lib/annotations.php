@@ -11,9 +11,9 @@
  *
  * @param int $id The id of the annotation object being retrieved.
  *
- * @return \ElggAnnotation|false
+ * @return \ElggAnnotation|null
  */
-function elgg_get_annotation_from_id(int $id) {
+function elgg_get_annotation_from_id(int $id): ?\ElggAnnotation {
 	return _elgg_services()->annotationsTable->get($id);
 }
 
@@ -81,10 +81,10 @@ function elgg_list_annotations(array $options = []): string {
  *          annotation_name(s), annotation_value(s), or guid(s) must be set.
  *
  * @param array $options An options array. {@link elgg_get_annotations()}
- * @return bool|null true on success, false on failure, null if no annotations to delete.
+ * @return bool true on success, false on failure
  * @since 1.8.0
  */
-function elgg_delete_annotations(array $options): ?bool {
+function elgg_delete_annotations(array $options): bool {
 	return _elgg_services()->annotationsTable->deleteAll($options);
 }
 
@@ -94,10 +94,10 @@ function elgg_delete_annotations(array $options): ?bool {
  * @warning Unlike elgg_get_annotations() this will not accept an empty options array!
  *
  * @param array $options An options array. {@link elgg_get_annotations()}
- * @return bool|null true on success, false on failure, null if no annotations disabled.
+ * @return bool true on success, false on failure
  * @since 1.8.0
  */
-function elgg_disable_annotations(array $options): ?bool {
+function elgg_disable_annotations(array $options): bool {
 	return _elgg_services()->annotationsTable->disableAll($options);
 }
 
@@ -107,10 +107,10 @@ function elgg_disable_annotations(array $options): ?bool {
  * @warning Unlike elgg_get_annotations() this will not accept an empty options array!
  *
  * @param array $options An options array. {@link elgg_get_annotations()}
- * @return bool|null true on success, false on failure, null if no metadata enabled.
+ * @return bool true on success, false on failure
  * @since 1.8.0
  */
-function elgg_enable_annotations(array $options): ?bool {
+function elgg_enable_annotations(array $options): bool {
 	return _elgg_services()->annotationsTable->enableAll($options);
 }
 

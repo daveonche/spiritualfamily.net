@@ -2,32 +2,23 @@
 
 namespace Elgg;
 
-use ElggAnnotation;
-use ElggEntity;
-use ElggUser;
-use Elgg\Exceptions\InvalidArgumentException;
-
-/**
- * @group UnitTests
- * @group UserCapabilities
- */
 class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 
 	/**
-	 * @var PluginHooksService
+	 * @var EventsService
 	 */
-	private $hooks;
+	private $events;
 
 	public function up() {
-		$this->hooks = _elgg_services()->hooks;
-		$this->hooks->backup();
+		$this->events = _elgg_services()->events;
+		$this->events->backup();
 
 		// make sure ignored access doesn't overflow from previous test
 		$this->assertFalse(elgg_get_ignore_access());
 	}
 
 	public function down() {
-		$this->hooks->restore();
+		$this->events->restore();
 
 		// make sure methods called during the test do not leave behind ignored access
 		$this->assertFalse(elgg_get_ignore_access());
@@ -42,7 +33,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertTrue($entity->canEdit($owner->guid));
 		$this->assertFalse($entity->canEdit($viewer->guid));
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($entity->canEdit($admin_user->guid));
@@ -71,7 +62,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertTrue($user->canEdit($user->guid));
 		$this->assertFalse($user->canEdit($viewer->guid));
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($user->canEdit($admin_user->guid));
@@ -81,7 +72,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		});
 	}
 
-	public function testCanOverrideEditPermissionsWithAHook() {
+	public function testCanOverrideEditPermissionsWithEvent() {
 
 		$user = $this->createUser();
 		$entity = $this->createObject([
@@ -90,18 +81,18 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 
 		$this->assertTrue($entity->canEdit($user->guid));
 
-		$this->hooks->registerHandler('permissions_check', 'object', function(\Elgg\Hook $hook) use ($entity, $user) {
-			$this->assertInstanceOf(ElggEntity::class, $hook->getEntityParam());
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertEquals($entity, $hook->getEntityParam());
-			$this->assertEquals($user, $hook->getUserParam());
-			$this->assertTrue($hook->getValue());
+		$this->events->registerHandler('permissions_check', 'object', function(\Elgg\Event $event) use ($entity, $user) {
+			$this->assertInstanceOf(\ElggEntity::class, $event->getEntityParam());
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertEquals($entity, $event->getEntityParam());
+			$this->assertEquals($user, $event->getUserParam());
+			$this->assertTrue($event->getValue());
 			return false;
 		});
 		$this->assertFalse($entity->canEdit($user->guid));
 
-		// Permissions hooks should not be triggered for admin users and with ignored access
-		$admin_user = $this->createUser([], [
+		// Permissions events should not be triggered for admin users and with ignored access
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($entity->canEdit($admin_user->guid));
@@ -129,7 +120,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertEquals($entity->canEdit($viewer->guid), $entity->canDelete($viewer->guid));
 	}
 
-	public function testCanOverrideDeletePermissionsWithAHook() {
+	public function testCanOverrideDeletePermissionsWithEvent() {
 
 		$owner = $this->createUser();
 		$entity = $this->createObject([
@@ -137,18 +128,18 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		]);
 		$this->assertTrue($entity->canDelete($owner->guid));
 
-		$this->hooks->registerHandler('permissions_check:delete', 'object', function(\Elgg\Hook $hook) use ($entity, $owner) {
-			$this->assertInstanceOf(ElggEntity::class, $hook->getEntityParam());
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertEquals($entity, $hook->getEntityParam());
-			$this->assertEquals($owner, $hook->getUserParam());
-			$this->assertTrue($hook->getValue());
+		$this->events->registerHandler('permissions_check:delete', 'object', function(\Elgg\Event $event) use ($entity, $owner) {
+			$this->assertInstanceOf(\ElggEntity::class, $event->getEntityParam());
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertEquals($entity, $event->getEntityParam());
+			$this->assertEquals($owner, $event->getUserParam());
+			$this->assertTrue($event->getValue());
 			return false;
 		});
 
 		$this->assertFalse($entity->canDelete($owner->guid));
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($entity->canEdit($admin_user->guid));
@@ -176,7 +167,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertEquals($entity->canEdit($viewer->guid), $entity->canDelete($viewer->guid));
 	}
 
-	public function testCanOverrideContainerPermissionsWithAHook() {
+	public function testCanOverrideContainerPermissionsWithEvent() {
 
 		$owner = $this->createUser();
 		$entity = $this->createObject([
@@ -187,17 +178,17 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertTrue($entity->canWriteToContainer($owner->guid, 'object', 'bar'));
 
 		// only prevent the write access for 'object', 'bar'
-		$this->hooks->registerHandler('container_permissions_check', 'object', function(\Elgg\Hook $hook) use ($entity, $owner) {
-			$this->assertNotEmpty($hook->getParam('subtype'));
-			if ($hook->getParam('subtype') !== 'bar') {
+		$this->events->registerHandler('container_permissions_check', 'object', function(\Elgg\Event $event) use ($entity, $owner) {
+			$this->assertNotEmpty($event->getParam('subtype'));
+			if ($event->getParam('subtype') !== 'bar') {
 				return;
 			}
 			
-			$this->assertInstanceOf(ElggEntity::class, $hook->getParam('container'));
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertEquals($entity, $hook->getParam('container'));
-			$this->assertEquals($owner, $hook->getUserParam());
-			$this->assertTrue($hook->getValue());
+			$this->assertInstanceOf(\ElggEntity::class, $event->getParam('container'));
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertEquals($entity, $event->getParam('container'));
+			$this->assertEquals($owner, $event->getUserParam());
+			$this->assertTrue($event->getValue());
 			return false;
 		});
 
@@ -207,7 +198,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertTrue($entity->canWriteToContainer($owner->guid, 'object', 'foo'));
 
 		// Admins should always be allowed
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($entity->canWriteToContainer($admin_user->guid, 'object', 'bar'));
@@ -223,7 +214,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$entity = $this->createObject([
 			'owner_guid' => $owner->guid,
 		]);
-		$annotation = new ElggAnnotation((object) [
+		$annotation = new \ElggAnnotation((object) [
 			'owner_guid' => 0,
 			'entity_guid' => $entity->guid,
 		]);
@@ -235,7 +226,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$entity = $this->createObject([
 			'owner_guid' => $owner->guid,
 		]);
-		$annotation = new ElggAnnotation((object) [
+		$annotation = new \ElggAnnotation((object) [
 			'owner_guid' => $owner->guid,
 			'entity_guid' => $entity->guid,
 		]);
@@ -245,7 +236,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertFalse($annotation->canEdit($viewer->guid));
 
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($annotation->canEdit($admin_user->guid));
@@ -259,7 +250,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$owner = $this->createUser();
 		$entity = $this->createObject();
 
-		$annotation = new ElggAnnotation((object) [
+		$annotation = new \ElggAnnotation((object) [
 			'owner_guid' => $owner->guid,
 			'entity_guid' => $entity->guid,
 		]);
@@ -270,7 +261,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertFalse($annotation->canEdit($viewer->guid));
 
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($annotation->canEdit($admin_user->guid));
@@ -285,7 +276,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$entity = $this->createObject([
 			'owner_guid' => $owner->guid,
 		]);
-		$annotation = new ElggAnnotation((object) [
+		$annotation = new \ElggAnnotation((object) [
 			'owner_guid' => $owner->guid,
 			'entity_guid' => $entity->guid,
 		]);
@@ -293,33 +284,33 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertTrue($annotation->canEdit($owner->guid));
 	}
 
-	public function testCanOverrideAnnotationPermissionsWithAHook() {
+	public function testCanOverrideAnnotationPermissionsWithEvent() {
 
 		$owner = $this->createUser();
 		$entity = $this->createObject([
 			'owner_guid' => $owner->guid,
 		]);
-		$annotation = new ElggAnnotation((object) [
+		$annotation = new \ElggAnnotation((object) [
 			'owner_guid' => $owner->guid,
 			'entity_guid' => $entity->guid,
 		]);
 		$this->assertTrue($annotation->canEdit($owner->guid));
 
-		$this->hooks->registerHandler('permissions_check', 'annotation', function(\Elgg\Hook $hook) use ($entity, $owner, $annotation) {
-			$this->assertInstanceOf(ElggEntity::class, $hook->getEntityParam());
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertInstanceOf(ElggAnnotation::class, $hook->getParam('annotation'));
-			$this->assertEquals($entity, $hook->getEntityParam());
-			$this->assertEquals($owner, $hook->getUserParam());
-			$this->assertEquals($annotation, $hook->getParam('annotation'));
-			$this->assertTrue($hook->getValue());
+		$this->events->registerHandler('permissions_check', 'annotation', function(\Elgg\Event $event) use ($entity, $owner, $annotation) {
+			$this->assertInstanceOf(\ElggEntity::class, $event->getEntityParam());
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertInstanceOf(\ElggAnnotation::class, $event->getParam('annotation'));
+			$this->assertEquals($entity, $event->getEntityParam());
+			$this->assertEquals($owner, $event->getUserParam());
+			$this->assertEquals($annotation, $event->getParam('annotation'));
+			$this->assertTrue($event->getValue());
 			return false;
 		});
 
 		$this->assertFalse($annotation->canEdit($owner->guid));
 
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($annotation->canEdit($admin_user->guid));
@@ -330,7 +321,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 	}
 
 	public function testDefaultCanCommentPermissions() {
-		_elgg_services()->hooks->registerHandler('container_logic_check', 'all', \Elgg\Comments\ContainerLogicHandler::class);
+		_elgg_services()->events->registerHandler('container_logic_check', 'all', \Elgg\Comments\ContainerLogicHandler::class);
 		
 		$viewer = $this->createUser();
 
@@ -343,7 +334,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 			'owner_guid' => $owner->guid,
 		]);
 
-		$entity = $this->getMockBuilder(ElggEntity::class)
+		$entity = $this->getMockBuilder(\ElggEntity::class)
 			->setMethods(['__get', 'getDisplayName', 'setDisplayName', 'getSubtype', 'getType']) // keep origin canComment method
 			->disableOriginalConstructor()
 			->getMock();
@@ -366,26 +357,32 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertFalse($entity->canComment());
 
 		$this->assertFalse($owner->canComment($owner->guid));
-		$this->assertTrue($object->canComment($owner->guid));
+		$this->assertFalse($object->canComment($owner->guid));
 		$this->assertFalse($group->canComment($owner->guid));
-		$this->assertTrue($entity->canComment($owner->guid));
+		$this->assertFalse($entity->canComment($owner->guid));
 
 		$this->assertFalse($owner->canComment($viewer->guid));
 		$this->assertFalse($object->canComment($viewer->guid));
 		$this->assertFalse($entity->canComment($viewer->guid));
 		$this->assertFalse($group->canComment($viewer->guid));
 		
-		// make sure hook is registered
-		_elgg_services()->hooks->registerHandler('container_permissions_check', 'object', \Elgg\Comments\ContainerPermissionsHandler::class);
+		// make entities commentable
+		elgg_entity_enable_capability($object->type, $object->subtype, 'commentable');
+		elgg_entity_enable_capability($entity->getType(), $entity->getSubtype(), 'commentable');
+		
+		$this->assertTrue($object->canComment($owner->guid));
+		$this->assertTrue($entity->canComment($owner->guid));
+		
+		$this->assertFalse($object->canComment($viewer->guid));
+		$this->assertFalse($entity->canComment($viewer->guid));
+				
+		// make sure event is registered
+		_elgg_services()->events->registerHandler('container_permissions_check', 'object', \Elgg\Comments\ContainerPermissionsHandler::class);
 		$this->assertTrue($object->canComment($viewer->guid));
 		$this->assertTrue($entity->canComment($viewer->guid));
-		_elgg_services()->hooks->unregisterHandler('container_permissions_check', 'object', \Elgg\Comments\ContainerPermissionsHandler::class);
-		
-		// can pass default value
-		$this->assertTrue($object->canComment($viewer->guid, true));
-		$this->assertFalse($object->canComment($viewer->guid, false));
+		_elgg_services()->events->unregisterHandler('container_permissions_check', 'object', \Elgg\Comments\ContainerPermissionsHandler::class);
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($object->canComment($admin_user->guid));
@@ -400,7 +397,7 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertFalse($comment->canComment($owner->guid));
 	}
 
-	public function testCanOverrideCommentingPermissionsWithAHook() {
+	public function testCanOverrideCommentingPermissionsWithEvent() {
 
 		$owner = $this->createUser();
 		$entity = $this->createObject([
@@ -409,67 +406,25 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		
 		$this->assertTrue($entity->canComment($owner->guid));
 
-		$this->hooks->registerHandler('permissions_check:comment', 'object', function(\Elgg\Hook $hook) use ($entity, $owner) {
-			$this->assertInstanceOf(ElggEntity::class, $hook->getEntityParam());
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertEquals($entity, $hook->getEntityParam());
-			$this->assertEquals($owner, $hook->getUserParam());
-			$this->assertEquals('object', $hook->getType());
-			$this->assertIsBool($hook->getValue()); // called from ElggObject, no default value
+		$this->events->registerHandler('permissions_check:comment', 'object', function(\Elgg\Event $event) use ($entity, $owner) {
+			$this->assertInstanceOf(\ElggEntity::class, $event->getEntityParam());
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertEquals($entity, $event->getEntityParam());
+			$this->assertEquals($owner, $event->getUserParam());
+			$this->assertEquals('object', $event->getType());
+			$this->assertIsBool($event->getValue()); // called from ElggObject, no default value
 			return false;
 		});
 
 		$this->assertFalse($entity->canComment($owner->guid));
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($entity->canComment($admin_user->guid));
 
 		elgg_call(ELGG_IGNORE_ACCESS, function() use ($entity, $owner) {
 			$this->assertTrue($entity->canComment($owner->guid));
-		});
-	}
-
-	public function testCanAnnotateThrowsExceptionForNameArgumentSetToAnnotationInstance() {
-		$owner = $this->createUser();
-		$entity = $this->createObject([
-			'owner_guid' => $owner->guid,
-		]);
-
-		$this->expectException(InvalidArgumentException::class);
-		$entity->canAnnotate($owner->guid, new ElggAnnotation());
-	}
-
-	public function testCanAnnotateThrowsExceptionForNameArgumentSetToArray() {
-		$owner = $this->createUser();
-		$entity = $this->createObject([
-			'owner_guid' => $owner->guid,
-		]);
-
-		$this->expectException(InvalidArgumentException::class);
-		$entity->canAnnotate($owner->guid, []);
-	}
-
-	public function testCanAnnotateThrowsExceptionForNameArgumentSetToInteger() {
-		$owner = $this->createUser();
-		$entity = $this->createObject([
-			'owner_guid' => $owner->guid,
-		]);
-
-		$this->expectException(InvalidArgumentException::class);
-		$entity->canAnnotate($owner->guid, 5);
-	}
-
-	public function testCanAnnotateThrowsExceptionForNameArgumentSetToClosure() {
-		$owner = $this->createUser();
-		$entity = $this->createObject([
-			'owner_guid' => $owner->guid,
-		]);
-
-		$this->expectException(InvalidArgumentException::class);
-		$entity->canAnnotate($owner->guid, function() {
-			return 'annotation_name';
 		});
 	}
 
@@ -485,37 +440,33 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertTrue($entity->canAnnotate($owner->guid));
 		$this->assertTrue($entity->canAnnotate($owner->guid, 'baz'));
 		$this->assertTrue($entity->canAnnotate($owner->guid, ''));
-		$this->assertTrue($entity->canAnnotate($owner->guid, false)); //BC
-		$this->assertTrue($entity->canAnnotate($owner->guid, null)); //BC
 		// All other users can annotate
 		$this->assertTrue($entity->canAnnotate($viewer->guid));
 		$this->assertTrue($viewer->canAnnotate($viewer->guid, 'baz'));
 		$this->assertTrue($viewer->canAnnotate($viewer->guid, ''));
-		$this->assertTrue($viewer->canAnnotate($viewer->guid, false)); //BC
-		$this->assertTrue($viewer->canAnnotate($viewer->guid, null)); //BC
 	}
 
-	public function testCanOverrideAnnotationPermissionsWithAHookByAnnotationName() {
+	public function testCanOverrideAnnotationPermissionsWithEventByAnnotationName() {
 		$owner = $this->createUser();
 		$entity = $this->createObject([
 			'owner_guid' => $owner->guid,
 		]);
 		$this->assertTrue($entity->canAnnotate($owner->guid, 'baz'));
 
-		$this->hooks->registerHandler('permissions_check:annotate:baz', 'object', function(\Elgg\Hook $hook) use ($entity, $owner) {
-			$this->assertInstanceOf(ElggEntity::class, $hook->getEntityParam());
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertEquals($entity, $hook->getEntityParam());
-			$this->assertEquals($owner, $hook->getUserParam());
-			$this->assertEquals('baz', $hook->getParam('annotation_name'));
-			$this->assertEquals('object', $hook->getType());
-			$this->assertTrue($hook->getValue());
+		$this->events->registerHandler('permissions_check:annotate:baz', 'object', function(\Elgg\Event $event) use ($entity, $owner) {
+			$this->assertInstanceOf(\ElggEntity::class, $event->getEntityParam());
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertEquals($entity, $event->getEntityParam());
+			$this->assertEquals($owner, $event->getUserParam());
+			$this->assertEquals('baz', $event->getParam('annotation_name'));
+			$this->assertEquals('object', $event->getType());
+			$this->assertTrue($event->getValue());
 			return false;
 		});
 
 		$this->assertFalse($entity->canAnnotate($owner->guid, 'baz'));
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($entity->canAnnotate($admin_user->guid, 'baz'));
@@ -525,27 +476,27 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		});
 	}
 
-	public function testCanOverrideAnnotationPermissionsWithAGenericHook() {
+	public function testCanOverrideAnnotationPermissionsWithAGenericEvent() {
 		$owner = $this->createUser();
 		$entity = $this->createObject([
 			'owner_guid' => $owner->guid,
 		]);
 		$this->assertTrue($entity->canAnnotate($owner->guid, 'baz'));
 
-		$this->hooks->registerHandler('permissions_check:annotate', 'object', function(\Elgg\Hook $hook) use ($entity, $owner) {
-			$this->assertInstanceOf(ElggEntity::class, $hook->getEntityParam());
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertEquals($entity, $hook->getEntityParam());
-			$this->assertEquals($owner, $hook->getUserParam());
-			$this->assertEquals('baz', $hook->getParam('annotation_name'));
-			$this->assertEquals('object', $hook->getType());
-			$this->assertTrue($hook->getValue());
+		$this->events->registerHandler('permissions_check:annotate', 'object', function(\Elgg\Event $event) use ($entity, $owner) {
+			$this->assertInstanceOf(\ElggEntity::class, $event->getEntityParam());
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertEquals($entity, $event->getEntityParam());
+			$this->assertEquals($owner, $event->getUserParam());
+			$this->assertEquals('baz', $event->getParam('annotation_name'));
+			$this->assertEquals('object', $event->getType());
+			$this->assertTrue($event->getValue());
 			return false;
 		});
 
 		$this->assertFalse($entity->canAnnotate($owner->guid, 'baz'));
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($entity->canAnnotate($admin_user->guid, 'baz'));
@@ -555,40 +506,40 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		});
 	}
 
-	public function testCanAnnotateHookSequence() {
+	public function testCanAnnotateEventSequence() {
 		$owner = $this->createUser();
 		$entity = $this->createObject([
 			'owner_guid' => $owner->guid,
 		]);
 		$this->assertTrue($entity->canAnnotate($owner->guid, 'baz'));
 
-		$this->hooks->registerHandler('permissions_check:annotate:baz', 'object', function(\Elgg\Hook $hook) use ($entity, $owner) {
-			$this->assertInstanceOf(ElggEntity::class, $hook->getEntityParam());
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertEquals($entity, $hook->getEntityParam());
-			$this->assertEquals($owner, $hook->getUserParam());
-			$this->assertEquals('baz', $hook->getParam('annotation_name'));
-			$this->assertEquals('object', $hook->getType());
-			$this->assertTrue($hook->getValue());
+		$this->events->registerHandler('permissions_check:annotate:baz', 'object', function(\Elgg\Event $event) use ($entity, $owner) {
+			$this->assertInstanceOf(\ElggEntity::class, $event->getEntityParam());
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertEquals($entity, $event->getEntityParam());
+			$this->assertEquals($owner, $event->getUserParam());
+			$this->assertEquals('baz', $event->getParam('annotation_name'));
+			$this->assertEquals('object', $event->getType());
+			$this->assertTrue($event->getValue());
 			return false;
 		});
 
 		$this->assertFalse($entity->canAnnotate($owner->guid, 'baz'));
 
-		$this->hooks->registerHandler('permissions_check:annotate', 'object', function(\Elgg\Hook $hook) use ($entity, $owner) {
-			$this->assertInstanceOf(ElggEntity::class, $hook->getEntityParam());
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertEquals($entity, $hook->getEntityParam());
-			$this->assertEquals($owner, $hook->getUserParam());
-			$this->assertEquals('baz', $hook->getParam('annotation_name'));
-			$this->assertEquals('object', $hook->getType());// return from named hook
+		$this->events->registerHandler('permissions_check:annotate', 'object', function(\Elgg\Event $event) use ($entity, $owner) {
+			$this->assertInstanceOf(\ElggEntity::class, $event->getEntityParam());
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertEquals($entity, $event->getEntityParam());
+			$this->assertEquals($owner, $event->getUserParam());
+			$this->assertEquals('baz', $event->getParam('annotation_name'));
+			$this->assertEquals('object', $event->getType());// return from named event
 			return true;
 		});
 
 		$this->assertTrue($entity->canAnnotate($owner->guid, 'baz'));
 	}
 
-	public function testCanOverrideContainerLogicWithAHook() {
+	public function testCanOverrideContainerLogicWithEvent() {
 
 		$owner = $this->createUser();
 		$entity = $this->createObject([
@@ -597,21 +548,21 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 
 		$this->assertTrue($entity->canWriteToContainer($owner->guid, 'object', 'bar'));
 
-		$this->hooks->registerHandler('container_logic_check', 'object', function(\Elgg\Hook $hook) use ($entity, $owner) {
-			$this->assertInstanceOf(ElggEntity::class, $hook->getParam('container'));
-			$this->assertInstanceOf(ElggUser::class, $hook->getUserParam());
-			$this->assertEquals($entity, $hook->getParam('container'));
-			$this->assertEquals($owner, $hook->getUserParam());
-			$this->assertEquals('object', $hook->getType());
-			$this->assertEquals('bar', $hook->getParam('subtype'));
-			$this->assertNull($hook->getValue());
+		$this->events->registerHandler('container_logic_check', 'object', function(\Elgg\Event $event) use ($entity, $owner) {
+			$this->assertInstanceOf(\ElggEntity::class, $event->getParam('container'));
+			$this->assertInstanceOf(\ElggUser::class, $event->getUserParam());
+			$this->assertEquals($entity, $event->getParam('container'));
+			$this->assertEquals($owner, $event->getUserParam());
+			$this->assertEquals('object', $event->getType());
+			$this->assertEquals('bar', $event->getParam('subtype'));
+			$this->assertNull($event->getValue());
 			return false;
 		});
 
 		$this->assertFalse($entity->canWriteToContainer($owner->guid, 'object', 'bar'));
 
-		// make sure container permission hooks are not triggered
-		$this->hooks->registerHandler('container_permissions_check', 'object', function() {
+		// make sure container permission events are not triggered
+		$this->events->registerHandler('container_permissions_check', 'object', function() {
 			return true;
 		});
 	}
@@ -625,12 +576,12 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 
 		$this->assertTrue($entity->canWriteToContainer($owner->guid, 'object', 'bar'));
 
-		$this->hooks->registerHandler('container_logic_check', 'object', [Values::class, 'getFalse']);
+		$this->events->registerHandler('container_logic_check', 'object', [Values::class, 'getFalse']);
 
 		$this->assertFalse($entity->canWriteToContainer($owner->guid, 'object', 'bar'));
 
 		// Container logic checks should not be affected admin permissions or ignored access
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertFalse($entity->canWriteToContainer($admin_user->guid, 'object', 'bar'));
@@ -640,9 +591,6 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		});
 	}
 
-	/**
-	 * @group FileService
-	 */
 	public function testCanDownloadFileByDefault() {
 
 		elgg_set_entity_class('object', 'file', \ElggFile::class);
@@ -659,9 +607,6 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 		$this->assertTrue($entity->canDownload($viewer->guid));
 	}
 
-	/**
-	 * @group FileService
-	 */
 	public function testCanAlterDownloadPermissions() {
 
 		elgg_set_entity_class('object', 'file', \ElggFile::class);
@@ -673,13 +618,13 @@ class UserCapabilitiesIntegrationTest extends IntegrationTestCase {
 			'owner_guid' => $owner->guid,
 		]);
 
-		$this->hooks->registerHandler('permissions_check:download', 'file', [Values::class, 'getFalse']);
+		$this->events->registerHandler('permissions_check:download', 'file', [Values::class, 'getFalse']);
 
 		$this->assertFalse($entity->canDownload());
 		$this->assertFalse($entity->canDownload($owner->guid));
 		$this->assertFalse($entity->canDownload($viewer->guid));
 
-		$admin_user = $this->createUser([], [
+		$admin_user = $this->createUser([
 			'admin' => 'yes',
 		]);
 		$this->assertTrue($entity->canDownload($admin_user->guid));

@@ -4,10 +4,6 @@
  * Functions to manage multiple or single users in an Elgg install
  */
 
-use Elgg\Exceptions\InvalidParameterException;
-use Elgg\Exceptions\ClassException;
-use Elgg\Exceptions\Configuration\RegistrationException;
-
 /**
  * Get a user object from a GUID.
  *
@@ -15,42 +11,97 @@ use Elgg\Exceptions\Configuration\RegistrationException;
  *
  * @param int $guid The GUID
  *
- * @return \ElggUser|false
+ * @return \ElggUser|null
  */
-function get_user($guid) {
+function get_user(int $guid): ?\ElggUser {
 	try {
 		return _elgg_services()->entityTable->get($guid, 'user');
-	} catch (InvalidParameterException $ex) {
+	} catch (\Elgg\Exceptions\DomainException $ex) {
 		elgg_log($ex, 'ERROR');
 
-		return false;
-	} catch (ClassException $ex) {
+		return null;
+	} catch (\Elgg\Exceptions\ClassException $ex) {
 		elgg_log($ex, 'ERROR');
 
-		return false;
+		return null;
 	}
 }
 
 /**
- * Get user by username
+ * Get a user by username
  *
- * @param string $username The user's username
+ * @param string $username  The user's username
+ * @param bool   $try_email If the username contains an '@' try based on email first
  *
- * @return \ElggUser|false Depending on success
+ * @return \ElggUser|null
+ * @since 5.0
  */
-function get_user_by_username($username) {
-	return _elgg_services()->usersTable->getByUsername($username);
+function elgg_get_user_by_username(string $username, bool $try_email = false): ?\ElggUser {
+	if (empty($username)) {
+		return null;
+	}
+	
+	if ($try_email && elgg_is_valid_email($username)) {
+		$user = elgg_get_user_by_email($username);
+		if ($user instanceof \ElggUser) {
+			return $user;
+		}
+	}
+	
+	// Fixes #6052. Username is frequently sniffed from the path info, which,
+	// unlike $_GET, is not URL decoded. If the username was not URL encoded,
+	// this is harmless.
+	$username = rawurldecode($username);
+	if (empty($username)) {
+		return null;
+	}
+	
+	$logged_in_user = elgg_get_logged_in_user_entity();
+	if (!empty($logged_in_user) && ($logged_in_user->username === $username)) {
+		return $logged_in_user;
+	}
+	
+	$users = elgg_get_entities([
+		'types' => 'user',
+		'metadata_name_value_pairs' => [
+			[
+				'name' => 'username',
+				'value' => $username,
+				'case_sensitive' => false,
+			],
+		],
+		'limit' => 1,
+	]);
+	
+	return $users ? $users[0] : null;
 }
 
 /**
- * Get an array of users from an email address
+ * Get a user from an email address
  *
- * @param string $email Email address.
+ * @param string $email Email address
  *
- * @return array
+ * @return \ElggUser|null
+ * @since 5.0
  */
-function get_user_by_email($email) {
-	return _elgg_services()->usersTable->getByEmail($email);
+function elgg_get_user_by_email(string $email): ?\ElggUser {
+	if (empty($email)) {
+		return null;
+	}
+	
+	$users = elgg_get_entities([
+		'types' => 'user',
+		'metadata_name_value_pairs' => [
+			[
+				'name' => 'email',
+				'value' => $email,
+				'case_sensitive' => false,
+			],
+		],
+		'limit' => 1,
+	]);
+	
+	return $users ? $users[0] : null;
 }
 
 /**
@@ -106,7 +157,7 @@ function elgg_generate_password(): string {
  *                      (bool)   validated             => (optional) Is the user validated (default true)
  *
  * @return \ElggUser
- * @throws RegistrationException
+ * @throws \Elgg\Exceptions\Configuration\RegistrationException
  */
 function elgg_register_user(array $params = []): \ElggUser {
 	return _elgg_services()->accounts->register($params);
@@ -125,7 +176,7 @@ function elgg_register_user(array $params = []): \ElggUser {
  *
  * @return \Elgg\Validation\ValidationResults
  */
-function elgg_validate_registration_data($username, $password, $name, $email, $allow_multiple_emails = false) {
+function elgg_validate_registration_data(string $username, string|array $password, string $name, string $email, bool $allow_multiple_emails = false): \Elgg\Validation\ValidationResults {
 	return _elgg_services()->accounts->validateAccountData($username, $password, $name, $email, $allow_multiple_emails);
 }
 
@@ -139,7 +190,7 @@ function elgg_validate_registration_data($username, $password, $name, $email, $a
  * @since 4.3
  */
 function elgg_generate_invite_code(string $username): string {
-	return _elgg_services()->usersTable->generateInviteCode($username);
+	return _elgg_services()->hmac->generateInviteCode($username);
 }
 
 /**
@@ -152,13 +203,13 @@ function elgg_generate_invite_code(string $username): string {
  * @see elgg_generate_invite_code()
  * @since 1.10
  */
-function elgg_validate_invite_code($username, $code): bool {
-	return _elgg_services()->usersTable->validateInviteCode((string) $username, (string) $code);
+function elgg_validate_invite_code(string $username, string $code): bool {
+	return _elgg_services()->hmac->validateInviteCode($username, $code);
 }
 
 /**
  * Returns site's registration URL
- * Triggers a 'registration_url', 'site' plugin hook that can be used by
+ * Triggers a 'registration_url', 'site' event that can be used by
  * plugins to alter the default registration URL and append query elements, such as
  * an invitation code and inviting user's guid
  *
@@ -167,25 +218,25 @@ function elgg_validate_invite_code($username, $code): bool {
  *
  * @return string
  */
-function elgg_get_registration_url(array $parameters = [], $fragment = ''): string {
+function elgg_get_registration_url(array $parameters = [], string $fragment = ''): string {
 	$url = elgg_generate_url('account:register', $parameters) . $fragment;
 	
-	return (string) elgg_trigger_plugin_hook('registration_url', 'site', $parameters, $url);
+	return (string) elgg_trigger_event_results('registration_url', 'site', $parameters, $url);
 }
 
 /**
  * Returns site's login URL
- * Triggers a 'login_url', 'site' plugin hook that can be used by
+ * Triggers a 'login_url', 'site' event that can be used by
  * plugins to alter the default login URL
  *
  * @param array  $query    An array of query elements
  * @param string $fragment Fragment identifier (e.g. #login-dropdown-box)
  * @return string
  */
-function elgg_get_login_url(array $query = [], $fragment = '') {
+function elgg_get_login_url(array $query = [], string $fragment = ''): string {
 	$url = elgg_generate_url('account:login');
 	$url = elgg_http_add_url_query_elements($url, $query) . $fragment;
-	return elgg_trigger_plugin_hook('login_url', 'site', $query, $url);
+	return (string) elgg_trigger_event_results('login_url', 'site', $query, $url);
 }
 
 /**

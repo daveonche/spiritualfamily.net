@@ -8,11 +8,6 @@ use Elgg\Http\ErrorResponse;
 use Elgg\Http\OkResponse;
 use Elgg\Values;
 
-/**
- * @group ActionsService
- * @group AccountActions
- * @group Logout
- */
 class LogoutIntegrationTest extends ActionResponseTestCase {
 
 	public function up() {
@@ -28,12 +23,10 @@ class LogoutIntegrationTest extends ActionResponseTestCase {
 
 	public function testLogout() {
 
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'password' => 123456,
 			'language' => 'de',
 		]);
-
-		$user->setValidationStatus(true);
 
 		elgg_login($user);
 
@@ -45,16 +38,14 @@ class LogoutIntegrationTest extends ActionResponseTestCase {
 		$this->assertNotEmpty($messages['success']);
 		$this->assertEquals(elgg_echo('logoutok', [], $user->language), array_shift($messages['success']));
 
-		$this->assertNull(_elgg_services()->session->getLoggedInUser());
+		$this->assertNull(_elgg_services()->session_manager->getLoggedInUser());
 	}
 
 	public function testCanUseLogoutActionWithoutTokens() {
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'password' => 123456,
 			'language' => 'de',
 		]);
-
-		$user->setValidationStatus(true);
 
 		elgg_login($user);
 
@@ -66,12 +57,12 @@ class LogoutIntegrationTest extends ActionResponseTestCase {
 		$this->assertNotEmpty($messages['success']);
 		$this->assertEquals(elgg_echo('logoutok', [], $user->language), array_shift($messages['success']));
 
-		$this->assertNull(_elgg_services()->session->getLoggedInUser());
+		$this->assertNull(_elgg_services()->session_manager->getLoggedInUser());
 	}
 
-	public function testCanPreventLogoutWithAHook() {
+	public function testCanPreventLogoutWithEvent() {
 
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'password' => 123456,
 			'language' => 'de',
 		]);
@@ -87,9 +78,9 @@ class LogoutIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('logouterror'), $response->getContent());
 
-		$this->assertEquals($user, _elgg_services()->session->getLoggedInUser());
+		$this->assertEquals($user, _elgg_services()->session_manager->getLoggedInUser());
 
-		_elgg_services()->session->removeLoggedInUser();
+		_elgg_services()->session_manager->removeLoggedInUser();
 
 		elgg_unregister_event_handler('logout:before', 'user', [Values::class, 'getFalse']);
 	}

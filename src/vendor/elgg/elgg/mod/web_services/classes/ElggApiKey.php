@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Class to store API key information in
  *
@@ -12,8 +11,7 @@ class ElggApiKey extends ElggObject {
 	const SUBTYPE = 'api_key';
 	
 	/**
-	 * {@inheritDoc}
-	 * @see ElggEntity::initializeAttributes()
+	 * {@inheritdoc}
 	 */
 	protected function initializeAttributes() {
 		parent::initializeAttributes();
@@ -24,27 +22,36 @@ class ElggApiKey extends ElggObject {
 		$this->attributes['container_guid'] = $site->guid;
 		$this->attributes['owner_guid'] = $site->guid;
 		$this->attributes['subtype'] = self::SUBTYPE;
-		
-		$this->generateKeys();
 	}
 	
 	/**
-	 * {@inheritDoc}
-	 * @see ElggEntity::delete()
+	 * {@inheritdoc}
 	 */
-	public function delete($recursive = true) {
+	protected function create() {
+		$result = parent::create();
+		
+		if ($result !== false) {
+			$this->generateKeys();
+		}
+		
+		return $result;
+	}
+	
+	/**
+	 * {@inheritdoc}
+	 */
+	public function delete(bool $recursive = true): bool {
 		$public_key = $this->public_key;
 		
-		$result = parent::delete($recursive);
-		if (!$result) {
-			return $result;
+		if (!parent::delete($recursive)) {
+			return false;
 		}
 		
 		if (isset($public_key)) {
 			_elgg_services()->apiUsersTable->removeApiUser($public_key);
 		}
 		
-		return $result;
+		return true;
 	}
 	
 	/**
@@ -66,7 +73,7 @@ class ElggApiKey extends ElggObject {
 	 *
 	 * @return null|string
 	 */
-	public function getPublicKey() {
+	public function getPublicKey(): ?string {
 		return $this->public_key;
 	}
 	
@@ -89,7 +96,7 @@ class ElggApiKey extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function generateKeys() {
+	public function generateKeys(): bool {
 		
 		$keys = _elgg_services()->apiUsersTable->createApiUser();
 		if (empty($keys)) {
@@ -109,7 +116,7 @@ class ElggApiKey extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function regenerateKeys() {
+	public function regenerateKeys(): bool {
 		$current_public = $this->getPublicKey();
 		
 		if (!$this->generateKeys()) {
@@ -127,7 +134,7 @@ class ElggApiKey extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function hasActiveKeys() {
+	public function hasActiveKeys(): bool {
 		$keys = $this->getKeys();
 		if (empty($keys)) {
 			return false;
@@ -141,7 +148,7 @@ class ElggApiKey extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function enableKeys() {
+	public function enableKeys(): bool {
 		return _elgg_services()->apiUsersTable->enableAPIUser($this->getPublicKey());
 	}
 	
@@ -150,7 +157,7 @@ class ElggApiKey extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function disableKeys() {
+	public function disableKeys(): bool {
 		return _elgg_services()->apiUsersTable->disableAPIUser($this->getPublicKey());
 	}
 }

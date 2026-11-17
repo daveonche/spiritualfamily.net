@@ -3,7 +3,7 @@
 namespace Elgg\Likes\Menus;
 
 /**
- * Hook callbacks for menus
+ * Event callbacks for menus
  *
  * @since 4.0
  *
@@ -14,25 +14,21 @@ class Social {
 	/**
 	 * Add likes to social menu
 	 *
-	 * @param \Elgg\Hook $hook 'register' 'menu:social'
+	 * @param \Elgg\Event $event 'register' 'menu:social'
 	 *
 	 * @return void|\Elgg\Menu\MenuItems
 	 */
-	public static function register(\Elgg\Hook $hook) {
-		$entity = $hook->getEntityParam();
+	public static function register(\Elgg\Event $event) {
+		$entity = $event->getEntityParam();
 		if (!$entity instanceof \ElggEntity) {
 			return;
 		}
 		
-		$type = $entity->type;
-		$subtype = $entity->getSubtype();
-	
-		$likable = (bool) elgg_trigger_deprecated_plugin_hook('likes:is_likable', "{$type}:{$subtype}", [], $entity->hasCapability('likable'), "Use the capabilities system to register your entity ('{$type}:{$subtype}') as likable.", '4.1');
-		if (!$likable) {
+		if (!$entity->hasCapability('likable')) {
 			return;
 		}
 		
-		$return = $hook->getValue();
+		$return = $event->getValue();
 	
 		if ($entity->canAnnotate(0, 'likes')) {
 			$return[] = _likes_menu_item($entity);

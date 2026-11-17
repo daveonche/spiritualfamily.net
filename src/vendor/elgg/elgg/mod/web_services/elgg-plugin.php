@@ -1,6 +1,9 @@
 <?php
 
 use Elgg\Router\Middleware\AdminGatekeeper;
+use Elgg\WebServices\ApiMethods\AuthGetToken;
+use Elgg\WebServices\ApiMethods\SystemApiList;
+use Elgg\WebServices\Forms\PrepareFields;
 use Elgg\WebServices\Middleware\ApiContextMiddleware;
 use Elgg\WebServices\Middleware\RestApiErrorHandlingMiddleware;
 use Elgg\WebServices\Middleware\RestApiOutputMiddleware;
@@ -14,7 +17,6 @@ return [
 	'plugin' => [
 		'name' => 'Web Services',
 	],
-	'bootstrap' => \Elgg\WebServices\Bootstrap::class,
 	'settings' => [
 		'auth_allow_key' => 1,
 		'auth_allow_hmac' => 1,
@@ -71,7 +73,6 @@ return [
 				'segments' => '.+',
 			],
 			'walled' => false,
-			'legacy_page_owner_detection' => false, // we do not want accidental pageowner detection
 		],
 	],
 	'view_extensions' => [
@@ -79,13 +80,34 @@ return [
 			'webservices/admin.css' => [],
 		],
 	],
-	'hooks' => [
+	'events' => [
+		'form:prepare:fields' => [
+			'webservices/api_key/edit' => [
+				PrepareFields::class => [],
+			],
+		],
 		'register' => [
+			'menu:admin_header' => [
+				'\Elgg\WebServices\AdminHeaderMenu' => [],
+			],
 			'menu:entity' => [
 				'\Elgg\WebServices\EntityMenu' => [],
 			],
-			'menu:page' => [
-				'\Elgg\WebServices\AdminPageMenu' => [],
+		],
+	],
+	'web_services' => [
+		'auth.gettoken' => [
+			'POST' => [
+				'callback' => AuthGetToken::class,
+				'params' => [
+					'username' => ['type' => 'string'],
+					'password' => ['type' => 'string'],
+				],
+			],
+		],
+		'system.api.list' => [
+			'GET' => [
+				'callback' => SystemApiList::class,
 			],
 		],
 	],

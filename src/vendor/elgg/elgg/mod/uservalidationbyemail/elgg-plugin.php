@@ -29,6 +29,7 @@ return [
 			'controller' => \Elgg\UserValidationByEmail\ConfirmController::class,
 			'walled' => false,
 			'middleware' => [
+				\Elgg\Router\Middleware\LoggedOutGatekeeper::class,
 				\Elgg\Router\Middleware\SignedRequestGatekeeper::class,
 			],
 		],
@@ -47,8 +48,6 @@ return [
 				'Elgg\UserValidationByEmail\User::preventLogin' => [],
 			],
 		],
-	],
-	'hooks' => [
 		'register' => [
 			'menu:admin:users:bulk' => [
 				'Elgg\UserValidationByEmail\Menus\AdminUsersBulk::register' => [],

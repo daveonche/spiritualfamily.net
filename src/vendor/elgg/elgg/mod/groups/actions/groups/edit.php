@@ -6,8 +6,6 @@
  * elements may be omitted and the corresponding data will be left as is.
  */
 
-elgg_make_sticky_form('groups');
-
 // Get group fields
 $input = [];
 
@@ -39,8 +37,8 @@ foreach ($fields as $field) {
 }
 
 // only set if submitted
-$name = elgg_get_title_input('name', null);
-if ($name !== null) {
+$name = elgg_get_title_input('name');
+if (!elgg_is_empty($name)) {
 	$input['name'] = $name;
 }
 
@@ -61,7 +59,7 @@ if ($group_guid) {
 		return elgg_error_response($error);
 	}
 	
-	$container_guid = get_input('container_guid', $user->guid);
+	$container_guid = (int) get_input('container_guid', $user->guid);
 	$container = get_entity($container_guid);
 	
 	if (!$container || !$container->canWriteToContainer($user->guid, 'group', 'group')) {
@@ -158,7 +156,7 @@ if ($is_new_group) {
 // Invisible group support
 // @todo this requires save to be called to create the acl for the group. This
 // is an odd requirement and should be removed. Either the acl creation happens
-// in the action or the visibility moves to a plugin hook
+// in the action or the visibility moves to an event handler
 if (elgg_get_plugin_setting('hidden_groups', 'groups') == 'yes') {
 	$value = get_input('vis');
 	if ($is_new_group || $value !== null) {
@@ -211,14 +209,8 @@ if (!$group->save()) {
 	return elgg_error_response(elgg_echo('groups:save_error'));
 }
 
-// group saved so clear sticky form
-elgg_clear_sticky_form('groups');
-
 // group creator needs to be member of new group and river entry created
 if ($is_new_group) {
-	// @todo this should not be necessary...
-	elgg_set_page_owner_guid($group->guid);
-
 	$group->join($user);
 	elgg_create_river_item([
 		'view' => 'river/group/create',
@@ -232,6 +224,13 @@ if (get_input('icon_remove')) {
 } else {
 	// try to save new icon, will fail silently if no icon provided
 	$group->saveIconFromUploadedFile('icon');
+}
+
+if (get_input('header_remove')) {
+	$group->deleteIcon('header');
+} else {
+	// try to save new icon, will fail silently if no icon provided
+	$group->saveIconFromUploadedFile('header', 'header');
 }
 
 $data = [

@@ -4,25 +4,20 @@ namespace Elgg\Search;
 
 use Elgg\Database\Clauses\AnnotationWhereClause;
 use Elgg\Database\Clauses\AttributeWhereClause;
-use Elgg\Database\Clauses\EntitySortByClause;
 use Elgg\Database\Clauses\EntityWhereClause;
 use Elgg\Database\Clauses\MetadataWhereClause;
-use Elgg\Database\Clauses\PrivateSettingWhereClause;
 use Elgg\Database\Select;
-use Elgg\Exceptions\InvalidParameterException;
+use Elgg\Exceptions\DomainException;
 use Elgg\UnitTestCase;
 
-/**
- * @group Search
- */
 class SearchServiceTest extends UnitTestCase {
 
 	public function up() {
-		_elgg_services()->hooks->backup();
+		_elgg_services()->events->backup();
 	}
 
 	public function down() {
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 	}
 
 	public function testEmptyReturnWithMissingQueryParts() {
@@ -88,38 +83,36 @@ class SearchServiceTest extends UnitTestCase {
 
 	public function testThrowsOnInvalidEntityType() {
 
-		$handler = function (\Elgg\Hook $hook) {
+		$handler = function (\Elgg\Event $event) {
 			return [
 				'metadata' => ['allowed1', 'allowed2'],
 				'annotations' => ['allowed3', 'allowed4'],
 				'attributes' => false,
-				'private_settings' => null,
 			];
 		};
 
-		elgg_register_plugin_hook_handler('search:fields', 'foo', $handler);
+		elgg_register_event_handler('search:fields', 'foo', $handler);
 
 		$options = [
 			'type' => 'foo',
 			'query' => 'bar',
 		];
 
-		$this->expectException(InvalidParameterException::class);
+		$this->expectException(DomainException::class);
 		_elgg_services()->search->search($options);
 	}
 	
 	public function testFalseInvalidEntityType() {
 
-		$handler = function (\Elgg\Hook $hook) {
+		$handler = function (\Elgg\Event $event) {
 			return [
 				'metadata' => ['allowed1', 'allowed2'],
 				'annotations' => ['allowed3', 'allowed4'],
 				'attributes' => false,
-				'private_settings' => null,
 			];
 		};
 
-		elgg_register_plugin_hook_handler('search:fields', 'foo', $handler);
+		elgg_register_event_handler('search:fields', 'foo', $handler);
 
 		$options = [
 			'type' => 'foo',
@@ -129,15 +122,15 @@ class SearchServiceTest extends UnitTestCase {
 		$this->assertFalse(elgg_search($options));
 	}
 
-	public function testCanFilterParamsWithAHook() {
+	public function testCanFilterParamsWithEvent() {
 
-		$handler = function (\Elgg\Hook $hook) {
+		$handler = function (\Elgg\Event $event) {
 			return [
 				'query' => 'altered query',
 			];
 		};
 
-		elgg_register_plugin_hook_handler('search:params', 'entities', $handler);
+		elgg_register_event_handler('search:params', 'entities', $handler);
 
 		$options = _elgg_services()->search->normalizeOptions([]);
 
@@ -147,7 +140,6 @@ class SearchServiceTest extends UnitTestCase {
 				'metadata' => [],
 				'attributes' => [],
 				'annotations' => [],
-				'private_settings' => [],
 			],
 			'query_parts' => ['altered', 'query'],
 			'_elgg_search_service_normalize_options' => true,
@@ -156,16 +148,15 @@ class SearchServiceTest extends UnitTestCase {
 
 	public function testCanRegisterAndNormalizeFields() {
 
-		$handler = function (\Elgg\Hook $hook) {
+		$handler = function (\Elgg\Event $event) {
 			return [
 				'metadata' => ['allowed1', 'allowed2'],
 				'annotations' => ['allowed3', 'allowed4'],
 				'attributes' => false,
-				'private_settings' => null,
 			];
 		};
 
-		elgg_register_plugin_hook_handler('search:fields', 'object', $handler);
+		elgg_register_event_handler('search:fields', 'object', $handler);
 
 		$options = _elgg_services()->search->normalizeOptions([
 			'type' => 'object',
@@ -181,7 +172,6 @@ class SearchServiceTest extends UnitTestCase {
 				'metadata' => ['allowed2'],
 				'attributes' => [],
 				'annotations' => [],
-				'private_settings' => [],
 			],
 			'query' => '',
 			'query_parts' => [],
@@ -195,16 +185,15 @@ class SearchServiceTest extends UnitTestCase {
 			'query' => 'hello',
 		]));
 
-		$handler = function (\Elgg\Hook $hook) {
+		$handler = function (\Elgg\Event $event) {
 			return [
 				'metadata' => ['allowed1', 'allowed2'],
 				'annotations' => ['allowed3', 'allowed4'],
 				'attributes' => false,
-				'private_settings' => null,
 			];
 		};
 
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', $handler);
+		elgg_register_event_handler('search:fields', 'object:blog', $handler);
 
 		$options = _elgg_services()->search->normalizeOptions([
 			'type' => 'object',
@@ -219,7 +208,6 @@ class SearchServiceTest extends UnitTestCase {
 				'metadata' => ['allowed1', 'allowed2'],
 				'annotations' => ['allowed3', 'allowed4'],
 				'attributes' => [],
-				'private_settings' => [],
 			],
 			'query' => '',
 			'query_parts' => [],
@@ -234,64 +222,24 @@ class SearchServiceTest extends UnitTestCase {
 		]));
 	}
 
-	public function testCanPrepareSortOptions() {
-
-		$options = _elgg_services()->search->prepareSearchOptions([
-			'sort' => 'prop',
-			'order' => 'desc',
-		]);
-
-		$sort = array_shift($options['sort_by']);
-		$this->assertNotEmpty($sort);
-		$this->assertIsArray($sort);
-		
-		$this->assertArrayHasKey('property', $sort);
-		$this->assertEquals('prop', $sort['property']);
-		
-		$this->assertArrayHasKey('direction', $sort);
-		$this->assertEquals('desc', $sort['direction']);
-	}
-
-	public function testCanPrepareSortOptionsFromArray() {
-
-		$expected = [
-			'property' => 'prop',
-			'property_type' => 'annotation',
-			'direction' => 'desc',
-			'signed' => true,
-		];
-		$options = _elgg_services()->search->prepareSearchOptions([
-			'sort' => $expected,
-		]);
-
-		$sort = array_shift($options['sort_by']);
-		$this->assertNotEmpty($sort);
-		$this->assertIsArray($sort);
-		
-		foreach ($expected as $key => $value) {
-			$this->assertArrayHasKey($key, $sort);
-			$this->assertEquals($value, $sort[$key]);
-		}
-	}
-
 	public function testEndToEndSearchForAnnotationsWithExactMatchAndWithoutTokenization() {
 
-		elgg_register_plugin_hook_handler('search:fields', 'object', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['annotations'][] = 'foo1';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object:blog', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['annotations'][] = 'foo2';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'custom', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['annotations'][] = 'foo3';
 
 			return $value;
@@ -350,22 +298,22 @@ class SearchServiceTest extends UnitTestCase {
 
 	public function testEndToEndSearchForAnnotationsWithExactMatchAndTokenization() {
 
-		elgg_register_plugin_hook_handler('search:fields', 'object', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['annotations'][] = 'foo1';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object:blog', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['annotations'][] = 'foo2';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'custom', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['annotations'][] = 'foo3';
 
 			return $value;
@@ -431,22 +379,22 @@ class SearchServiceTest extends UnitTestCase {
 
 	public function testEndToEndSearchForAnnotationsWithPartialMatchAndTokenization() {
 
-		elgg_register_plugin_hook_handler('search:fields', 'object', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['annotations'][] = 'foo1';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object:blog', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['annotations'][] = 'foo2';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'custom', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['annotations'][] = 'foo3';
 
 			return $value;
@@ -512,22 +460,22 @@ class SearchServiceTest extends UnitTestCase {
 
 	public function testEndToEndSearchForMetadataWithExactMatchAndWithoutTokenization() {
 
-		elgg_register_plugin_hook_handler('search:fields', 'object', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['metadata'][] = 'foo1';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object:blog', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['metadata'][] = 'foo2';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'custom', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['metadata'][] = 'foo3';
 
 			return $value;
@@ -586,22 +534,22 @@ class SearchServiceTest extends UnitTestCase {
 
 	public function testEndToEndSearchForMetadataWithExactMatchAndTokenization() {
 
-		elgg_register_plugin_hook_handler('search:fields', 'object', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['metadata'][] = 'foo1';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object:blog', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['metadata'][] = 'foo2';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'custom', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['metadata'][] = 'foo3';
 
 			return $value;
@@ -667,22 +615,22 @@ class SearchServiceTest extends UnitTestCase {
 
 	public function testEndToEndSearchForMetadataWithPartialMatchAndTokenization() {
 
-		elgg_register_plugin_hook_handler('search:fields', 'object', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['metadata'][] = 'foo1';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'object:blog', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['metadata'][] = 'foo2';
 
 			return $value;
 		});
 
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
+		elgg_register_event_handler('search:fields', 'custom', function (\Elgg\Event $event) {
+			$value = $event->getValue();
 			$value['metadata'][] = 'foo3';
 
 			return $value;
@@ -746,253 +694,15 @@ class SearchServiceTest extends UnitTestCase {
 		_elgg_services()->db->removeQuerySpec($spec);
 	}
 
-	public function testEndToEndSearchForPrivateSettingsWithExactMatchAndWithoutTokenization() {
-
-		elgg_register_plugin_hook_handler('search:fields', 'object', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
-			$value['private_settings'][] = 'foo1';
-
-			return $value;
-		});
-
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
-			$value['private_settings'][] = 'foo2';
-
-			return $value;
-		});
-
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
-			$value['private_settings'][] = 'foo3';
-
-			return $value;
-		});
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
-
-		$alias = $select->joinPrivateSettingsTable('e', 'guid', ['foo1', 'foo2', 'foo3'], 'left');
-
-		$property = new PrivateSettingWhereClause();
-		$property->values = 'query1 query2 query3';
-		$property->comparison = "LIKE";
-		$property->case_sensitive = false;
-
-		$select->andWhere($property->prepare($select, $alias));
-
-		$where = new EntityWhereClause();
-		$where->type_subtype_pairs = [
-			'object' => ['blog'],
-		];
-		$select->addClause($where);
-
-		$select->setMaxResults(10);
-		$select->setFirstResult(0);
-
-		$select->addOrderBy('e.time_created', 'desc');
-		$select->addOrderBy('e.guid', 'desc');
-
-		$rows = $this->getRows(5);
-		$spec = _elgg_services()->db->addQuerySpec([
-			'sql' => $select->getSQL(),
-			'params' => $select->getParameters(),
-			'results' => $rows,
-		]);
-
-		$options = [
-			'callback' => false,
-			'query' => 'query1 query2 query3',
-			'type' => 'object',
-			'subtype' => 'blog',
-			'search_type' => 'custom',
-			'tokenize' => false,
-			'partial_match' => false,
-			'fields' => [
-				'private_settings' => ['foo1', 'foo2', 'foo3', 'foo4'],
-			],
-		];
-
-		$find = elgg_search($options);
-
-		$this->assertEquals($rows, $find);
-
-		_elgg_services()->db->removeQuerySpec($spec);
-	}
-
-	public function testEndToEndSearchForPrivateSettingsWithExactMatchAndTokenization() {
-
-		elgg_register_plugin_hook_handler('search:fields', 'object', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
-			$value['private_settings'][] = 'foo1';
-
-			return $value;
-		});
-
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
-			$value['private_settings'][] = 'foo2';
-
-			return $value;
-		});
-
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
-			$value['private_settings'][] = 'foo3';
-
-			return $value;
-		});
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
-
-		$alias = $select->joinPrivateSettingsTable('e', 'guid', ['foo1', 'foo2', 'foo3'], 'left');
-
-		$query_parts = ['query1', 'query2', 'query3'];
-
-		$wheres = [];
-
-		foreach ($query_parts as $part) {
-			$property = new PrivateSettingWhereClause();
-			$property->values = $part;
-			$property->comparison = "LIKE";
-			$property->case_sensitive = false;
-			$wheres[] = $property->prepare($select, $alias);
-		}
-
-		$select->andWhere($select->merge($wheres, 'AND'));
-
-		$where = new EntityWhereClause();
-		$where->type_subtype_pairs = [
-			'object' => ['blog'],
-		];
-		$select->addClause($where);
-
-		$select->setMaxResults(10);
-		$select->setFirstResult(0);
-
-		$select->addOrderBy('e.time_created', 'desc');
-		$select->addOrderBy('e.guid', 'desc');
-
-		$rows = $this->getRows(5);
-		$spec = _elgg_services()->db->addQuerySpec([
-			'sql' => $select->getSQL(),
-			'params' => $select->getParameters(),
-			'results' => $rows,
-		]);
-
-		$options = [
-			'callback' => false,
-			'query' => 'query1 query2 query3',
-			'type' => 'object',
-			'subtype' => 'blog',
-			'search_type' => 'custom',
-			'tokenize' => true,
-			'partial_match' => false,
-			'fields' => [
-				'private_settings' => ['foo1', 'foo2', 'foo3', 'foo4'],
-			],
-		];
-
-		$find = elgg_search($options);
-
-		$this->assertEquals($rows, $find);
-
-		_elgg_services()->db->removeQuerySpec($spec);
-	}
-
-	public function testEndToEndSearchForPrivateSettingsWithPartialMatchAndTokenization() {
-
-		elgg_register_plugin_hook_handler('search:fields', 'object', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
-			$value['private_settings'][] = 'foo1';
-
-			return $value;
-		});
-
-		elgg_register_plugin_hook_handler('search:fields', 'object:blog', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
-			$value['private_settings'][] = 'foo2';
-
-			return $value;
-		});
-
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
-			$value = $hook->getValue();
-			$value['private_settings'][] = 'foo3';
-
-			return $value;
-		});
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
-
-		$alias = $select->joinPrivateSettingsTable('e', 'guid', ['foo1', 'foo2', 'foo3'], 'left');
-
-		$query_parts = ['query1', 'query2', 'query3'];
-
-		$wheres = [];
-
-		foreach ($query_parts as $part) {
-			$property = new PrivateSettingWhereClause();
-			$property->values = "%{$part}%";
-			$property->comparison = "LIKE";
-			$property->case_sensitive = false;
-			$wheres[] = $property->prepare($select, $alias);
-		}
-
-		$select->andWhere($select->merge($wheres, 'AND'));
-
-		$where = new EntityWhereClause();
-		$where->type_subtype_pairs = [
-			'object' => ['blog'],
-		];
-		$select->addClause($where);
-
-		$select->setMaxResults(10);
-		$select->setFirstResult(0);
-
-		$select->addOrderBy('e.time_created', 'desc');
-		$select->addOrderBy('e.guid', 'desc');
-
-		$rows = $this->getRows(5);
-		$spec = _elgg_services()->db->addQuerySpec([
-			'sql' => $select->getSQL(),
-			'params' => $select->getParameters(),
-			'results' => $rows,
-		]);
-
-		$options = [
-			'callback' => false,
-			'query' => 'query1 query2 query3',
-			'type' => 'object',
-			'subtype' => 'blog',
-			'search_type' => 'custom',
-			'tokenize' => true,
-			'partial_match' => true,
-			'fields' => [
-				'private_settings' => ['foo1', 'foo2', 'foo3', 'foo4'],
-			],
-		];
-
-		$find = elgg_search($options);
-
-		$this->assertEquals($rows, $find);
-
-		_elgg_services()->db->removeQuerySpec($spec);
-	}
-
 	public function testEndToEndSearchWithMultipleProperties() {
 
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
+		elgg_register_event_handler('search:fields', 'custom', function (\Elgg\Event $event) {
 			return [
 				'attributes' => ['type', 'subtype'],
 				'metadata' => ['foo1'],
 				'annotations' => ['foo2'],
-				'private_settings' => ['foo3'],
 			];
 		});
-
 
 		$select = Select::fromTable('entities', 'e');
 		$select->select('DISTINCT e.*');
@@ -1036,17 +746,6 @@ class SearchServiceTest extends UnitTestCase {
 		}
 		$ors[] = $select->merge($wheres, 'AND');
 
-		$ps_alias = $select->joinPrivateSettingsTable('e', 'guid', ['foo3'], 'left');
-		$wheres = [];
-		foreach ($query_parts as $part) {
-			$private_setting = new PrivateSettingWhereClause();
-			$private_setting->values = "%{$part}%";
-			$private_setting->comparison = "LIKE";
-			$private_setting->case_sensitive = false;
-			$wheres[] = $private_setting->prepare($select, $ps_alias);
-		}
-		$ors[] = $select->merge($wheres, 'AND');
-
 		$select->andWhere($select->merge($ors, 'OR'));
 
 		$where = new EntityWhereClause();
@@ -1080,7 +779,6 @@ class SearchServiceTest extends UnitTestCase {
 				'attributes' => ['type', 'subtype'],
 				'metadata' => ['foo1', 'bar1'],
 				'annotations' => ['foo2', 'bar2'],
-				'private_settings' => ['foo3', 'bar3'],
 				'whatever' => ['a', 'b', 'c'],
 			],
 		];
@@ -1094,24 +792,23 @@ class SearchServiceTest extends UnitTestCase {
 
 	public function testCanAlterOptions() {
 
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
+		elgg_register_event_handler('search:fields', 'custom', function (\Elgg\Event $event) {
 			return [
 				'attributes' => ['type', 'subtype'],
 				'metadata' => ['foo1'],
 				'annotations' => ['foo2'],
-				'private_settings' => ['foo3'],
 			];
 		});
 
 		$calls = 0;
 
-		$handler = function (\Elgg\Hook $hook) use (&$calls) {
+		$handler = function (\Elgg\Event $event) use (&$calls) {
 			$calls++;
 		};
 
-		elgg_register_plugin_hook_handler('search:options', 'object', $handler);
-		elgg_register_plugin_hook_handler('search:options', 'object:blog', $handler);
-		elgg_register_plugin_hook_handler('search:options', 'custom', $handler);
+		elgg_register_event_handler('search:options', 'object', $handler);
+		elgg_register_event_handler('search:options', 'object:blog', $handler);
+		elgg_register_event_handler('search:options', 'custom', $handler);
 
 		$options = [
 			'query' => 'query1 query2 query3',
@@ -1127,22 +824,21 @@ class SearchServiceTest extends UnitTestCase {
 
 	public function testCanUseCustomResultsProvider() {
 
-		elgg_register_plugin_hook_handler('search:fields', 'custom', function (\Elgg\Hook $hook) {
+		elgg_register_event_handler('search:fields', 'custom', function (\Elgg\Event $event) {
 			return [
 				'attributes' => ['type', 'subtype'],
 				'metadata' => ['foo1'],
 				'annotations' => ['foo2'],
-				'private_settings' => ['foo3'],
 			];
 		});
 
 		$expected = $this->getRows(2);
 
-		$handler = function (\Elgg\Hook $hook) use ($expected) {
+		$handler = function (\Elgg\Event $event) use ($expected) {
 			return $expected;
 		};
 
-		elgg_register_plugin_hook_handler('search:results', 'custom', $handler);
+		elgg_register_event_handler('search:results', 'custom', $handler);
 
 		$options = [
 			'query' => 'query1 query2 query3',
@@ -1157,7 +853,7 @@ class SearchServiceTest extends UnitTestCase {
 	}
 
 	public function testRegisteredUserFields() {
-		elgg_register_plugin_hook_handler('search:fields', 'user', \Elgg\Search\UserSearchFieldsHandler::class);
+		elgg_register_event_handler('search:fields', 'user', \Elgg\Search\UserSearchFieldsHandler::class);
 
 		$options = _elgg_services()->search->normalizeOptions([
 			'type' => 'user',
@@ -1176,7 +872,7 @@ class SearchServiceTest extends UnitTestCase {
 	}
 
 	public function testRegisteredGroupFields() {
-		elgg_register_plugin_hook_handler('search:fields', 'group', \Elgg\Search\GroupSearchFieldsHandler::class);
+		elgg_register_event_handler('search:fields', 'group', \Elgg\Search\GroupSearchFieldsHandler::class);
 
 		$options = _elgg_services()->search->normalizeOptions([
 			'type' => 'group',
@@ -1186,7 +882,7 @@ class SearchServiceTest extends UnitTestCase {
 	}
 
 	public function testRegisteredObjectFields() {
-		elgg_register_plugin_hook_handler('search:fields', 'object', \Elgg\Search\ObjectSearchFieldsHandler::class);
+		elgg_register_event_handler('search:fields', 'object', \Elgg\Search\ObjectSearchFieldsHandler::class);
 
 		$options = _elgg_services()->search->normalizeOptions([
 			'type' => 'object',

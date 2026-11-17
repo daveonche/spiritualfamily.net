@@ -15,7 +15,6 @@ abstract class Command extends BaseCommand {
 	 * {@inheritdoc}
 	 */
 	final public function execute(InputInterface $input, OutputInterface $output) {
-
 		$this->input = $input;
 		$this->output = $output;
 
@@ -34,7 +33,7 @@ abstract class Command extends BaseCommand {
 		} catch (\Exception $ex) {
 			$this->error($ex);
 
-			$result = $ex->getCode() ? : 1;
+			$result = $ex->getCode() ?: 1;
 		}
 
 		$this->dumpRegisters();
@@ -71,7 +70,7 @@ abstract class Command extends BaseCommand {
 			return;
 		}
 		
-		$user = get_user_by_username($username);
+		$user = elgg_get_user_by_username($username);
 		if (!$user) {
 			throw new RuntimeException(elgg_echo('user:username:notfound', [$username]));
 		}

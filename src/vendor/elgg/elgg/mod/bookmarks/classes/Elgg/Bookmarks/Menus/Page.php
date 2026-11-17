@@ -3,10 +3,9 @@
 namespace Elgg\Bookmarks\Menus;
 
 /**
- * Hook callbacks for menus
+ * Event callbacks for menus
  *
  * @since 4.0
- *
  * @internal
  */
 class Page {
@@ -14,14 +13,15 @@ class Page {
 	/**
 	 * Register item to menu
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'menu:page'
+	 * @param \Elgg\Event $event 'register', 'menu:page'
 	 *
 	 * @return void|\Elgg\Menu\MenuItems
 	 */
-	public static function register(\Elgg\Hook $hook) {
+	public static function register(\Elgg\Event $event) {
 		if (!elgg_is_logged_in()) {
 			return;
 		}
+		
 		// only show bookmarklet on bookmark pages
 		if (!elgg_in_context('bookmarks')) {
 			return;
@@ -35,7 +35,7 @@ class Page {
 			$title = elgg_echo('bookmarks:bookmarklet');
 		}
 		
-		$return = $hook->getValue();
+		$return = $event->getValue();
 		
 		$return[] = \ElggMenuItem::factory([
 			'name' => 'bookmarklet',

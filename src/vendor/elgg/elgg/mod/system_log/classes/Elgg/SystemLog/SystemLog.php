@@ -103,18 +103,18 @@ class SystemLog {
 	/**
 	 * Prepare an object for DB insert
 	 *
-	 * @param \Loggable $object Object
+	 * @param \ElggData $object Object
 	 *
 	 * @return \stdClass
 	 */
-	protected function prepareObjectForInsert(\Loggable $object): \stdClass {
+	protected function prepareObjectForInsert(\ElggData $object): \stdClass {
 		$insert = new \stdClass();
 
-		$insert->object_id = (int) $object->getSystemLogID();
+		$insert->object_id = $object->getSystemLogID();
 		$insert->object_class = get_class($object);
 		$insert->object_type = $object->getType();
 		$insert->object_subtype = $object->getSubtype();
-		$insert->ip_address = _elgg_services()->request->getClientIp() ? : '0.0.0.0';
+		$insert->ip_address = _elgg_services()->request->getClientIp() ?: '0.0.0.0';
 		$insert->performed_by_guid = elgg_get_logged_in_user_guid();
 
 		if (isset($object->access_id)) {
@@ -152,7 +152,7 @@ class SystemLog {
 			return;
 		}
 		
-		if (!$object instanceof \Loggable) {
+		if (!$object instanceof \ElggData || empty($object->getSystemLogID())) {
 			return;
 		}
 
@@ -179,7 +179,7 @@ class SystemLog {
 			'ip_address' => $qb->param($object->ip_address, ELGG_VALUE_STRING),
 		]);
 
-		$this->db->registerDelayedQuery($qb, 'write');
+		$this->db->registerDelayedQuery($qb);
 
 		// The only purpose of the cache is to prevent the same event from writing to the database twice
 		// Setting early expiration to avoid cache from taking up too much memory
@@ -251,14 +251,12 @@ class SystemLog {
 
 		$dbprefix = $this->db->prefix;
 
-		$deleted_tables = false;
-
 		$results = $this->db->getConnection('read')->executeQuery("SHOW TABLES like '{$dbprefix}system_log_%'");
-		
 		if (empty($results) || empty($results->rowCount())) {
-			return $deleted_tables;
+			return false;
 		}
-
+		
+		$deleted_tables = false;
 		foreach ($results->fetchAllAssociative() as $result) {
 			$table_name = array_shift($result);
 

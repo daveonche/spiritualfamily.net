@@ -1,4 +1,4 @@
-define(['jquery', 'elgg/Ajax', 'elgg/i18n', 'jquery-ui/widgets/sortable'], function ($, Ajax, i18n) {
+define(['jquery', 'elgg/Ajax', 'elgg/lightbox', 'jquery-ui/widgets/sortable'], function ($, Ajax, lightbox) {
 
 	/**
 	 * Persist the widget's new position
@@ -11,17 +11,13 @@ define(['jquery', 'elgg/Ajax', 'elgg/i18n', 'jquery-ui/widgets/sortable'], funct
 	function moveWidget(event, ui) {
 		// elgg-widget-<guid>
 		var guidString = ui.item.attr('id');
-		guidString = guidString.substr(guidString.indexOf('elgg-widget-') + "elgg-widget-".length);
+		guidString = guidString.substring(guidString.indexOf('elgg-widget-') + "elgg-widget-".length);
 
-		// elgg-widget-col-<column>
-		var col = ui.item.parent().attr('id');
-		col = col.substr(col.indexOf('elgg-widget-col-') + "elgg-widget-col-".length);
-		
 		var ajax = new Ajax(false);
 		ajax.action('widgets/move', {
 			data: {
 				widget_guid: guidString,
-				column: col,
+				column: ui.item.parent().data('widgetColumn'),
 				position: ui.item.index()
 			}
 		});
@@ -37,29 +33,12 @@ define(['jquery', 'elgg/Ajax', 'elgg/i18n', 'jquery-ui/widgets/sortable'], funct
 	 */
 	function removeWidget(event) {
 		event.preventDefault();
-		
-		if (confirm(i18n.echo('deleteconfirm')) === false) {
-			return;
-		}
 
 		$(this).closest('.elgg-module-widget').remove();
 
 		// delete the widget through ajax
 		var ajax = new Ajax(false);
 		ajax.action($(this).attr('href'));
-	};
-
-	/**
-	 * Toggle the collapse state of the widget
-	 *
-	 * @param {Object} event
-	 * @return void
-	 */
-	function toggleWidget(event) {
-		event.preventDefault();
-		
-		$(this).toggleClass('elgg-widget-collapsed');
-		$(this).parent().parent().find('.elgg-body').slideToggle('medium');
 	};
 
 	/**
@@ -72,17 +51,15 @@ define(['jquery', 'elgg/Ajax', 'elgg/i18n', 'jquery-ui/widgets/sortable'], funct
 	 */
 	function saveWidgetSettings(event) {
 		event.preventDefault();
-		
-		$(this).parent().slideToggle('medium');
-		var $widgetContent = $(this).parent().parent().children('.elgg-widget-content');
+				
+		var $widgetContent = $('#elgg-widget-content-' + $(this).find('input[name="guid"]').val());
 
-		// stick the ajax loader in there
-		$widgetContent.html('<div class="elgg-ajax-loader"></div>');
-
-		var ajax = new Ajax(false);
+		var ajax = new Ajax();
 		ajax.action('widgets/save', {
-			data: $(this).serialize(),
+			data: ajax.objectify(this),
 			success: function (result) {
+				lightbox.close();
+				
 				$widgetContent.html(result.content);
 				if (result.title !== '') {
 					var $widgetTitle = $widgetContent.parent().parent().find('.elgg-widget-title');
@@ -111,5 +88,4 @@ define(['jquery', 'elgg/Ajax', 'elgg/i18n', 'jquery-ui/widgets/sortable'], funct
 
 	$(document).on('click', 'a.elgg-widget-delete-button', removeWidget);
 	$(document).on('submit', '.elgg-widget-edit > form ', saveWidgetSettings);
-	$(document).on('click', 'a.elgg-widget-collapse-button', toggleWidget);
 });

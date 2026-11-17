@@ -2,27 +2,10 @@
 
 namespace Elgg;
 
-/**
- * @group UnitTests
- */
 class WidgetsServiceUnitTest extends \Elgg\UnitTestCase {
 
 	public function elgg_set_config($key, $val) {
 		//do nothing, that's only for BC
-	}
-
-	public function testRegisterTypeParametersControl() {
-		$service = new \Elgg\WidgetsService(array($this, 'elgg_set_config'));
-
-		$definition = \Elgg\WidgetDefinition::factory([
-					'id' => 'widget_test',
-					'name' => 'Widget name',
-		]);
-
-		$this->assertTrue($service->registerType($definition));
-
-		$definition->id = null;
-		$this->assertFalse($service->registerType($definition));
 	}
 
 	/**
@@ -34,39 +17,43 @@ class WidgetsServiceUnitTest extends \Elgg\UnitTestCase {
 		$this->assertFalse($service->validateType('widget_type'));
 		$this->assertFalse($service->validateType('not_registered_widget'));
 
-		$this->assertTrue($service->registerType(\Elgg\WidgetDefinition::factory([
-							'id' => 'widget_type',
-							'name' => 'Widget name1',
-							'description' => 'Widget description1',
-		])));
-		$this->assertTrue($service->registerType(\Elgg\WidgetDefinition::factory([
-							'id' => 'widget_type_con',
-							'name' => 'Widget name2',
-							'description' => 'Widget description2',
-							'context' => ['dashboard', 'profile'],
-		])));
-		$this->assertTrue($service->registerType(\Elgg\WidgetDefinition::factory([
-							'id' => 'widget_type_mul',
-							'name' => 'Widget name3',
-							'description' => 'Widget description3',
-							'context' => ['all', 'settings'],
-							'multiple' => true,
-		])));
-		$this->assertTrue($service->registerType(\Elgg\WidgetDefinition::factory([
-							'id' => 'widget_type_con_mul',
-							'name' => 'Widget name4',
-							'description' => 'Widget description4',
-							'context' => ['dashboard', 'settings'],
-							'multiple' => true,
-		])));
+		$service->registerType(\Elgg\WidgetDefinition::factory([
+			'id' => 'widget_type',
+			'name' => 'Widget name1',
+			'description' => 'Widget description1',
+		]));
+		
+		$service->registerType(\Elgg\WidgetDefinition::factory([
+			'id' => 'widget_type_con',
+			'name' => 'Widget name2',
+			'description' => 'Widget description2',
+			'context' => ['dashboard', 'profile'],
+		]));
+		
+		$service->registerType(\Elgg\WidgetDefinition::factory([
+			'id' => 'widget_type_mul',
+			'name' => 'Widget name3',
+			'description' => 'Widget description3',
+			'context' => ['settings', 'profile', 'dashboard'],
+			'multiple' => true,
+		]));
+		
+		$service->registerType(\Elgg\WidgetDefinition::factory([
+			'id' => 'widget_type_con_mul',
+			'name' => 'Widget name4',
+			'description' => 'Widget description4',
+			'context' => ['dashboard', 'settings'],
+			'multiple' => true,
+		]));
+		
 		//overwrite
-		$this->assertTrue($service->registerType(\Elgg\WidgetDefinition::factory([
-							'id' => 'widget_type_con_mul',
-							'name' => 'Widget name5',
-							'description' => 'Widget description5',
-							'context' => ['dashboard', 'settings'],
-							'multiple' => true,
-		])));
+		$service->registerType(\Elgg\WidgetDefinition::factory([
+			'id' => 'widget_type_con_mul',
+			'name' => 'Widget name5',
+			'description' => 'Widget description5',
+			'context' => ['dashboard', 'settings'],
+			'multiple' => true,
+		]));
 
 		$this->assertTrue($service->validateType('widget_type'));
 		$this->assertTrue($service->validateType('widget_type_con'));
@@ -85,60 +72,60 @@ class WidgetsServiceUnitTest extends \Elgg\UnitTestCase {
 	public function testGetNameById() {
 		$service = new \Elgg\WidgetsService(array($this, 'elgg_set_config'));
 
-		$this->assertTrue($service->registerType(\Elgg\WidgetDefinition::factory([
+		$service->registerType(\Elgg\WidgetDefinition::factory([
 			'id' => 'widget_type_1',
 			'name' => 'Widget name 1',
 			'description' => 'Widget description 1',
 			'context' => 'context_1',
-		])));
+		]));
 		
-		$this->assertTrue($service->registerType(\Elgg\WidgetDefinition::factory([
+		$service->registerType(\Elgg\WidgetDefinition::factory([
 			'id' => 'widget_type_2',
 			'name' => 'Widget name 2',
 			'description' => 'Widget description 2',
 			'context' => 'context_2',
-		])));
+		]));
 		
-		$this->assertFalse($service->getNameById('unknown_type'));
-		$this->assertFalse($service->getNameById('widget_type_1')); // context is required
+		$this->assertNull($service->getNameById('unknown_type'));
+		$this->assertNull($service->getNameById('widget_type_1')); // context is required
 		$this->assertEquals('Widget name 1', $service->getNameById('widget_type_1', 'context_1'));
 		$this->assertEquals('Widget name 2', $service->getNameById('widget_type_2', 'context_2'));
-		$this->assertFalse($service->getNameById('widget_type_2', 'context_1')); // incorrect context
+		$this->assertNull($service->getNameById('widget_type_2', 'context_1')); // incorrect context
 	}
 
 	/**
-	 * Tests register and unregister widgets with hook
+	 * Tests register and unregister widgets with event
 	 */
-	public function testCanRegisterAndUnregisterTypeWithHook() {
+	public function testCanRegisterAndUnregisterTypeWithEvent() {
 		$service = new \Elgg\WidgetsService(array($this, 'elgg_set_config'));
 
 		$this->assertFalse($service->validateType('hook_widget'));
 
-		_elgg_services()->hooks->registerHandler('handlers', 'widgets', [$this, 'registerWidgetsHookHandler']);
+		_elgg_services()->events->registerHandler('handlers', 'widgets', [$this, 'registerWidgetsHookHandler']);
 		$this->assertArrayHasKey('hook_widget', $service->getTypes(['context' => 'from_hook']));
 
-		_elgg_services()->hooks->unregisterHandler('handlers', 'widgets', [$this, 'registerWidgetsHookHandler']);
+		_elgg_services()->events->unregisterHandler('handlers', 'widgets', [$this, 'registerWidgetsHookHandler']);
 		$this->assertArrayNotHasKey('hook_widget', $service->getTypes(['context' => 'from_hook']));
 
-		_elgg_services()->hooks->registerHandler('handlers', 'widgets', [$this, 'registerWidgetsHookHandler']);
+		_elgg_services()->events->registerHandler('handlers', 'widgets', [$this, 'registerWidgetsHookHandler']);
 		$this->assertArrayHasKey('hook_widget', $service->getTypes(['context' => 'from_hook']));
 
-		_elgg_services()->hooks->registerHandler('handlers', 'widgets', [$this, 'unregisterWidgetsHookHandler']);
+		_elgg_services()->events->registerHandler('handlers', 'widgets', [$this, 'unregisterWidgetsHookHandler']);
 		$this->assertArrayNotHasKey('hook_widget', $service->getTypes(['context' => 'from_hook']));
 
-		_elgg_services()->hooks->unregisterHandler('handlers', 'widgets', [$this, 'registerWidgetsHookHandler']);
-		_elgg_services()->hooks->unregisterHandler('handlers', 'widgets', [$this, 'unregisterWidgetsHookHandler']);
+		_elgg_services()->events->unregisterHandler('handlers', 'widgets', [$this, 'registerWidgetsHookHandler']);
+		_elgg_services()->events->unregisterHandler('handlers', 'widgets', [$this, 'unregisterWidgetsHookHandler']);
 	}
 
 	/**
 	 * Register a widget
 	 *
-	 * @param \Elgg\Hook $hook 'handlers', 'widgets'
+	 * @param \Elgg\Event $event 'handlers', 'widgets'
 	 *
 	 * @return \Elgg\WidgetDefinition[]
 	 */
-	public function registerWidgetsHookHandler(\Elgg\Hook $hook) {
-		$value = $hook->getValue();
+	public function registerWidgetsHookHandler(\Elgg\Event $event) {
+		$value = $event->getValue();
 		
 		$value[] = \Elgg\WidgetDefinition::factory([
 			'id' => 'hook_widget',
@@ -153,12 +140,12 @@ class WidgetsServiceUnitTest extends \Elgg\UnitTestCase {
 	/**
 	 * Unregister a widget
 	 *
-	 * @param \Elgg\Hook $hook 'handlers', 'widgets'
+	 * @param \Elgg\Event $event 'handlers', 'widgets'
 	 *
 	 * @return \Elgg\WidgetDefinition[]
 	 */
-	public function unregisterWidgetsHookHandler(\Elgg\Hook $hook) {
-		$value = $hook->getValue();
+	public function unregisterWidgetsHookHandler(\Elgg\Event $event) {
+		$value = $event->getValue();
 		
 		foreach ($value as $key => $widget_definition) {
 			if ($widget_definition->id === 'hook_widget') {
@@ -181,7 +168,6 @@ class WidgetsServiceUnitTest extends \Elgg\UnitTestCase {
 			array('dashboard', array('widget_type', 'widget_type_mul', 'widget_type_con', 'widget_type_con_mul')),
 			array('profile', array('widget_type', 'widget_type_mul', 'widget_type_con')),
 			array('settings', array('widget_type_mul', 'widget_type_con_mul')),
-			array('all', array()),
 		);
 
 		//is returned set of ids the same as expected
@@ -190,7 +176,7 @@ class WidgetsServiceUnitTest extends \Elgg\UnitTestCase {
 			sort($expected);
 			$actual = array_keys($service->getTypes(['context' => $context]));
 			sort($actual);
-			$this->assertEquals($expected, $actual);
+			$this->assertEquals($expected, $actual, "Tested with context {$context}");
 		}
 
 		return $service;
@@ -262,11 +248,11 @@ class WidgetsServiceUnitTest extends \Elgg\UnitTestCase {
 	 */
 	public function testCanUnregisterType($service) {
 
-		$this->assertTrue($service->unregisterType('widget_type'));
-		$this->assertTrue($service->unregisterType('widget_type_con'));
-		$this->assertTrue($service->unregisterType('widget_type_mul'));
-		$this->assertTrue($service->unregisterType('widget_type_con_mul'));
-		$this->assertFalse($service->unregisterType('widget_not_registered'));
+		$service->unregisterType('widget_type');
+		$service->unregisterType('widget_type_con');
+		$service->unregisterType('widget_type_mul');
+		$service->unregisterType('widget_type_con_mul');
+		$service->unregisterType('widget_not_registered');
 
 		$this->assertFalse($service->validateType('widget_type'));
 		$this->assertFalse($service->validateType('widget_type_con'));

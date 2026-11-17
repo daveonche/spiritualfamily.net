@@ -2,7 +2,7 @@
 
 namespace Elgg\Amd;
 
-use Elgg\Exceptions\InvalidParameterException;
+use Elgg\Exceptions\InvalidArgumentException;
 
 /**
  * Control configuration of RequireJS
@@ -10,29 +10,34 @@ use Elgg\Exceptions\InvalidParameterException;
  * @internal
  */
 class Config {
+	
 	private $baseUrl = '';
+	
 	private $paths = [];
+	
 	private $shim = [];
+	
 	private $dependencies = [];
 
 	/**
-	 * @var \Elgg\PluginHooksService
+	 * @var \Elgg\EventsService
 	 */
-	private $hooks;
+	protected $events;
 	
 	/**
 	 * Constructor
 	 *
-	 * @param \Elgg\PluginHooksService $hooks The hooks service
+	 * @param \Elgg\EventsService $events The events service
 	 */
-	public function __construct(\Elgg\PluginHooksService $hooks) {
-		$this->hooks = $hooks;
+	public function __construct(\Elgg\EventsService $events) {
+		$this->events = $events;
 	}
 	
 	/**
 	 * Set the base URL for the site
 	 *
 	 * @param string $url URL
+	 *
 	 * @return void
 	 */
 	public function setBaseUrl($url) {
@@ -45,11 +50,12 @@ class Config {
 	 *
 	 * @param string $name Module name
 	 * @param string $path Full URL of the module
+	 *
 	 * @return void
 	 */
-	public function addPath($name, $path) {
-		if (preg_match("/\.js$/", $path)) {
-			$path = preg_replace("/\.js$/", '', $path);
+	public function addPath(string $name, string $path): void {
+		if (preg_match('/\.js$/', $path)) {
+			$path = preg_replace('/\.js$/', '', $path);
 		}
 
 		if (!isset($this->paths[$name])) {
@@ -64,14 +70,15 @@ class Config {
 	 *
 	 * @param string $name Module name
 	 * @param mixed  $path The path to remove. If null, removes all paths (default).
+	 *
 	 * @return void
 	 */
 	public function removePath($name, $path = null) {
 		if (!$path) {
 			unset($this->paths[$name]);
 		} else {
-			if (preg_match("/\.js$/", $path)) {
-				$path = preg_replace("/\.js$/", '', $path);
+			if (preg_match('/\.js$/', $path)) {
+				$path = preg_replace('/\.js$/', '', $path);
 			}
 
 			$key = array_search($path, $this->paths[$name]);
@@ -92,14 +99,14 @@ class Config {
 	 *                       - exports:  string Name of the shimmed module to export
 	 *
 	 * @return void
-	 * @throws InvalidParameterException
+	 * @throws InvalidArgumentException
 	 */
-	public function addShim($name, array $config) {
+	public function addShim(string $name, array $config): void {
 		$deps = elgg_extract('deps', $config, []);
 		$exports = elgg_extract('exports', $config);
 
 		if (empty($deps) && empty($exports)) {
-			throw new InvalidParameterException("Shimmed modules must have deps or exports");
+			throw new InvalidArgumentException('Shimmed modules must have deps or exports');
 		}
 
 		$this->shim[$name] = [];
@@ -117,6 +124,7 @@ class Config {
 	 * Is this shim defined
 	 *
 	 * @param string $name The name of the shim
+	 *
 	 * @return bool
 	 */
 	public function hasShim($name) {
@@ -127,6 +135,7 @@ class Config {
 	 * Unregister the shim config for a module
 	 *
 	 * @param string $name Module name
+	 *
 	 * @return void
 	 */
 	public function removeShim($name) {
@@ -137,9 +146,10 @@ class Config {
 	 * Add a dependency
 	 *
 	 * @param string $name Name of the dependency
+	 *
 	 * @return void
 	 */
-	public function addDependency($name) {
+	public function addDependency(string $name): void {
 		$this->dependencies[$name] = true;
 	}
 
@@ -147,9 +157,10 @@ class Config {
 	 * Removes a dependency
 	 *
 	 * @param string $name Name of the dependency
+	 *
 	 * @return void
 	 */
-	public function removeDependency($name) {
+	public function removeDependency(string $name): void {
 		unset($this->dependencies[$name]);
 	}
 
@@ -166,6 +177,7 @@ class Config {
 	 * Is this dependency registered
 	 *
 	 * @param string $name Module name
+	 *
 	 * @return bool
 	 */
 	public function hasDependency($name) {
@@ -206,7 +218,8 @@ class Config {
 	 * Removes all config for a module
 	 *
 	 * @param string $name The module name
-	 * @return bool
+	 *
+	 * @return void
 	 */
 	public function removeModule($name) {
 		$this->removeDependency($name);
@@ -218,7 +231,8 @@ class Config {
 	 * Is module configured?
 	 *
 	 * @param string $name Module name
-	 * @return boolean
+	 *
+	 * @return bool
 	 */
 	public function hasModule($name) {
 		if (in_array($name, $this->getDependencies())) {
@@ -254,6 +268,6 @@ class Config {
 			'defaults' => $defaults
 		];
 		
-		return  $this->hooks->trigger('config', 'amd', $params, $defaults);
+		return $this->events->triggerResults('config', 'amd', $params, $defaults);
 	}
 }

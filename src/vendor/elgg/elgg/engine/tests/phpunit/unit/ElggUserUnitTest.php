@@ -2,11 +2,6 @@
 
 use Elgg\Exceptions\InvalidArgumentException;
 
-/**
- * @group User
- * @group UnitTests
- * @group ElggData
- */
 class ElggUserUnitTest extends \Elgg\UnitTestCase {
 
 	public function testCanConstructWithoutArguments() {
@@ -96,6 +91,9 @@ class ElggUserUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testIsLoggable() {
+		$unsaved = new \ElggUser();
+		$this->assertEmpty($unsaved->getSystemLogID());
+		
 		$user = $this->createUser();
 
 		$this->assertEquals($user->guid, $user->getSystemLogID());
@@ -138,9 +136,8 @@ class ElggUserUnitTest extends \Elgg\UnitTestCase {
 		$this->assertFalse($user->canComment());
 		
 		$user2 = $this->createUser();
-		$session = _elgg_services()->session;
 		
-		$session->setLoggedInUser($user2);
+		_elgg_services()->session_manager->setLoggedInUser($user2);
 		
 		$this->assertFalse($user->canComment());
 	}

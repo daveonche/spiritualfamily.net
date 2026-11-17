@@ -78,7 +78,7 @@ class ElggPlugin extends ElggObject {
 	 * @return ElggPlugin
 	 * @throws \Elgg\Exceptions\InvalidArgumentException
 	 */
-	public static function fromId($plugin_id, $path = null) {
+	public static function fromId(string $plugin_id, string $path = null): \ElggPlugin {
 		if (empty($plugin_id)) {
 			throw new ElggInvalidArgumentException('Plugin ID must be set');
 		}
@@ -107,7 +107,7 @@ class ElggPlugin extends ElggObject {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function save() : bool {
+	public function save(): bool {
 
 		$site = elgg_get_site_entity();
 
@@ -118,7 +118,7 @@ class ElggPlugin extends ElggObject {
 		$new = !$this->guid;
 		$priority = null;
 		if ($new) {
-			$priority = elgg_extract(self::PRIORITY_SETTING_NAME, $this->temp_private_settings, 'new');
+			$priority = elgg_extract(self::PRIORITY_SETTING_NAME, $this->temp_metadata, 'new');
 		} elseif ($this->getPriority() === null) {
 			$priority = 'last';
 		}
@@ -135,7 +135,7 @@ class ElggPlugin extends ElggObject {
 	 *
 	 * @return string
 	 */
-	public function getID() {
+	public function getID(): string {
 		return (string) $this->title;
 	}
 
@@ -145,7 +145,7 @@ class ElggPlugin extends ElggObject {
 	 * @return string
 	 * @since 3.0
 	 */
-	public function getDisplayName() {
+	public function getDisplayName(): string {
 		$name = elgg_extract('name', $this->getStaticConfig('plugin', []), '');
 		if (!empty($name)) {
 			return $name;
@@ -162,7 +162,7 @@ class ElggPlugin extends ElggObject {
 	 * @return void
 	 * @internal
 	 */
-	public function setPath($path) {
+	public function setPath(string $path): void {
 		$this->path = Paths::sanitize($path, true);
 	}
 
@@ -171,7 +171,7 @@ class ElggPlugin extends ElggObject {
 	 *
 	 * @return string
 	 */
-	public function getPath() {
+	public function getPath(): string {
 		if (isset($this->path)) {
 			return $this->path;
 		}
@@ -186,7 +186,7 @@ class ElggPlugin extends ElggObject {
 	 *
 	 * @return string
 	 */
-	protected function getLanguagesPath() {
+	protected function getLanguagesPath(): string {
 		return $this->getPath() . 'languages/';
 	}
 
@@ -201,7 +201,7 @@ class ElggPlugin extends ElggObject {
 	 * @return mixed
 	 * @internal
 	 */
-	public function getStaticConfig($key, $default = null) {
+	public function getStaticConfig(string $key, $default = null) {
 		if ($this->static_config === null) {
 			$this->static_config = [];
 
@@ -223,7 +223,7 @@ class ElggPlugin extends ElggObject {
 	 * @return int|null
 	 */
 	public function getPriority(): ?int {
-		$priority = $this->getPrivateSetting(self::PRIORITY_SETTING_NAME);
+		$priority = $this->getMetadata(self::PRIORITY_SETTING_NAME);
 		if (isset($priority)) {
 			return (int) $priority;
 		}
@@ -242,7 +242,7 @@ class ElggPlugin extends ElggObject {
 	 *
 	 * @return int|false
 	 */
-	public function setPriority($priority) {
+	public function setPriority($priority): int|false {
 		$priority = $this->normalizePriority($priority);
 
 		return _elgg_services()->plugins->setPriority($this, $priority);
@@ -259,8 +259,8 @@ class ElggPlugin extends ElggObject {
 	protected function normalizePriority($priority): int {
 		// if no priority assume a priority of 1
 		$old_priority = $this->getPriority();
-		$old_priority = $old_priority ? : 1;
-		$max_priority = _elgg_services()->plugins->getMaxPriority() ? : 1;
+		$old_priority = $old_priority ?: 1;
+		$max_priority = _elgg_services()->plugins->getMaxPriority() ?: 1;
 
 		// can't use switch here because it's not strict and php evaluates +1 == 1
 		if ($priority === '+1') {
@@ -311,7 +311,10 @@ class ElggPlugin extends ElggObject {
 				$defaults = $this->getStaticConfig('settings', []);
 			}
 
-			$settings = $this->getAllPrivateSettings();
+			$settings = $this->getAllMetadata();
+			
+			// title and description are not considered settings
+			unset($settings['title'], $settings['description']);
 
 			return array_merge($defaults, $settings);
 		} catch (DatabaseException $ex) {
@@ -329,7 +332,7 @@ class ElggPlugin extends ElggObject {
 	 */
 	public function setSetting(string $name, $value): bool {
 
-		$value = _elgg_services()->hooks->trigger('setting', 'plugin', [
+		$value = _elgg_services()->events->triggerResults('setting', 'plugin', [
 			'plugin_id' => $this->getID(),
 			'plugin' => $this,
 			'name' => $name,
@@ -342,7 +345,9 @@ class ElggPlugin extends ElggObject {
 			return false;
 		}
 
-		return $this->setPrivateSetting($name, $value);
+		return elgg_call(ELGG_DISABLE_SYSTEM_LOG, function() use ($name, $value) {
+			return $this->setMetadata($name, $value);
+		});
 	}
 
 	/**
@@ -353,7 +358,9 @@ class ElggPlugin extends ElggObject {
 	 * @return bool
 	 */
 	public function unsetSetting(string $name): bool {
-		return $this->removePrivateSetting($name);
+		return elgg_call(ELGG_DISABLE_SYSTEM_LOG, function() use ($name) {
+			return (bool) $this->deleteMetadata($name);
+		});
 	}
 
 	/**
@@ -364,7 +371,7 @@ class ElggPlugin extends ElggObject {
 		$settings = $this->getAllSettings();
 
 		foreach ($settings as $name => $value) {
-			if (strpos($name, 'elgg:internal:') === 0) {
+			if (str_starts_with($name, 'elgg:internal:')) {
 				continue;
 			}
 			
@@ -372,73 +379,6 @@ class ElggPlugin extends ElggObject {
 		}
 
 		return true;
-	}
-
-	// User settings
-
-	/**
-	 * Returns a user's setting for this plugin
-	 *
-	 * @param string $name      The setting name
-	 * @param int    $user_guid The user GUID
-	 * @param mixed  $default   The default value to return if none is set
-	 *
-	 * @return mixed The setting string value or the default value
-	 *
-	 * @deprecated 4.0 use \ElggUser::getPluginSetting()
-	 */
-	public function getUserSetting(string $name, int $user_guid = 0, $default = null) {
-		$this->logDeprecatedMessage(__METHOD__ . ' is deprecated use \ElggUser::getPluginSetting()', '4.0');
-		
-		$user = _elgg_services()->entityTable->getUserForPermissionsCheck($user_guid);
-		if (!$user instanceof ElggUser) {
-			return $default;
-		}
-		
-		return $user->getPluginSetting($this->getID(), $name, $default);
-	}
-
-	/**
-	 * Sets a user setting for a plugin
-	 *
-	 * @param string $name      The setting name
-	 * @param mixed  $value     The setting value
-	 * @param int    $user_guid The user GUID
-	 *
-	 * @return bool
-	 *
-	 * @deprecated 4.0 use \ElggUser::setPluginSetting()
-	 */
-	public function setUserSetting(string $name, $value, int $user_guid = 0): bool {
-		$this->logDeprecatedMessage(__METHOD__ . ' is deprecated use \ElggUser::setPluginSetting()', '4.0');
-		
-		$user = _elgg_services()->entityTable->getUserForPermissionsCheck($user_guid);
-		if (!$user instanceof ElggUser) {
-			return false;
-		}
-
-		return $user->setPluginSetting($this->getID(), $name, $value);
-	}
-
-	/**
-	 * Removes a user setting name and value.
-	 *
-	 * @param string $name      The user setting name
-	 * @param int    $user_guid The user GUID
-	 *
-	 * @return bool
-	 *
-	 * @deprecated 4.0 use \ElggUser::removePluginSetting()
-	 */
-	public function unsetUserSetting(string $name, int $user_guid = 0): bool {
-		$this->logDeprecatedMessage(__METHOD__ . ' is deprecated use \ElggUser::removePluginSetting()', '4.0');
-		
-		$user = _elgg_services()->entityTable->getUserForPermissionsCheck($user_guid);
-		if (!$user instanceof ElggUser) {
-			return false;
-		}
-		
-		return $user->removePluginSetting($this->getID(), $name);
 	}
 	
 	/**
@@ -452,12 +392,12 @@ class ElggPlugin extends ElggObject {
 		$result = $this->unsetAllSettings();
 		
 		// entity plugin settings are stored with the entity
-		$delete = Delete::fromTable('private_settings');
+		$delete = Delete::fromTable('metadata');
 		$delete->andWhere($delete->compare('name', 'like', "plugin:%_setting:{$this->getID()}:%", ELGG_VALUE_STRING));
 		
 		try {
 			_elgg_services()->db->deleteData($delete);
-			_elgg_services()->dataCache->private_settings->clear();
+			_elgg_services()->dataCache->metadata->clear();
 			
 			$result &= true;
 		} catch (DatabaseException $e) {
@@ -466,11 +406,11 @@ class ElggPlugin extends ElggObject {
 			$result &= false;
 		}
 		
-		// trigger a hook, so plugin devs can also remove settings
+		// trigger an event, so plugin devs can also remove settings
 		$params = [
 			'entity' => $this,
 		];
-		return (bool) _elgg_services()->hooks->trigger('remove:settings', 'plugin', $params, $result);
+		return (bool) _elgg_services()->events->triggerResults('remove:settings', 'plugin', $params, $result);
 	}
 	
 	/**
@@ -594,7 +534,7 @@ class ElggPlugin extends ElggObject {
 		$return = _elgg_services()->events->trigger('activate', 'plugin', $params);
 
 		// if there are any on_enable functions, start the plugin now and run them
-		// Note: this will not run re-run the init hooks!
+		// Note: this will not run re-run the init events!
 		if ($return) {
 			try {
 				elgg_invalidate_caches();
@@ -983,13 +923,6 @@ class ElggPlugin extends ElggObject {
 				continue;
 			}
 			
-			$searchable = elgg_extract('searchable', $entity);
-			if ($searchable) {
-				elgg_deprecated_notice("Registering the [{$entity['type']}-{$entity['subtype']}] entity as searchable should be done in the capabilities section of your elgg-plugin.php.", '4.1');
-				
-				elgg_entity_enable_capability($entity['type'], $entity['subtype'], 'searchable');
-			}
-			
 			$capabilities = elgg_extract('capabilities', $entity, []);
 			foreach ($capabilities as $capability => $value) {
 				_elgg_services()->entity_capabilities->setCapability($entity['type'], $entity['subtype'], $capability, $value);
@@ -1021,8 +954,13 @@ class ElggPlugin extends ElggObject {
 					$handler = "{$root_path}actions/{$action}.php";
 				}
 			}
+			
+			// unset handled action specs, pass the rest to the action service
+			unset($action_spec['access']);
+			unset($action_spec['controller']);
+			unset($action_spec['filename']);
 
-			$actions->register($action, $handler, $access);
+			$actions->register($action, $handler, $access, $action_spec);
 		}
 	}
 
@@ -1057,6 +995,7 @@ class ElggPlugin extends ElggObject {
 			if (!is_array($widget_definition)) {
 				continue;
 			}
+			
 			if (!isset($widget_definition['id'])) {
 				$widget_definition['id'] = $widget_id;
 			}
@@ -1138,12 +1077,18 @@ class ElggPlugin extends ElggObject {
 	/**
 	 * Registers the plugin's hooks provided in the plugin config file
 	 *
+	 * @note using hooks in the static config is deprecated
+	 *
 	 * @return void
 	 */
 	protected function registerHooks(): void {
-		$hooks = _elgg_services()->hooks;
+		$events = _elgg_services()->events;
 
 		$spec = (array) $this->getStaticConfig('hooks', []);
+		
+		if (!empty($spec)) {
+			elgg_deprecated_notice("The plugin {$this->getID()} still has hooks definitions in the elgg-plugin.php. This should be moved to the events configuration.", '5.0');
+		}
 
 		foreach ($spec as $name => $types) {
 			foreach ($types as $type => $callbacks) {
@@ -1155,11 +1100,11 @@ class ElggPlugin extends ElggObject {
 					$unregister = (bool) elgg_extract('unregister', $hook_spec, false);
 					
 					if ($unregister) {
-						$hooks->unregisterHandler($name, $type, $callback);
+						$events->unregisterHandler($name, $type, $callback);
 					} else {
 						$priority = (int) elgg_extract('priority', $hook_spec, 500);
 			
-						$hooks->registerHandler($name, $type, $callback, $priority);
+						$events->registerHandler($name, $type, $callback, $priority);
 					}
 				}
 			}
@@ -1178,17 +1123,17 @@ class ElggPlugin extends ElggObject {
 
 		foreach ($spec as $name => $types) {
 			foreach ($types as $type => $callbacks) {
-				foreach ($callbacks as $callback => $hook_spec) {
-					if (!is_array($hook_spec)) {
+				foreach ($callbacks as $callback => $event_spec) {
+					if (!is_array($event_spec)) {
 						continue;
 					}
 					
-					$unregister = (bool) elgg_extract('unregister', $hook_spec, false);
+					$unregister = (bool) elgg_extract('unregister', $event_spec, false);
 
 					if ($unregister) {
 						$events->unregisterHandler($name, $type, $callback);
 					} else {
-						$priority = (int) elgg_extract('priority', $hook_spec, 500);
+						$priority = (int) elgg_extract('priority', $event_spec, 500);
 			
 						$events->registerHandler($name, $type, $callback, $priority);
 					}
@@ -1302,9 +1247,9 @@ class ElggPlugin extends ElggObject {
 	}
 
 	/**
-	 * Get an attribute, metadata or private setting value
+	 * Get an attribute or setting value
 	 *
-	 * @param string $name Name of the attribute or private setting
+	 * @param string $name Name of the attribute or setting
 	 *
 	 * @return mixed
 	 */
@@ -1319,7 +1264,7 @@ class ElggPlugin extends ElggObject {
 			return parent::__get($name);
 		}
 
-		$result = $this->getPrivateSetting($name);
+		$result = $this->getSetting($name);
 		if ($result !== null) {
 			return $result;
 		}
@@ -1330,11 +1275,9 @@ class ElggPlugin extends ElggObject {
 	}
 
 	/**
-	 * Set a value as attribute, metadata or private setting.
+	 * Set a value as attribute or setting.
 	 *
-	 * Metadata applies to title and description.
-	 *
-	 * @param string $name  Name of the attribute or private_setting
+	 * @param string $name  Name of the attribute or setting
 	 * @param mixed  $value Value to be set
 	 *
 	 * @return void
@@ -1358,7 +1301,7 @@ class ElggPlugin extends ElggObject {
 			return;
 		}
 
-		// to make sure we trigger the correct hooks
+		// to make sure we trigger the correct events
 		$this->setSetting($name, $value);
 	}
 
@@ -1393,14 +1336,14 @@ class ElggPlugin extends ElggObject {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function isCacheable() {
+	public function isCacheable(): bool {
 		return true;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function cache($persist = true) {
+	public function cache(bool $persist = true): void {
 		_elgg_services()->plugins->cache($this);
 
 		parent::cache($persist);
@@ -1409,7 +1352,7 @@ class ElggPlugin extends ElggObject {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function invalidateCache() {
+	public function invalidateCache(): void {
 		
 		_elgg_services()->boot->clearCache();
 		_elgg_services()->plugins->invalidateCache($this->getID());

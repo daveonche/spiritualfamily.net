@@ -4,13 +4,9 @@ namespace Elgg\Database\Clauses;
 
 use Elgg\Database\QueryBuilder;
 use Elgg\Database\Select;
-use Elgg\Exceptions\InvalidParameterException;
+use Elgg\Exceptions\DomainException;
 use Elgg\UnitTestCase;
 
-/**
- * @group QueryBuilder
- * @group QueryBuilderComparison
- */
 class ComparisonClauseUnitTest extends UnitTestCase {
 
 	/**
@@ -503,7 +499,7 @@ class ComparisonClauseUnitTest extends UnitTestCase {
 	public function testThrowsOnInvalidComparison() {
 		$qb = Select::fromTable('entities', 'alias');
 		
-		$this->expectException(InvalidParameterException::class);
+		$this->expectException(DomainException::class);
 		$qb->where($qb->compare('x', 'INVALID'));
 	}
 }

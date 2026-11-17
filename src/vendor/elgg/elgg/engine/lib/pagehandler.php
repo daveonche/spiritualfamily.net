@@ -24,7 +24,7 @@
  *
  * @return \Elgg\Router\Route
  */
-function elgg_register_route($name, array $params = []) {
+function elgg_register_route(string $name, array $params = []): \Elgg\Router\Route {
 	return _elgg_services()->routes->register($name, $params);
 }
 
@@ -35,7 +35,7 @@ function elgg_register_route($name, array $params = []) {
  *
  * @return void
  */
-function elgg_unregister_route($name) {
+function elgg_unregister_route(string $name): void {
 	_elgg_services()->routes->unregister($name);
 }
 
@@ -128,9 +128,9 @@ function elgg_get_current_url(): string {
  * @param string $name       Route name
  * @param array  $parameters Parameters
  *
- * @return false|string
+ * @return string|null
  */
-function elgg_generate_url($name, array $parameters = []) {
+function elgg_generate_url(string $name, array $parameters = []): ?string {
 	return _elgg_services()->routes->generateUrl($name, $parameters);
 }
 
@@ -154,9 +154,9 @@ function elgg_generate_url($name, array $parameters = []) {
  * @param string     $subresource Subresource name
  * @param array      $parameters  URL query elements
  *
- * @return false|string
+ * @return string|null
  */
-function elgg_generate_entity_url(ElggEntity $entity, $resource = 'view', $subresource = null, array $parameters = []) {
+function elgg_generate_entity_url(ElggEntity $entity, string $resource = 'view', string $subresource = null, array $parameters = []): ?string {
 
 	$make_route_name = function ($type, $subtype) use ($resource, $subresource) {
 		$route_parts = [
@@ -182,7 +182,7 @@ function elgg_generate_entity_url(ElggEntity $entity, $resource = 'view', $subre
 		}
 	}
 
-	return false;
+	return null;
 }
 
 /**
@@ -194,10 +194,9 @@ function elgg_generate_entity_url(ElggEntity $entity, $resource = 'view', $subre
  *
  * @return string
  */
-function elgg_generate_action_url($action, array $query = [], $add_csrf_tokens = true) {
+function elgg_generate_action_url(string $action, array $query = [], bool $add_csrf_tokens = true): string {
 
-	$url = "action/$action";
-	$url = elgg_http_add_url_query_elements($url, $query);
+	$url = elgg_http_add_url_query_elements("action/{$action}", $query);
 	$url = elgg_normalize_url($url);
 
 	if ($add_csrf_tokens) {
@@ -210,27 +209,21 @@ function elgg_generate_action_url($action, array $query = [], $add_csrf_tokens =
 /**
  * Prepares a successful response to be returned by a page or an action handler
  *
- * @param mixed                 $content     Response content
- *                                           In page handlers, response content should contain an HTML string
- *                                           In action handlers, response content can contain either a JSON string or an array of data
- * @param string|string[]|array $message     System message visible to the client
- *                                           Can be used by handlers to display a system message
- * @param string                $forward_url Forward URL
- *                                           Can be used by handlers to redirect the client on non-ajax requests
- * @param int                   $status_code HTTP status code
- *                                           Status code of the HTTP response (defaults to 200)
+ * @param mixed        $content     Response content
+ *                                  In page handlers, response content should contain an HTML string
+ *                                  In action handlers, response content can contain either a JSON string or an array of data
+ * @param string|array $message     System message visible to the client
+ *                                  Can be used by handlers to display a system message
+ * @param string       $forward_url Forward URL
+ *                                  Can be used by handlers to redirect the client on non-ajax requests
+ * @param int          $status_code HTTP status code
+ *                                  Status code of the HTTP response (defaults to 200)
  *
  * @return \Elgg\Http\OkResponse
  */
-function elgg_ok_response($content = '', $message = '', $forward_url = null, int $status_code = ELGG_HTTP_OK) {
+function elgg_ok_response($content = '', string|array $message = '', string $forward_url = null, int $status_code = ELGG_HTTP_OK): \Elgg\Http\OkResponse {
 	if ($message) {
-		if (is_array($message) && !array_key_exists('message', $message)) {
-			elgg_deprecated_notice('Passing an array of messages to ' . __METHOD__ . ' has been deprecated', '4.2');
-			
-			_elgg_services()->system_messages->addSuccessMessage($message);
-		} else {
-			elgg_register_success_message($message);
-		}
+		elgg_register_success_message($message);
 	}
 
 	return new \Elgg\Http\OkResponse($content, $status_code, $forward_url);
@@ -239,28 +232,22 @@ function elgg_ok_response($content = '', $message = '', $forward_url = null, int
 /**
  * Prepare an error response to be returned by a page or an action handler
  *
- * @param string|string[]|array $message     Error message
- *                                           Can be used by handlers to display an error message
- *                                           For certain requests this error message will also be used as the response body
- * @param string                $forward_url URL to redirect the client to
- *                                           Can be used by handlers to redirect the client on non-ajax requests
- * @param int                   $status_code HTTP status code
- *                                           Status code of the HTTP response
+ * @param string|array $message     Error message
+ *                                  Can be used by handlers to display an error message
+ *                                  For certain requests this error message will also be used as the response body
+ * @param string       $forward_url URL to redirect the client to
+ *                                  Can be used by handlers to redirect the client on non-ajax requests
+ * @param int          $status_code HTTP status code
+ *                                  Status code of the HTTP response
  *
  * @return \Elgg\Http\ErrorResponse
  */
-function elgg_error_response($message = '', $forward_url = REFERRER, int $status_code = ELGG_HTTP_BAD_REQUEST) {
+function elgg_error_response(string|array $message = '', string $forward_url = REFERRER, int $status_code = ELGG_HTTP_BAD_REQUEST): \Elgg\Http\ErrorResponse {
 	if ($message) {
-		if (is_array($message) && !array_key_exists('message', $message)) {
-			elgg_deprecated_notice('Passing an array of messages to ' . __METHOD__ . ' has been deprecated', '4.2');
-			
-			_elgg_services()->system_messages->addErrorMessage($message);
-		} else {
-			elgg_register_error_message($message);
-			
-			// needed to convert the error message back to a string as the ErrorResponse does not support an array of \ElggSystemMessage options
-			$message = is_array($message) ? $message['message'] : $message;
-		}
+		elgg_register_error_message($message);
+		
+		// needed to convert the error message back to a string as the ErrorResponse does not support an array of \ElggSystemMessage options
+		$message = is_array($message) ? $message['message'] : $message;
 	}
 
 	return new \Elgg\Http\ErrorResponse($message, $status_code, $forward_url);
@@ -279,6 +266,25 @@ function elgg_error_response($message = '', $forward_url = REFERRER, int $status
  *
  * @return \Elgg\Http\RedirectResponse
  */
-function elgg_redirect_response($forward_url = REFERRER, int $status_code = ELGG_HTTP_FOUND) {
+function elgg_redirect_response(string $forward_url = REFERRER, int $status_code = ELGG_HTTP_FOUND): \Elgg\Http\RedirectResponse {
 	return new Elgg\Http\RedirectResponse($forward_url, $status_code);
+}
+
+/**
+ * Prepare a download response
+ *
+ * @param string $content  The content of the download
+ * @param string $filename The filename when downloaded
+ * @param bool   $inline   Is this an inline download (default: false, determines the 'Content-Disposition' header)
+ * @param array  $headers  (optional) additional headers for the response
+ *
+ * @return \Elgg\Http\DownloadResponse
+ * @since 5.0
+ */
+function elgg_download_response(string $content, string $filename = '', bool $inline = false, array $headers = []): \Elgg\Http\DownloadResponse {
+	$response = new \Elgg\Http\DownloadResponse($content);
+	$response->setHeaders($headers);
+	$response->setFilename($filename, $inline);
+	
+	return $response;
 }

@@ -3,6 +3,7 @@
 namespace Elgg\Application;
 
 use Elgg\Notifications\CreateCommentEventHandler;
+use Elgg\Notifications\MentionsEventHandler;
 use Elgg\Notifications\UnbanUserEventHandler;
 use Elgg\Notifications\MakeAdminUserEventHandler;
 use Elgg\Notifications\RemoveAdminUserEventHandler;
@@ -30,35 +31,30 @@ class SystemEventHandlers {
 		
 		elgg_entity_enable_capability('object', 'comment', 'commentable');
 		
-		// commentable disabled for backwards compatibility. Can be removed in Elgg 5.0 if default behaviour for commentable has been changed
-		elgg_entity_disable_capability('object', 'admin_notice', 'commentable');
-		elgg_entity_disable_capability('object', 'elgg_upgrade', 'commentable');
-		elgg_entity_disable_capability('object', 'plugin', 'commentable');
-		elgg_entity_disable_capability('object', 'widget', 'commentable');
-		elgg_entity_disable_capability('site', 'site', 'commentable');
-		elgg_entity_disable_capability('user', 'user', 'commentable');
-		
 		elgg_register_notification_method('email');
 		if ((bool) elgg_get_config('enable_delayed_email')) {
 			elgg_register_notification_method('delayed_email');
 		}
 		
 		elgg_register_notification_event('object', 'comment', ['create'], CreateCommentEventHandler::class);
+		elgg_register_notification_event('object', 'comment', ['mentions'], MentionsEventHandler::class);
 		elgg_register_notification_event('user', 'user', ['make_admin'], MakeAdminUserEventHandler::class);
 		elgg_register_notification_event('user', 'user', ['remove_admin'], RemoveAdminUserEventHandler::class);
 		elgg_register_notification_event('user', 'user', ['unban'], UnbanUserEventHandler::class);
 		
 		// if mb functions are available, set internal encoding to UTF8
 		if (is_callable('mb_internal_encoding')) {
-			mb_internal_encoding("UTF-8");
+			mb_internal_encoding('UTF-8');
 		}
 	
 		elgg_register_ajax_view('admin/users/listing/details');
 		elgg_register_ajax_view('core/ajax/edit_comment');
 		elgg_register_ajax_view('forms/admin/user/change_email');
+		elgg_register_ajax_view('forms/comment/save');
 		elgg_register_ajax_view('navigation/menu/user_hover/contents');
 		elgg_register_ajax_view('notifications/subscriptions/details');
 		elgg_register_ajax_view('object/plugin/details');
+		elgg_register_ajax_view('object/widget/edit');
 		elgg_register_ajax_view('page/elements/comments');
 		elgg_register_ajax_view('river/elements/responses');
 		
@@ -79,17 +75,17 @@ class SystemEventHandlers {
 		elgg_register_external_file('css', 'admin/users/unvalidated', elgg_get_simplecache_url('admin/users/unvalidated.css'));
 		elgg_register_external_file('css', 'maintenance', elgg_get_simplecache_url('maintenance.css'));
 		
-		elgg_register_plugin_hook_handler('registeruser:validate:password', 'all', [_elgg_services()->passwordGenerator, 'registerUserPasswordValidation']);
-		elgg_register_plugin_hook_handler('view_vars', 'input/password', [_elgg_services()->passwordGenerator, 'addInputRequirements']);
+		elgg_register_event_handler('registeruser:validate:password', 'all', [_elgg_services()->passwordGenerator, 'registerUserPasswordValidation']);
+		elgg_register_event_handler('view_vars', 'input/password', [_elgg_services()->passwordGenerator, 'addInputRequirements']);
 	
-		$widgets = ['online_users', 'new_users', 'content_stats', 'banned_users', 'admin_welcome', 'cron_status'];
+		$widgets = ['online_users', 'new_users', 'content_stats', 'banned_users', 'admin_welcome', 'cron_status', 'elgg_blog'];
 		foreach ($widgets as $widget) {
-			elgg_register_widget_type(
-				$widget,
-				elgg_echo("admin:widget:{$widget}"),
-				elgg_echo("admin:widget:{$widget}:help"),
-				['admin']
-			);
+			elgg_register_widget_type([
+				'id' => $widget,
+				'name' => elgg_echo("admin:widget:{$widget}"),
+				'description' => elgg_echo("admin:widget:{$widget}:help"),
+				'context' => ['admin'],
+			]);
 		}
 	}
 	
@@ -100,6 +96,11 @@ class SystemEventHandlers {
 	 */
 	public static function initEarly() {
 		elgg_register_pam_handler(\Elgg\PAM\User\Password::class);
+		
+		// @todo registering an alias helps in the transition from Elgg 4 to Elgg 5. This can be removed in Elgg 6
+		if (!class_exists('Elgg\Hook')) {
+			class_alias(\Elgg\Event::class, 'Elgg\Hook');
+		}
 	}
 	
 	/**

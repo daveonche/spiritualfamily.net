@@ -1,3 +1,4 @@
+<?php ?>
 /* <style> /**/
 /**
  * CSS form/input elements
@@ -6,12 +7,11 @@
 /* ***************************************
 	Form Elements
 *************************************** */
-fieldset > div, .elgg-field {
-	margin-bottom: 1rem;
-}
-
-fieldset > div:last-child {
-	margin-bottom: 0;
+fieldset > div,
+.elgg-field {
+	&:not(:last-child) {
+		margin-bottom: 1rem;
+	}
 }
 
 .elgg-form-alt > fieldset > .elgg-foot {
@@ -23,7 +23,6 @@ label, .elgg-field-label {
 	font-weight: 600;
 	font-size: 0.9rem;
 	line-height: 1.8rem;
-
 }
 
 .elgg-field-label {
@@ -96,13 +95,6 @@ textarea:focus {
 	/* We remove outlines from specific input types so we can leave the browser
 	   defaults (like glows) for everything else */
 	outline: 0 none;
-}
-
-.elgg-longtext-control {
-	float: right;
-	margin-left: 14px;
-	font-size: 80%;
-	cursor: pointer;
 }
 
 input[type="checkbox"],
@@ -206,7 +198,8 @@ select:not([multiple]) {
 			flex-direction: column;
 			
 			&.elgg-field-stretch {
-				flex-basis: 100%;
+				flex-basis: 1%;
+				flex-grow: 1;
 				
 				> .elgg-field-input {
 					width: 100%;
@@ -226,6 +219,10 @@ select:not([multiple]) {
 				align-items: center;
 				display: flex;
 				flex-shrink: 0;
+			}
+			
+			&:last-child {
+				margin-right: 0;
 			}
 		}
 		
@@ -257,6 +254,6 @@ select:not([multiple]) {
 
 <?php
 echo elgg_view('elements/components/autocomplete.css', $vars);
-echo elgg_view('elements/components/userpicker.css', $vars);
 echo elgg_view('elements/components/datepicker.css', $vars);
+echo elgg_view('input/entitypicker.css', $vars);
 echo elgg_view('input/tags.css', $vars);

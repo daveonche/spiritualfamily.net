@@ -5,12 +5,6 @@ namespace Elgg;
 use Elgg\Exceptions\Http\PageNotFoundException;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * @group HttpService
- * @group RouterService
- * @group UnitTests
- * @group Routing
- */
 class RouteMatchingUnitTest extends \Elgg\UnitTestCase {
 
 	public function testMostSpecificRouteWins() {
@@ -172,13 +166,13 @@ class RouteMatchingUnitTest extends \Elgg\UnitTestCase {
 	}
 	
 	public function testGenerateURLForUnknownRoute() {
-		$this->assertFalse(elgg_generate_url('unknown:route'));
+		$this->assertNull(elgg_generate_url('unknown:route'));
 	}
 
 	public function testResourceParameterIsNotReplaceableByQueryElements() {
 
-		$this->viewsDir = $this->normalizeTestFilePath('views');
-		_elgg_services()->views->autoregisterViews('', "$this->viewsDir/default", 'default');
+		$viewsDir = $this->normalizeTestFilePath('views');
+		_elgg_services()->views->autoregisterViews('', "{$viewsDir}/default", 'default');
 
 		elgg_register_route('foo:bar', [
 			'path' => '/foo/{bar}',
@@ -208,8 +202,8 @@ class RouteMatchingUnitTest extends \Elgg\UnitTestCase {
 
 	public function testHandlerParameterIsNotReplaceableByQueryElements() {
 
-		$this->viewsDir = $this->normalizeTestFilePath('views');
-		_elgg_services()->views->autoregisterViews('', "$this->viewsDir/default", 'default');
+		$viewsDir = $this->normalizeTestFilePath('views');
+		_elgg_services()->views->autoregisterViews('', "{$viewsDir}/default", 'default');
 
 		$calls = 0;
 		elgg_register_route('foo:bar', [
@@ -279,7 +273,7 @@ class RouteMatchingUnitTest extends \Elgg\UnitTestCase {
 			'foo2' => 'right',
 		]);
 		
-		$this->assertFalse($url);
+		$this->assertNull($url);
 	}
 
 	public function testCanGenerateActionUrl() {

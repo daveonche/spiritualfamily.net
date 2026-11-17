@@ -1,7 +1,7 @@
 <?php
 /**
-* Elgg bookmarks save action
-*/
+ * Elgg bookmarks save action
+ */
 
 $title = elgg_get_title_input();
 $description = get_input('description');
@@ -11,11 +11,9 @@ $tags = (string) get_input('tags');
 $guid = (int) get_input('guid');
 $container_guid = (int) get_input('container_guid', elgg_get_logged_in_user_guid());
 
-elgg_make_sticky_form('bookmarks');
-
 // don't use elgg_normalize_url() because we don't want
 // relative links resolved to this site.
-if ($address && !preg_match("#^((ht|f)tps?:)?//#i", $address)) {
+if ($address && !preg_match('#^((ht|f)tps?:)?//#i', $address)) {
 	$address = "http://{$address}";
 }
 
@@ -29,13 +27,14 @@ if (!filter_var($address, FILTER_VALIDATE_URL)) {
 
 $new = true;
 if (empty($guid)) {
-	$bookmark = new ElggBookmark;
+	$bookmark = new \ElggBookmark;
 	$bookmark->container_guid = $container_guid;
 } else {
 	$bookmark = get_entity($guid);
-	if (!$bookmark instanceof ElggBookmark || !$bookmark->canEdit()) {
+	if (!$bookmark instanceof \ElggBookmark || !$bookmark->canEdit()) {
 		return elgg_error_response(elgg_echo('bookmarks:save:failed'));
 	}
+	
 	$new = false;
 }
 
@@ -48,8 +47,6 @@ $bookmark->tags = elgg_string_to_array($tags);
 if (!$bookmark->save()) {
 	return elgg_error_response(elgg_echo('bookmarks:save:failed'));
 }
-
-elgg_clear_sticky_form('bookmarks');
 
 //add to river only if new
 if ($new) {

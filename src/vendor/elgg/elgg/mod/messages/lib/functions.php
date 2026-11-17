@@ -16,13 +16,7 @@
  *
  * @return false|int
  */
-function messages_send($subject, $body, $recipient_guid, $sender_guid = 0, $original_msg_guid = 0, $notify = true, $add_to_sent = true) {
-
-	// @todo remove globals
-	global $messagesendflag;
-	$messagesendflag = 1;
-
-	// If $sender_guid == 0, set to current user
+function messages_send(string $subject, string $body, int $recipient_guid, int $sender_guid = 0, int $original_msg_guid = 0, bool $notify = true, bool $add_to_sent = true): int|false {
 	if ($sender_guid == 0) {
 		$sender_guid = (int) elgg_get_logged_in_user_guid();
 	}
@@ -35,12 +29,8 @@ function messages_send($subject, $body, $recipient_guid, $sender_guid = 0, $orig
 	$message_sent->owner_guid = $sender_guid;
 	$message_sent->container_guid = $sender_guid;
 
-	$message_to->access_id = ACCESS_PUBLIC;
-	$message_sent->access_id = ACCESS_PUBLIC;
-
 	$message_to->title = $subject;
 	$message_to->description = $body;
-
 	$message_sent->title = $subject;
 	$message_sent->description = $body;
 
@@ -57,21 +47,19 @@ function messages_send($subject, $body, $recipient_guid, $sender_guid = 0, $orig
 	$message_sent->hiddenTo = 0; // this is used when a user deletes a message in their inbox
 
 	// Save the copy of the message that goes to the recipient
-	if (!$message_to->save()) {
+	$saved = elgg_call(ELGG_IGNORE_ACCESS, function() use ($message_to) {
+		return $message_to->save();
+	});
+	
+	if (!$saved) {
 		return false;
 	}
 
 	// Save the copy of the message that goes to the sender
 	if ($add_to_sent) {
-		$message_sent->save();
-	}
-
-	$message_to->access_id = ACCESS_PRIVATE;
-	$message_to->save();
-
-	if ($add_to_sent) {
-		$message_sent->access_id = ACCESS_PRIVATE;
-		$message_sent->save();
+		elgg_call(ELGG_IGNORE_ACCESS, function() use ($message_sent) {
+			$message_sent->save();
+		});
 	}
 
 	// if the new message is a reply then create a relationship link between the new message
@@ -80,13 +68,14 @@ function messages_send($subject, $body, $recipient_guid, $sender_guid = 0, $orig
 		$message_sent->addRelationship($original_msg_guid, 'reply');
 	}
 
-	if (($recipient_guid != elgg_get_logged_in_user_guid()) && $notify) {
+	if ($recipient_guid !== elgg_get_logged_in_user_guid() && $notify) {
 		$message_contents = $body;
+		
 		$recipient = get_user($recipient_guid);
 		$sender = get_user($sender_guid);
-		
-		$subject = elgg_echo('messages:email:subject', [], $recipient->language);
-		$body = elgg_echo('messages:email:body', [
+		if ($recipient instanceof \ElggUser && $sender instanceof \ElggUser) {
+			$subject = elgg_echo('messages:email:subject', [], $recipient->getLanguage());
+			$body = elgg_echo('messages:email:body', [
 				$sender->getDisplayName(),
 				$message_contents,
 				elgg_generate_url('collection:object:messages:owner', [
@@ -96,19 +85,16 @@ function messages_send($subject, $body, $recipient_guid, $sender_guid = 0, $orig
 				elgg_generate_url('add:object:messages', [
 					'send_to' => $sender_guid,
 				]),
-			],
-			$recipient->language
-		);
-
-		$params = [
-			'object' => $message_to,
-			'action' => 'send',
-			'url' => $message_to->getURL(),
-		];
-		notify_user($recipient_guid, $sender_guid, $subject, $body, $params);
+			], $recipient->getLanguage());
+			
+			$params = [
+				'object' => $message_to,
+				'action' => 'send',
+				'url' => $message_to->getURL(),
+			];
+			notify_user($recipient_guid, $sender_guid, $subject, $body, $params);
+		}
 	}
-
-	$messagesendflag = 0;
 	
 	return $message_to->guid;
 }
@@ -124,7 +110,7 @@ function messages_send($subject, $body, $recipient_guid, $sender_guid = 0, $orig
  * @return ElggMessage[]|int|false
  * @since 1.9
  */
-function messages_get_unread($user_guid = 0, $limit = null, $offset = 0, $count = false) {
+function messages_get_unread(int $user_guid = 0, int $limit = null, int $offset = 0, bool $count = false) {
 	if (!$user_guid) {
 		$user_guid = elgg_get_logged_in_user_guid();
 	}
@@ -133,11 +119,11 @@ function messages_get_unread($user_guid = 0, $limit = null, $offset = 0, $count 
 		'type' => 'object',
 		'subtype' => 'messages',
 		'metadata_name_value_pairs' => [
-			'toId' => (int) $user_guid,
+			'toId' => $user_guid,
 			'readYet' => 0,
 		],
-		'owner_guid' => (int) $user_guid,
-		'limit' => $limit ? : elgg_get_config('default_limit'),
+		'owner_guid' => $user_guid,
+		'limit' => $limit ?: elgg_get_config('default_limit'),
 		'offset' => $offset,
 		'count' => $count,
 		'distinct' => false,
@@ -151,33 +137,6 @@ function messages_get_unread($user_guid = 0, $limit = null, $offset = 0, $count 
  *
  * @return int
  */
-function messages_count_unread($user_guid = 0) {
+function messages_count_unread(int $user_guid = 0): int {
 	return (int) messages_get_unread($user_guid, 10, 0, true);
-}
-
-/**
- * Prepare the compose form variables
- *
- * @param int $recipient_guid new message recipient
- *
- * @return array
- */
-function messages_prepare_form_vars($recipient_guid = 0) {
-
-	$recipients = [];
-	$recipient = get_user($recipient_guid);
-	if (!empty($recipient)) {
-		$recipients[] = $recipient->getGUID();
-	}
-
-	// input names => defaults
-	$values = [
-		'subject' => elgg_get_sticky_value('messages', 'subject', ''),
-		'body' => elgg_get_sticky_value('messages', 'body', ''),
-		'recipients' => elgg_get_sticky_value('messages', 'recipients', $recipients),
-	];
-
-	elgg_clear_sticky_form('messages');
-
-	return $values;
 }

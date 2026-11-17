@@ -5,24 +5,24 @@ namespace Elgg\Discussions;
 /**
  * Widget related functions
  */
-class Widgets{
+class Widgets {
 
 	/**
 	 * Set the title URL for the discussions widget
 	 *
-	 * @param \Elgg\Hook $hook 'entity:url', 'object'
+	 * @param \Elgg\Event $event 'entity:url', 'object'
 	 *
 	 * @return void|string
 	 */
-	public static function widgetURL(\Elgg\Hook $hook) {
+	public static function widgetURL(\Elgg\Event $event) {
 		
-		$return_value = $hook->getValue();
+		$return_value = $event->getValue();
 		if (!empty($return_value)) {
 			// someone already set an url
 			return;
 		}
 		
-		$widget = $hook->getEntityParam();
+		$widget = $event->getEntityParam();
 		if (!$widget instanceof \ElggWidget || $widget->handler !== 'discussions') {
 			return;
 		}
@@ -32,6 +32,7 @@ class Widgets{
 			if ($widget->context === 'dashboard') {
 				return elgg_generate_url('collection:object:discussion:my_groups', ['username' => $owner->username]);
 			}
+			
 			return elgg_generate_url('collection:object:discussion:owner', ['username' => $owner->username]);
 		} elseif ($owner instanceof \ElggGroup) {
 			return elgg_generate_url('collection:object:discussion:group', ['guid' => $owner->guid]);

@@ -23,9 +23,9 @@ class Controller {
 	 */
 	public function __invoke(Request $request) {
 		
-		$segments = explode('/', $request->getParam('segments'));
+		$segments = explode('/', (string) $request->getParam('segments'));
 		if (count($segments) < 2) {
-			return elgg_error_response("Ajax pagehandler called with invalid segments", REFERRER, ELGG_HTTP_BAD_REQUEST);
+			return elgg_error_response('Ajax pagehandler called with invalid segments', REFERRER, ELGG_HTTP_BAD_REQUEST);
 		}
 		
 		$view = '';
@@ -35,6 +35,7 @@ class Controller {
 					// protect admin views similar to all admin pages that are protected automatically in the admin_page_handler
 					elgg_admin_gatekeeper();
 				}
+				
 				// ignore 'view/'
 				$view = implode('/', array_slice($segments, 1));
 				break;
@@ -43,11 +44,12 @@ class Controller {
 					// protect admin views similar to all admin pages that are protected automatically in the admin_page_handler
 					elgg_admin_gatekeeper();
 				}
+				
 				// form views start with "forms", not "form"
 				$view = 'forms/' . implode('/', array_slice($segments, 1));
 				break;
 			default:
-				return elgg_error_response("Ajax pagehandler called with invalid segments", REFERRER, ELGG_HTTP_BAD_REQUEST);
+				return elgg_error_response('Ajax pagehandler called with invalid segments', REFERRER, ELGG_HTTP_BAD_REQUEST);
 		}
 		
 		$ajax_api = _elgg_services()->ajax;
@@ -55,11 +57,11 @@ class Controller {
 		
 		// cacheable views are always allowed
 		if (!in_array($view, $allowed_views) && !_elgg_services()->views->isCacheableView($view)) {
-			return elgg_error_response("Ajax view '$view' was not registered", REFERRER, ELGG_HTTP_FORBIDDEN);
+			return elgg_error_response("Ajax view '{$view}' was not registered", REFERRER, ELGG_HTTP_FORBIDDEN);
 		}
 		
 		if (!elgg_view_exists($view)) {
-			return elgg_error_response("Ajax view '$view' was not found", REFERRER, ELGG_HTTP_NOT_FOUND);
+			return elgg_error_response("Ajax view '{$view}' was not found", REFERRER, ELGG_HTTP_NOT_FOUND);
 		}
 		
 		// pull out GET parameters through filter
@@ -82,13 +84,13 @@ class Controller {
 			
 			// Try to guess the mime-type
 			switch ($segments[1]) {
-				case "js":
+				case 'js':
 					$content_type = 'text/javascript;charset=utf-8';
 					break;
-				case "css":
+				case 'css':
 					$content_type = 'text/css;charset=utf-8';
 					break;
-				default :
+				default:
 					if (_elgg_services()->views->isCacheableView($view)) {
 						$file = _elgg_services()->views->findViewFile($view, elgg_get_viewtype());
 						$content_type = 'text/html';
@@ -106,7 +108,7 @@ class Controller {
 		}
 		
 		if ($content_type) {
-			elgg_set_http_header("Content-Type: $content_type");
+			elgg_set_http_header("Content-Type: {$content_type}");
 		}
 		
 		return elgg_ok_response($output);

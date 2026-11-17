@@ -19,8 +19,8 @@ class APIKey {
 	 */
 	public function __invoke(): bool {
 		// check that an API key is present
-		$api_key = get_input('api_key');
-		if ($api_key == '') {
+		$api_key = (string) get_input('api_key');
+		if ($api_key === '') {
 			throw new \APIException(elgg_echo('APIException:MissingAPIKey'));
 		}
 		
@@ -33,6 +33,6 @@ class APIKey {
 		
 		// can be used for keeping stats
 		// plugin can also return false to fail this authentication method
-		return elgg_trigger_plugin_hook('api_key', 'use', $api_key, true);
+		return elgg_trigger_event_results('api_key', 'use', ['apikey' => $api_key], true);
 	}
 }

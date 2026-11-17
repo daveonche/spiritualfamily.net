@@ -18,14 +18,11 @@ return array(
 	'messages:message' => "Nachricht",
 	'messages:title' => "Betreff",
 	'messages:to:help' => "Gebe hier den Benutzernamen des Empfängers der Nachricht ein.",
-	'messages:inbox' => "Inbox",
 	'messages:sendmessage' => "Nachricht senden",
 	'messages:add' => "Nachricht verfassen",
 	'messages:sentmessages' => "Gesendete Nachrichten",
 	'messages:toggle' => 'Alle auswählen',
 	'messages:markread' => 'Als gelesen markieren',
-
-	'notification:method:site' => 'Seite',
 
 	'messages:error' => 'Beim Speichern Deiner Nachricht ist ein Problem aufgetreten. Bitte versuche es noch einmal.',
 

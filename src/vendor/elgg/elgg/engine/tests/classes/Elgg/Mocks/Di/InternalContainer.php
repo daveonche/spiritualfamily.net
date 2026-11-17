@@ -16,10 +16,8 @@ use Psr\Container\ContainerInterface;
  * @property-read \Elgg\Mocks\Database\MetadataTable               $metadataTable                   Metadata mocks
  * @property-read \Elgg\Mocks\Database\Mutex                       $mutex                           Mutex
  * @property-read \Elgg\Notifications\NotificationsService         $notifications                   Notification service (with memory queue)
- * @property-read \Elgg\Mocks\Database\PrivateSettingsTable        $privateSettings                 Private settings table mock
  * @property-read \Elgg\Mocks\Database\RelationshipsTable          $relationshipsTable              Annotation mocks
  * @property-read \Elgg\Mocks\I18n\Translator                      $translator                      Translator
- * @property-read \Elgg\Mocks\Database\UsersTable                  $usersTable                      Users table
  * @property-read \Elgg\Mocks\Database\UsersRememberMeCookiesTable $users_remember_me_cookies_table Users remember me cookies table
  */
 class InternalContainer extends \Elgg\Di\InternalContainer{
@@ -41,7 +39,6 @@ class InternalContainer extends \Elgg\Di\InternalContainer{
 		$container->set('annotationsTable', \DI\autowire(\Elgg\Mocks\Database\AnnotationsTable::class));
 		$container->set('relationshipsTable', \DI\autowire(\Elgg\Mocks\Database\RelationshipsTable::class));
 		$container->set('accessCollections', \DI\autowire(\Elgg\Mocks\Database\AccessCollections::class)->constructorParameter('cache', \DI\get('accessCache')));
-		$container->set('privateSettings', \DI\autowire(\Elgg\Mocks\Database\PrivateSettingsTable::class));
 		$container->set('configTable', \DI\autowire(\Elgg\Mocks\Database\ConfigTable::class));
 		$container->set('users_remember_me_cookies_table', \DI\autowire(\Elgg\Mocks\Database\UsersRememberMeCookiesTable::class));
 
@@ -53,28 +50,22 @@ class InternalContainer extends \Elgg\Di\InternalContainer{
 			return new \Elgg\Mocks\Database\Plugins(
 				$c->dataCache->plugins,
 				$c->db,
-				$c->session,
+				$c->session_manager,
 				$c->events,
 				$c->translator,
 				$c->views,
-				$c->privateSettingsCache,
 				$c->config,
 				$c->system_messages,
 				$c->request
 			);
 		});
-
-		$container->set('siteSecret', function (ContainerInterface $c) {
-			return new \Elgg\Database\SiteSecret('z1234567890123456789012345678901');
-		});
 		
 		$container->set('translator', \DI\autowire(\Elgg\Mocks\I18n\Translator::class));
-		$container->set('usersTable', \DI\autowire(\Elgg\Mocks\Database\UsersTable::class));
 
 		$container->set('notifications', function(ContainerInterface $c) {
 			$queue = new \Elgg\Queue\MemoryQueue();
 			
-			return new \Elgg\Notifications\NotificationsService($queue, $c->hooks, $c->session, $c->events);
+			return new \Elgg\Notifications\NotificationsService($queue, $c->session, $c->events);
 		});
 
 		$container->set('mutex', \DI\autowire(\Elgg\Mocks\Database\Mutex::class));

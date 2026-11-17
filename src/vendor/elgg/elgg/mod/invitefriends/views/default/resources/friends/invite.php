@@ -4,8 +4,7 @@
  */
 
 echo elgg_view_page(elgg_echo('friends:invite'), [
-	'content' => elgg_view_form('friends/invite'),
-	'show_owner_block_menu' => false,
+	'content' => elgg_view_form('friends/invite', ['sticky_enabled' => true]),
 	'filter_id' => 'friends',
 	'filter_value' => 'invite',
 ]);

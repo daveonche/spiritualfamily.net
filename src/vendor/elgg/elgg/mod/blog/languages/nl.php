@@ -16,6 +16,7 @@ return array(
 	'edit:object:blog' => 'Bewerk blog',
 	'notification:object:blog:publish' => "Stuur een notificatie wanneer een blog is gepubliceerd",
 	'notifications:mute:object:blog' => "over de blog '%s'",
+	'menu:blog_archive:header' => "Blog archief",
 
 	'blog:revisions' => 'Revisies',
 	'blog:archives' => 'Archieven',
@@ -29,14 +30,11 @@ return array(
 	'blog:save_status' => 'Laatst opgeslagen:',
 
 	'blog:revision' => 'Revisie',
-	'blog:auto_saved_revision' => 'Revisie automatisch opgeslagen',
-
+	
 	// messages
 	'blog:message:saved' => 'Blog opgeslagen',
 	'blog:error:cannot_save' => 'Blog kon niet worden opgeslagen.',
-	'blog:error:cannot_auto_save' => 'De blog kon niet automatisch worden opgeslagen',
 	'blog:error:cannot_write_to_container' => 'Je hebt onvoldoende rechten om de blog in de groep op te slaan.',
-	'blog:messages:warning:draft' => 'Er is een niet-opgeslagen concept voor deze blog!',
 	'blog:edit_revision_notice' => '(Oude versie)',
 	'blog:none' => 'Geen blogs',
 	'blog:error:missing:title' => 'Geef een titel aan de blog!',
@@ -57,6 +55,8 @@ return array(
 
 Bekijk en reageer hier op de blog:
 %s',
+	
+	'notification:mentions:object:blog:subject' => '%s heeft je vermeld in een blog',
 
 	// widget
 	'widgets:blog:name' => 'Blogs',

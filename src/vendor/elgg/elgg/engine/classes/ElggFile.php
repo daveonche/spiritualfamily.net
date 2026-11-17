@@ -1,8 +1,8 @@
 <?php
 
 use Elgg\Exceptions\Filesystem\IOException;
+use Elgg\Exceptions\DomainException as ElggDomainException;
 use Elgg\Exceptions\InvalidArgumentException as ElggInvalidArgumentException;
-use Elgg\Exceptions\InvalidParameterException;
 use Elgg\Project\Paths;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -82,7 +82,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return void
 	 */
-	public function setFilename($filename) {
+	public function setFilename(string $filename): void {
 		$filename = ltrim(Paths::sanitize($filename, false), '/');
 		
 		parent::__set('filename', $filename);
@@ -93,7 +93,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return string
 	 */
-	public function getFilename() {
+	public function getFilename(): string {
 		$filename = parent::__get('filename');
 		if (empty($filename)) {
 			return '';
@@ -108,25 +108,8 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return string
 	 */
-	public function getFilenameOnFilestore() {
+	public function getFilenameOnFilestore(): string {
 		return $this->getFilestore()->getFilenameOnFilestore($this);
-	}
-
-	/**
-	 * Return the size of the filestore associated with this file
-	 *
-	 * @param string $prefix         Storage prefix
-	 * @param int    $container_guid The container GUID of the checked filestore
-	 *
-	 * @return int
-	 * @deprecated 4.3
-	 */
-	public function getFilestoreSize($prefix = '', $container_guid = 0) {
-		if (!$container_guid) {
-			$container_guid = $this->container_guid;
-		}
-		
-		return (int) $this->getFilestore()->getSize($prefix, $container_guid);
 	}
 
 	/**
@@ -135,7 +118,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return string|false
 	 */
-	public function getMimeType() {
+	public function getMimeType(): string|false {
 		if ($this->mimetype) {
 			return $this->mimetype;
 		}
@@ -146,6 +129,7 @@ class ElggFile extends ElggObject {
 			// the file has no file on the filesystem
 			// can happen in tests etc.
 		}
+		
 		return false;
 	}
 
@@ -154,10 +138,10 @@ class ElggFile extends ElggObject {
 	 *
 	 * @param string $mimetype The mimetype
 	 *
-	 * @return string
+	 * @return void
 	 */
-	public function setMimeType($mimetype) {
-		return $this->mimetype = $mimetype;
+	public function setMimeType(string $mimetype): void {
+		$this->mimetype = $mimetype;
 	}
 
 	/**
@@ -166,7 +150,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return string 'document', 'audio', 'video', or 'general' if the MIME type was unrecognized
 	 */
-	public function getSimpleType() {
+	public function getSimpleType(): string {
 		if (isset($this->simpletype)) {
 			return $this->simpletype;
 		}
@@ -182,22 +166,15 @@ class ElggFile extends ElggObject {
 	 * @return false|resource File handler
 	 *
 	 * @throws IOException
-	 * @throws InvalidParameterException
+	 * @throws \Elgg\Exceptions\DomainException
 	 */
-	public function open($mode) {
+	public function open(string $mode) {
 		if (!$this->getFilename()) {
 			throw new IOException('You must specify a name before opening a file.');
 		}
 
-		// See if file has already been saved
-		// seek on datastore, parameters and name?
-		// Sanity check
-		if (
-				($mode != 'read') &&
-				($mode != 'write') &&
-				($mode != 'append')
-		) {
-			throw new InvalidParameterException("Unrecognized file mode '{$mode}'");
+		if (!in_array($mode, ['read', 'write', 'append'])) {
+			throw new ElggDomainException("Unrecognized file mode '{$mode}'");
 		}
 
 		// Open the file handle
@@ -213,7 +190,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return false|int
 	 */
-	public function write($data) {
+	public function write(string $data): int|false {
 		return $this->getFilestore()->write($this->handle, $data);
 	}
 
@@ -225,7 +202,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return mixed Data or false
 	 */
-	public function read($length, $offset = 0) {
+	public function read(int $length, int $offset = 0) {
 		return $this->getFilestore()->read($this->handle, $length, $offset);
 	}
 
@@ -234,7 +211,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return false|string The file contents.
 	 */
-	public function grabFile() {
+	public function grabFile(): string|false {
 		return $this->getFilestore()->grabFile($this);
 	}
 
@@ -243,7 +220,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function close() {
+	public function close(): bool {
 		if (is_resource($this->handle) && $this->getFilestore()->close($this->handle)) {
 			$this->handle = null;
 
@@ -260,7 +237,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function delete($follow_symlinks = true) {
+	public function delete(bool $follow_symlinks = true): bool {
 		$result = $this->getFilestore()->delete($this, $follow_symlinks);
 
 		if ($this->getGUID() && $result) {
@@ -277,7 +254,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return void
 	 */
-	public function seek($position) {
+	public function seek(int $position): void {
 		$this->getFilestore()->seek($this->handle, $position);
 	}
 
@@ -286,7 +263,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return int The file position
 	 */
-	public function tell() {
+	public function tell(): int {
 		return $this->getFilestore()->tell($this->handle);
 	}
 
@@ -295,7 +272,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function setModifiedTime() {
+	public function setModifiedTime(): bool {
 		$filestorename = $this->getFilenameOnFilestore();
 		
 		$modified = touch($filestorename);
@@ -313,7 +290,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return int
 	 */
-	public function getModifiedTime() {
+	public function getModifiedTime(): int {
 		return filemtime($this->getFilenameOnFilestore());
 	}
 
@@ -323,7 +300,7 @@ class ElggFile extends ElggObject {
 	 * @return int
 	 * @since 1.9
 	 */
-	public function getSize() {
+	public function getSize(): int {
 		return $this->getFilestore()->getFileSize($this);
 	}
 
@@ -332,7 +309,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function eof() {
+	public function eof(): bool {
 		return $this->getFilestore()->eof($this->handle);
 	}
 
@@ -341,16 +318,16 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function exists() {
+	public function exists(): bool {
 		return $this->getFilestore()->exists($this);
 	}
 
 	/**
 	 * Return the system filestore based on dataroot.
 	 *
-	 * @return \ElggDiskFilestore
+	 * @return \Elgg\Filesystem\Filestore\DiskFilestore
 	 */
-	protected function getFilestore() {
+	protected function getFilestore(): \Elgg\Filesystem\Filestore\DiskFilestore {
 		return _elgg_services()->filestore;
 	}
 
@@ -366,8 +343,8 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function transfer($owner_guid, $filename = null) {
-		if (!$owner_guid) {
+	public function transfer(int $owner_guid, string $filename = null): bool {
+		if ($owner_guid < 1) {
 			return false;
 		}
 
@@ -375,9 +352,10 @@ class ElggFile extends ElggObject {
 			return false;
 		}
 
-		if (!$filename) {
+		if (empty($filename)) {
 			$filename = $this->getFilename();
 		}
+		
 		$filestorename = $this->getFilenameOnFilestore();
 
 		$this->owner_guid = $owner_guid;
@@ -404,7 +382,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function acceptUploadedFile(UploadedFile $upload) {
+	public function acceptUploadedFile(UploadedFile $upload): bool {
 		if (!$upload->isValid()) {
 			return false;
 		}
@@ -427,12 +405,12 @@ class ElggFile extends ElggObject {
 		$this->setFilename($filename);
 		$this->filestore_prefix = $prefix;
 
-		$hook_params = [
+		$params = [
 			'file' => $this,
 			'upload' => $upload,
 		];
 
-		$uploaded = _elgg_services()->hooks->trigger('upload', 'file', $hook_params);
+		$uploaded = _elgg_services()->events->triggerResults('upload', 'file', $params);
 		if ($uploaded !== true && $uploaded !== false) {
 			$filestorename = $this->getFilenameOnFilestore();
 			try {
@@ -455,9 +433,10 @@ class ElggFile extends ElggObject {
 				$this->setMimeType($mime_type);
 				$this->simpletype = _elgg_services()->mimetype->getSimpleType($mime_type);
 			} catch (ElggInvalidArgumentException $e) {
-				// this can fail if the upload hooks returns true, but the file is not present on the filestore
+				// this can fail if the upload events returns true, but the file is not present on the filestore
 				// this happens in a unittest
 			}
+			
 			_elgg_services()->events->triggerAfter('upload', 'file', $this);
 			return true;
 		}
@@ -485,7 +464,7 @@ class ElggFile extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function canDownload($user_guid = 0, $default = true) {
+	public function canDownload(int $user_guid = 0, bool $default = true): bool {
 		return _elgg_services()->userCapabilities->canDownload($this, $user_guid, $default);
 	}
 
@@ -497,21 +476,24 @@ class ElggFile extends ElggObject {
 	 * @param bool   $use_cookie Limit URL validity to current session only
 	 * @param string $expires    URL expiration, as a string suitable for strtotime()
 	 *
-	 * @return string
+	 * @return string|null
 	 */
-	public function getDownloadURL($use_cookie = true, $expires = '+2 hours') {
+	public function getDownloadURL(bool $use_cookie = true, string $expires = '+2 hours'): ?string {
 		$file_svc = new \Elgg\FileService\File();
 		$file_svc->setFile($this);
 		if (!empty($expires)) {
 			$file_svc->setExpires($expires);
 		}
+		
 		$file_svc->setDisposition('attachment');
 		$file_svc->bindSession($use_cookie);
 
 		$params = [
 			'entity' => $this,
+			'use_cookie' => $use_cookie,
+			'expires' => $expires,
 		];
-		return _elgg_services()->hooks->trigger('download:url', 'file', $params, $file_svc->getURL());
+		return _elgg_services()->events->triggerResults('download:url', 'file', $params, $file_svc->getURL());
 	}
 
 	/**
@@ -523,20 +505,23 @@ class ElggFile extends ElggObject {
 	 * @param bool   $use_cookie Limit URL validity to current session only
 	 * @param string $expires    URL expiration, as a string suitable for strtotime()
 	 *
-	 * @return string
+	 * @return string|null
 	 */
-	public function getInlineURL($use_cookie = false, $expires = '') {
+	public function getInlineURL(bool $use_cookie = false, string $expires = ''): ?string {
 		$file_svc = new \Elgg\FileService\File();
 		$file_svc->setFile($this);
 		if (!empty($expires)) {
 			$file_svc->setExpires($expires);
 		}
+		
 		$file_svc->setDisposition('inline');
 		$file_svc->bindSession($use_cookie);
 
 		$params = [
 			'entity' => $this,
+			'use_cookie' => $use_cookie,
+			'expires' => $expires,
 		];
-		return _elgg_services()->hooks->trigger('inline:url', 'file', $params, $file_svc->getURL());
+		return _elgg_services()->events->triggerResults('inline:url', 'file', $params, $file_svc->getURL());
 	}
 }

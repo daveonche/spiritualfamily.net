@@ -23,7 +23,6 @@ return array(
 	'login:continue' => "Meld je aan om verder te gaan",
 	'login:empty' => "Gebruikersnaam en wachtwoord zijn verplicht.",
 	'login:baduser' => "Je account kon niet worden geladen.",
-	'auth:nopams' => "Interne fout. Geen methode voor gebruikersvalidatie gedefinieerd.",
 
 	'logout' => "Afmelden",
 	'logoutok' => "Je bent afgemeld.",
@@ -60,7 +59,6 @@ return array(
 
 	'PluginException:CannotStart' => '%s (guid: %s) kan niet starten. Reden: %s',
 	'PluginException:InvalidID' => "%s is een ongeldige plugin-ID.",
-	'PluginException:InvalidPath' => "%s is een ongeldig plugin-pad.",
 	'PluginException:PluginMustBeActive' => "Vereist dat plugin '%s' actief is.",
 	'PluginException:PluginMustBeAfter' => "Vereist ná plugin '%s' te zijn gepositioneerd.",
 	'PluginException:PluginMustBeBefore' => "Vereist vóór plugin '%s' te zijn gepositioneerd.",
@@ -103,6 +101,8 @@ return array(
 	'GatekeeperException' => 'Je hebt niet de juiste rechten om deze pagina te zien.',
 	'RegistrationAllowedGatekeeperException:invalid_invitecode' => "De opgegeven uitnodigingscode is niet geldig",
 	'BadRequestException' => 'Het verzoek is onjuist',
+	'BadRequestException:invalid_host_header' => 'Het verzoek bevat een ongeldige HOST header',
+	'BadRequestException:livesearch:no_query' => 'Livesearch vereist een zoekopdracht',
 	'ValidationException' => 'De opgestuurde data voldoet niet aan de vereisten, controleer de invoer',
 	'LogicException:InterfaceNotImplemented' => '%smoet %s implementeren',
 	
@@ -213,12 +213,8 @@ return array(
 	'widget:delete' => 'Verwijder %s',
 	'widget:edit' => 'Pas de widget aan jouw wensen aan',
 
-	'widgets' => "Widgets",
-	'widget' => "Widget",
-	'item:object:widget' => "Widgets",
+	'item:object:widget' => "Widget",
 	'collection:object:widget' => 'Widgets',
-	'widgets:save:success' => "De widget is succesvol opgeslagen.",
-	'widgets:save:failure' => "Er ging iets mis tijdens het opslaan van je widget. Probeer het nog een keer.",
 	'widgets:add:success' => "De widget is toegevoegd.",
 	'widgets:add:failure' => "De widget kon niet worden toegevoegd.",
 	'widgets:move:failure' => "De nieuwe widgetpositie kon niet worden opgeslagen.",
@@ -253,22 +249,18 @@ return array(
 	'collection:friends' => '%s van vrienden',
 
 	'avatar' => 'Profielfoto',
-	'avatar:noaccess' => "Je hebt geen rechten om de profielfoto van deze gebruiker te bewerken.",
-	'avatar:create' => 'Maak je profielfoto',
 	'avatar:edit' => 'Bewerk profielfoto',
-	'avatar:upload' => 'Upload een nieuwe profielfoto',
-	'avatar:current' => 'Huidige profielfoto',
-	'avatar:remove' => 'Verwijder je profielfoto en gebruik het standaard icoon',
-	'avatar:crop:title' => 'Profielfoto bijsnijden',
 	'avatar:upload:instructions' => "Je profielfoto wordt weergegeven op verschillende plaatsen op de site. Je kunt je profielfoto zo vaak als je wilt vervangen. (Ondersteunde bestandsformaten: GIF, JPG of PNG)",
-	'avatar:create:instructions' => 'Hieronder kun je je profielfoto aanpassen door hem in een vierkant bij te snijden. Een voorbeeld zal hiernaast verschijnen. Zodra je tevreden bent met het voorbeeld klik je op de knop \'Maak profielfoto\'. Deze aangepaste versie zal worden gebruikt op verschillende plaatsen op de site en is zichtbaar voor andere gebruikers.',
 	'avatar:upload:success' => 'Profielfoto succesvol geüpload',
 	'avatar:upload:fail' => 'Upload van profielfoto mislukt',
 	'avatar:resize:fail' => 'Schalen van de profielfoto mislukt',
-	'avatar:crop:success' => 'Bijsnijden van de profielfoto succesvol',
-	'avatar:crop:fail' => 'Bijsnijden van de avatar mislukt',
 	'avatar:remove:success' => 'Profielfoto succesvol verwijderd',
 	'avatar:remove:fail' => 'Profielfoto verwijderen is mislukt',
+	
+	'header:remove:success' => 'Kopafbeelding succesvol verwijderd',
+	'header:remove:fail' => 'Kopafbeelding verwijderen is mislukt',
+	'header:upload:success' => 'Kopafbeelding succesvol geüpload',
+	'header:upload:fail' => 'Kopafbeelding uploaden mislukt',
 	
 	'action:user:validate:already' => "%s was al gevalideerd",
 	'action:user:validate:success' => "%s is gevalideerd",
@@ -301,11 +293,9 @@ return array(
  */
 	'river' => "River",
 	'river:user:friend' => "%s is nu bevriend met %s",
+	'river:site:site:join' => "%s is lid geworden van de site",
 	'river:update:user:avatar' => '%s heeft een nieuwe profielfoto',
-	'river:noaccess' => 'Je hebt geen toegang tot dit item.',
 	'river:posted:generic' => '%s plaatste',
-	'riveritem:single:user' => 'een gebruiker',
-	'riveritem:plural:user' => 'sommige gebruikers',
 	'river:ingroup' => 'in de groep %s',
 	'river:none' => 'Geen activiteit',
 	'river:update' => 'Update van %s',
@@ -339,6 +329,7 @@ return array(
 	'usersettings:notifications:default:description' => 'Standaard notificatie instellingen voor gebeurtenissen uit het systeem',
 	'usersettings:notifications:content_create:description' => 'Standaard notificatie instellingen voor nieuwe door jou aangemaakte content. Dit betreft notificaties die te maken hebben met acties op jouw content zoals het achterlaten van een reactie.',
 	'usersettings:notifications:create_comment:description' => "Standaard notificatie instellingen indien je een reactie achterlaat op content om van het vervolg op de hoogte te blijven",
+	'usersettings:notifications:mentions:description' => "Ontvang een notificatie wanneer iemand je ergens vermeld",
 
 	'usersettings:notifications:timed_muting' => "Tijdelijk notificaties uitschakelen",
 	'usersettings:notifications:timed_muting:help' => "Indien je voor een bepaalde periode geen notificaties wilt ontvangen (bijvoorbeeld een vakantie) dan kun je hier een start en einddatum opgeven om tijdelijk alle notificaties te blokkeren.",
@@ -358,6 +349,12 @@ return array(
 %s',
 	'notification:subject' => 'Notificatie over \'%s\'',
 	'notification:body' => 'Bekijk de nieuwe activiteit op %s',
+	
+	'notification:mentions:subject' => '%s heeft je vermeld',
+	'notification:mentions:body' => "%sheeft je vermeld in '%s'.
+
+Bekijk het volledige bericht hier:
+%s",
 	
 	'notifications:delayed_email:subject:daily' => "Dagelijkse notificaties",
 	'notifications:delayed_email:subject:weekly' => "Wekelijkse notificaties",
@@ -387,10 +384,6 @@ return array(
  */
 
 	'search' => "Zoeken",
-	'searchtitle' => "Zoeken: %s",
-	'users:searchtitle' => "Zoeken naar gebruikers: %s",
-	'groups:searchtitle' => "Zoeken naar groepen: %s",
-	'advancedsearchtitle' => "%s gevonden met %s",
 	'notfound' => "Geen resultaten gevonden.",
 
 	'viewtype:change' => "Wijzig de wijze van weergave",
@@ -422,14 +415,13 @@ return array(
 	'registration:dupeemail' => 'Dit e-mailadres is al geregistreerd.',
 	'registration:invalidchars' => 'Sorry, je gebruikersnaam bevat het volgende ongeldige karakter: %s 
 De volgende karakters zijn niet toegestaan: %s',
+	'registration:invalidchars:route' => 'Sorry, je gebruikersnaam bevat het volgende ongeldige karakter: %s',
 	'registration:emailnotvalid' => 'Sorry, het opgegeven e-mailadres is ongeldig op dit systeem',
 	'registration:passwordnotvalid' => 'Sorry, het opgegeven wachtwoord is ongeldig op dit systeem',
 	'registration:usernamenotvalid' => 'Sorry, de opgegeven gebruikersnaam is ongeldig op dit systeem',
 
-	'adduser' => "Gebruiker toevoegen",
 	'adduser:ok' => "Nieuwe gebruiker is succesvol aangemaakt.",
-	'adduser:bad' => "De nieuwe gebruiker kon niet worden aangemaakt.",
-
+	
 	'user:set:name' => "Instellingen van accountnaam",
 	'user:name:label' => "Mijn weergavenaam",
 	'user:name:success' => "Je weergavenaam is succesvol gewijzigd.",
@@ -442,10 +434,6 @@ De volgende karakters zijn niet toegestaan: %s',
 	'user:password:label' => "Je nieuwe wachtwoord",
 	'user:password2:label' => "Nogmaals je nieuwe wachtwoord",
 	'user:password:success' => "Wachtwoord gewijzigd",
-	'user:password:fail' => "Er is een fout opgetreden tijdens het wijzigen van je wachtwoord.",
-	'user:password:fail:notsame' => "De twee wachtwoorden komen niet overeen!",
-	'user:password:fail:tooshort' => "Het wachtwoord is te kort!",
-	'user:password:fail:incorrect_current_password' => 'Het opgegeven huidige wachtwoord is onjuist.',
 	'user:changepassword:unknown_user' => 'Ongeldige gebruiker',
 	'user:changepassword:change_password_confirm' => 'Hiermee wijzig je je wachtwoord.',
 
@@ -456,7 +444,6 @@ De volgende karakters zijn niet toegestaan: %s',
 	'user:set:language' => "Taalinstelling",
 	'user:language:label' => "Jouw taal",
 	'user:language:success' => "Je taalinstelling is gewijzigd.",
-	'user:language:fail' => "Er is een fout opgetreden tijdens het wijzigen van je taalinstelling.",
 
 	'user:username:notfound' => 'Gebruikersnaam %s niet gevonden.',
 	'user:username:help' => 'Houd er rekening mee dat een wijziging van de gebruikersnaam alle dynamische links mbt je account worden gewijzigd',
@@ -464,7 +451,6 @@ De volgende karakters zijn niet toegestaan: %s',
 	'user:password:lost' => 'Wachtwoord vergeten',
 	'user:password:hash_missing' => 'We moeten je vragen om je wachtwoord te wijzigen. De veiligheid van de wachtwoorden is verbeterd, echter konden we niet all accounts migrereren.',
 	'user:password:changereq:success' => 'De aanvraag voor een nieuw wachtwoord is gelukt. Er wordt een e-mail verstuurd.',
-	'user:password:changereq:fail' => 'Er kan geen nieuw wachtwoord aangevraagd worden.',
 
 	'user:password:text' => 'Om een nieuw wachtwoord aan te vragen vul je hieronder je gebruikersnaam of e-mailadres In. Klik daarna op de knop \'Aanvragen\'.',
 
@@ -490,9 +476,11 @@ De volgende karakters zijn niet toegestaan: %s',
  */
 	'menu:page:header:administer' => 'Beheer',
 	'menu:page:header:configure' => 'Configureer',
+	'menu:page:header:utilities' => 'Hulpmiddelen',
 	'menu:page:header:develop' => 'Ontwikkel',
 	'menu:page:header:information' => 'Informatie',
 	'menu:page:header:default' => 'Andere',
+	'menu:page:header:plugin_settings' => 'Plugin-instellingen',
 
 	'admin:view_site' => 'Bekijk website',
 	'admin:loggedin' => 'Aangemeld als %s',
@@ -603,6 +591,11 @@ Het zorgt er voor dat Elgg geen database verbinding hoeft op te zetten op het mo
 	'admin:site_icons:font_awesome:zip:help' => "Upload hier je Font Awesome iconen. Je kunt deze downloaden van https://fontawesome.com/download. Het webfont wordt dan lokaal geserveerd.",
 	'admin:site_icons:font_awesome:zip:error' => "De ZIP kon niet worden uitgepakt",
 	'admin:site_icons:font_awesome:remove_zip' => "Verwijderd geüploade lettertype",
+	'admin:theme' => "Theme",
+	'admin:theme:info' => "Hier kunnen verschillende theme instellingen worden geconfigureerd. Deze configuratie zal de bestaande configuratie overschrijven.",
+	'admin:theme:warning' => "Houdt er rekening mee dat deze wijzigingen je design onbruikbaar kunnen maken.",
+	'admin:theme:css_variable:name' => "CSS variabelen",
+	'admin:theme:css_variable:value' => "Waarde",
 	'admin:site_settings' => "Instellingen",
 	'admin:site:description' => "Via dit beheerpaneel kun je de algemene instellingen van de site beheren. Kies een optie om te beginnen.",
 	'admin:site:opt:linktext' => "Configureer site",
@@ -627,6 +620,9 @@ Het zorgt er voor dat Elgg geen database verbinding hoeft op te zetten op het mo
 	'admin:widget:content_stats:help' => 'Blijf op de hoogte van de inhoud die door de gebruikers is gemaakt',
 	'admin:widget:cron_status' => 'Cron status',
 	'admin:widget:cron_status:help' => 'Toont de status van de laatste afronding van de cron jobs',
+	'admin:widget:elgg_blog' => 'Elgg blog',
+	'admin:widget:elgg_blog:help' => 'Toont de laatste berichten van de Elgg blogs',
+	'admin:widget:elgg_blog:no_results' => 'Ophalen van het laatste Elgg nieuws mislukt',
 	'admin:statistics:numentities' => 'Inhoud statistieken',
 	'admin:statistics:numentities:type' => 'Content Type',
 	'admin:statistics:numentities:number' => 'Nummer',
@@ -788,6 +784,28 @@ Het zorgt er voor dat Elgg geen database verbinding hoeft op te zetten op het mo
 	
 	'admin:security:settings:min_password_special' => "Minimaal aantal speciale tekens in een wachtwoord",
 	'admin:security:settings:min_password_special:help' => "Configureer het minimaal aantal speciale tekens (!@$%^&*()<>,.?/[]{}-=_+) welke aanwezig moeten zijn in een wachtwoord. 0 betekent dat het er niet in mag zitten. Laat het leeg voor geen vereisten.",
+	
+	'admin:security:security_txt' => "Security.txt",
+	'admin:security:security_txt:description' => "Wanneer er een beveiligingsprobleem op uw website wordt gevonden, waar moet dit dan worden gemeld? Security.txt is een standaard die helpt bij het structureren van de informatie die beveiligingsonderzoekers nodig hebben om contact op te kunnen nemen met de sitebeheerders met de gevonden kwetsbaarheid. Meer informatie over de standaard vindt u op %s. De inhoud van uw security.txt kunt u vinden op %s.",
+	'admin:security:security_txt:expired' => "De inhoud van je security.txt is verlopen, controleer of alle informatie nog steeds up-to-date is.",
+	'admin:security:security_txt:contact' => "Contactgegevens",
+	'admin:security:security_txt:contact:help' => "Een link of e-mail adres voor mensen om contact op te kunnen nemen over beveiligingsproblemen. Vergeet niet om 'https://' voor URLs en 'mailto:' voor e-mails op te nemen. Zie %s",
+	'admin:security:security_txt:expires' => "Verloopdatum",
+	'admin:security:security_txt:expires:help' => "De datum en tijd waarop de inhoud van het security.txt-bestand als verouderd moet worden beschouwd (beveiligingsonderzoekers moeten het dus niet vertrouwen). Zorg ervoor dat u deze waarde regelmatig bijwerkt en uw bestand regelmatig controleert. Zie %s",
+	'admin:security:security_txt:encryption' => "Encryptie",
+	'admin:security:security_txt:encryption:help' => "Een link naar een beveiligingssleutel welke beveiligingsonderzoekers kunnen gebruiken om beveiligd met jou te kunnen communiceren. Vergeet niet om 'https://' op te nemen. Zie %s",
+	'admin:security:security_txt:acknowledgments' => "Dankbetuigingen",
+	'admin:security:security_txt:acknowledgments:help' => "Een link naar een webpagina waar de de beveiligingsonderzoekers bedankt voor hun bijdrage. Vergeet niet om 'https://' op te nemen. Zie %s",
+	'admin:security:security_txt:language' => "Taal",
+	'admin:security:security_txt:language:help' => "Een komma gescheiden lijst van taalcodes welke je beveiligingsteam spreek. Je kunt meer dan één taal opnemen. Zie %s",
+	'admin:security:security_txt:canonical' => "Canonical",
+	'admin:security:security_txt:canonical:help' => "De URL's voor toegang tot uw security.txt bestand. Het is belangrijk om dit mee te nemen als u het security.txt bestand digitaal ondertekent, zodat de locatie van het security.txt bestand ook digitaal ondertekend kan worden. Zie %s",
+	'admin:security:security_txt:policy' => "Beleid",
+	'admin:security:security_txt:policy:help' => "Een link naar een beleid waarin wordt beschreven wat beveiligingsonderzoekers moeten doen bij het zoeken naar of melden van beveiligingsproblemen. Vergeet niet 'https://' toe te voegen. Zie %s",
+	'admin:security:security_txt:hiring' => "Werken bij",
+	'admin:security:security_txt:hiring:help' => "Een link naar eventuele veiligheidsgerelateerde vacatures binnen uw organisatie. Vergeet niet 'https://' toe te voegen. Zie %s",
+	'admin:security:security_txt:csaf' => "CSAF",
+	'admin:security:security_txt:csaf:help' => "Een link naar de provider-metadata.json van uw CSAF-provider (Common Security Advisory Framework). Vergeet niet 'https://' toe te voegen. Zie %s",
 	
 	'admin:site:secret:regenerated' => "Het site secret is geregenereerd",
 	'admin:site:secret:prevented' => "Het genereren van een nieuw sitegeheim code werd geblokeerd",
@@ -1028,11 +1046,8 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
  * User settings
  */
 
-	'usersettings:description' => "Het paneel voor gebruikersinstellingen geeft je controle over al je persoonlijke instellingen: van gebruikersmanagement tot hoe plugins zijn geconfigureerd. Kies een optie om te beginnen.",
-
 	'usersettings:statistics' => "Jouw statistieken",
 	'usersettings:statistics:user' => "Statistieken van %s",
-	'usersettings:statistics:opt:description' => "Bekijk statistische gegevens van gebruikers en objecten op je site.",
 	'usersettings:statistics:opt:linktext' => "Accountstatistieken",
 
 	'usersettings:statistics:login_history' => "Aanmeldgeschiedenis",
@@ -1040,14 +1055,9 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	'usersettings:statistics:login_history:ip' => "IP Adres",
 
 	'usersettings:user' => "Instellingen van %s",
-	'usersettings:user:opt:description' => "Hier kun je je gebruikersinstellingen configureren.",
 	'usersettings:user:opt:linktext' => "Wijzig je instellingen",
 
-	'usersettings:plugins' => "Plugins",
-	'usersettings:plugins:opt:description' => "Configureer instellingen (als die er zijn) voor je actieve plugins.",
 	'usersettings:plugins:opt:linktext' => "Configureer je plugins",
-
-	'usersettings:plugins:description' => "Dit paneel staat je toe persoonlijke instellingen te maken voor plugins die door de sitebeheerder zijn geïnstalleerd.",
 	
 	'usersettings:statistics:yourdetails' => "Jouw details",
 	'usersettings:statistics:details:user' => "Details voor %s",
@@ -1058,7 +1068,6 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	'usersettings:statistics:label:membersince' => "Lid sinds",
 	'usersettings:statistics:label:numentities' => "Jouw inhoud",
 	
-	'usersettings:delayed_email' => "Uitgestelde e-mail instellingen",
 	'usersettings:delayed_email:interval' => "Frequentie voor uitgestelde e-mailnotificaties",
 	'usersettings:delayed_email:interval:help' => "Alle uitgestelde e-mailnotificaties worden afgeleverd in een gecombineerde email volgens de opgegeven frequentie.",
 
@@ -1071,9 +1080,7 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	'river:owner' => 'Activiteit van %s',
 	'river:friends' => 'Activiteit van vrienden',
 	'river:select' => 'Toon %s',
-	'river:comments:more' => '+%u meer',
 	'river:comments:all' => 'Bekijk alle %u reacties',
-	'river:generic_comment' => 'reageerde op %s %s',
 
 /**
  * Icons
@@ -1090,9 +1097,14 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	'entity:edit:icon:crop_messages:generic' => "De geselecteerde afbeelding voldoet niet aan de aanbevolen afmetingen van de afbeelding. Het resultaat hiervan kan lage kwaliteit iconen zijn.",
 	'entity:edit:icon:crop_messages:width' => "Het is aanbevolen om een afbeelding met een minimale breedte van tenminste %dpx te gebruiken.",
 	'entity:edit:icon:crop_messages:height' => "Het is aanbevolen om een afbeelding met een minimale hoogte van tenminste %dpx te gebruiken.",
+	'entity:edit:icon:crop:img:alt' => "Geüploade afbeelding",
 	'entity:edit:icon:file:label' => "Upload een nieuw icoon",
 	'entity:edit:icon:file:help' => "Laat dit leeg om het huidige icoon te behouden.",
 	'entity:edit:icon:remove:label' => "Verwijder het icoon",
+
+	'entity:edit:header:file:label' => "Upload een nieuwe kopafbeelding",
+	'entity:edit:header:file:help' => "Laat dit leeg om de huidige afbeelding te behouden",
+	'entity:edit:header:remove:label' => "Verwijder kopafbeelding",
 
 /**
  * Generic action words
@@ -1102,6 +1114,8 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	'save_go' => "Opslaan en doorgaan naar %s",
 	'reset' => 'Reset',
 	'publish' => "Publiceer",
+	'feature' => "Aanraden",
+	'unfeature' => "Afraden",
 	'cancel' => "Annuleren",
 	'saving' => "Bezig met opslaan ...",
 	'update' => "Wijzig",
@@ -1205,8 +1219,12 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	
 	'list:out_of_bounds' => "Je bent op een deel van de lijst gekomen zonder content, echter is er wel content beschikbaar.",
 	'list:out_of_bounds:link' => "Terug naar de eerste pagina",
+	'list:error:getter:user' => 'Fout opgetreden tijdens het ophalen van de content',
+	'list:error:getter:admin' => "De getter '%s' resulteerde in een '%s', echter de viewer '%s' vereist een array",
 
 	'link:text' => 'bekijk link',
+	
+	'scroll_to_top' => 'Scroll naar boven',
 
 /**
  * Generic questions
@@ -1404,10 +1422,6 @@ Nadat je bent aangemeld raden we je aan je wachtwoord te wijzigen.',
 	'installation:sitename' => "De naam van je site (bijvoorbeeld 'Mijn sociale netwerksite'):",
 	'installation:sitedescription' => "Korte omschrijving van je site (optioneel)",
 	'installation:sitedescription:help' => "Met de gebundelde plugins zal dit enkel verschijnen in de 'description' meta-tag voor zoekmachine resultaten.",
-	'installation:wwwroot' => "De site-URL, gevolgd door een slash:",
-	'installation:path' => "Het volledige pad naar de hoofdmap van de site op de schijf, gevolgd door een slash:",
-	'installation:dataroot' => "Het volledige pad naar de map waar de uploads worden opgeslagen, gevolgd door een slash:",
-	'installation:dataroot:warning' => "Je moet deze map handmatig aanmaken. Je plaatst de map <strong>buiten</strong> de mapstructuur van de Elgg-installatie!",
 	'installation:sitepermissions' => "Het standaard toegangsniveau:",
 	'installation:language' => "De standaardtaal voor de site:",
 	'installation:debug' => "Debug mode geeft extra informatie die gebruikt kan worden om fouten te achterhalen. Let op: dit vertraagt het systeem! Gebruik dit alleen als je problemen ondervindt. ",
@@ -1428,8 +1442,6 @@ Nadat je bent aangemeld raden we je aan je wachtwoord te wijzigen.',
 	'installation:adminvalidation:notification:direct' => 'Direct',
 	'installation:walled_garden:description' => 'Maak van deze site een privénetwerk. Dit zorgt ervoor dat niet-aangemelde gebruikers niets kunnen zien van deze site, tenzij inhoud die geplaatst wordt specifiek publiekelijk is gedeeld.',
 	'installation:walled_garden:label' => 'Alleen aangemelde gebruikers mogen pagina\'s zien.',
-
-	'installation:view' => "Geeft de view op die standaard wordt gebruikt binnen de site, of laat het leeg voor de standaardview. Bij twijfel, laat de standaard staan!",
 
 	'installation:siteemail' => "Site e-mailadres (dit wordt gebruikt voor het verzenden van systeem e-mails):",
 	'installation:siteemail:help' => "Waarschuwing: Gebruik geen e-mailadres dat geassocieerd is met andere third-party diensten, zoals een helpdesk systeem, die overweg kan met inkomende emailberichten, aangezien dat een risico bevat dat er onbedoelde privé informatie gedeeld kan worden. Idealiter is een e-mailadres gewenst dat enkel voor deze website gebruikt zal worden.",
@@ -1476,6 +1488,7 @@ Nadat je bent aangemeld raden we je aan je wachtwoord te wijzigen.',
 	'config:users:remove_unvalidated_users_days:help' => "Ongevalideerde gebruikers zullen automatisch worden verwijderd na het opgegeven aantal dagen. Indien dit leeg wordt gelaten zullen de gebruikers niet automatisch worden verwijderd.",
 	'config:users:can_change_username' => "Sta gebruikers toe om hun gebruikersnaam te wijzigen",
 	'config:users:can_change_username:help' => "Indien het niet is toegestaan kan alleen een beheerder de gebruikersnaam van een gebruiker wijzigen",
+	'config:users:user_joined_river' => "Meldt het op de activiteitenstroom wanneer een gebruiker lid wordt van de site",
 	'config:remove_branding:label' => "Verwijder Elgg uitingen",
 	'config:remove_branding:help' => "Overal op de website zijn er verschillende links en logo's welke aantonen dat de website is gemaakt middels Elgg. Als je de uitingen verwijderd overweeg om een donatie te doen op https://elgg.org/about/supporters",
 	'config:disable_rss:label' => "Schakel RSS feeds uit",
@@ -1497,6 +1510,10 @@ Nadat je bent aangemeld raden we je aan je wachtwoord te wijzigen.',
 	'config:content:pagination_behaviour:ajax-replace' => "Vervang de lijst met de nieuwe pagina zonder verversing",
 	'config:content:pagination_behaviour:ajax-append' => "Plaats nieuwe data vóór of achter de lijst",
 	'config:content:pagination_behaviour:ajax-append-auto' => "Plaats nieuwe data vóór of achter de lijst (automatisch bij scrollen)",
+	'config:content:mentions_display_format' => "Mentions weergave",
+	'config:content:mentions_display_format:help' => "Hoe moeten vermeldingen worden weergegeven in de inhoud",
+	'config:content:mentions_display_format:username' => "Gebruikersnaam",
+	'config:content:mentions_display_format:display_name' => "Weergavenaam",
 	'config:email' => "E-mail",
 	'config:email_html_part:label' => "Activeer HTML mail",
 	'config:email_html_part:help' => "Uitgaande mail een HTML template worden vorm gegeven",
@@ -1573,7 +1590,7 @@ Klik hier om naar het profile te gaan:
 	'email:resetpassword:body' => "Je wachtwoord is gereset naar: %s",
 
 	'email:changereq:subject' => "Aanvraag om het wachtwoord te wijzigen.",
-	'email:changereq:body' => "Iemand (van het IP adres %s) heeft een nieuw wachtwoord aangevraagd voor dit account.
+	'email:changereq:body' => "Iemand (vanaf het IP adres %s) heeft een nieuw wachtwoord aangevraagd voor dit account.
 
 Indien je dit zelf hebt aangevraagd, klik op onderstaande link. Anders negeer deze e-mail.
 
@@ -1672,6 +1689,12 @@ Om te reageren of het originele item te bekijken, klik hier:
 Om te reageren of het originele item te bekijken, klik hier:
 %s",
 
+	'notification:mentions:object:comment:subject' => '%s heeft je vermeld in een reactie',
+	'notification:mentions:object:comment:body' => '%1$sheeft je vermeld in een reactie.
+
+Bekijk de volledige reactie hier:
+%3$s',
+
 /**
  * Entities
  */
@@ -1738,7 +1761,7 @@ Generated %s by %s
 
 ',
 	'diagnostics:report:basic' => '
-Elgg Release %s, version %s
+Elgg Release %s
 
 ------------------------------------------------------------------------',
 	'diagnostics:report:php' => '
@@ -1760,7 +1783,38 @@ Global variables:
  * Miscellaneous
  */
 	'elgg:powered' => "Aangedreven door Elgg",
-	
+	'field:required' => "Vereist",
+
+/**
+ * Accessibility
+ */
+	'aria:label:admin:users:search' => "Gebruikers zoeken",
+
+	'menu:admin_footer:header' => "Beheer footer",
+	'menu:admin_header:header' => "Beheer header",
+	'menu:admin:users:bulk:header' => "Bulk gebruikers acties",
+	'menu:annotation:header' => "Annotatie",
+	'menu:breadcrumbs:header' => "Broodkruimelpad",
+	'menu:comments:header' => "Reacties",
+	'menu:entity:header' => "Entiteit",
+	'menu:entity_navigation:header' => "Entiteit navigatie",
+	'menu:filter:header' => "Filter",
+	'menu:footer:header' => "Footer",
+	'menu:login:header' => "Aanmelden",
+	'menu:owner_block:header' => "Eigenaar blok",
+	'menu:page:header' => "Pagina",
+	'menu:relationship:header' => "Relatie",
+	'menu:river:header' => "River",
+	'menu:site:header' => "Site",
+	'menu:social:header' => "Sociaal",
+	'menu:title:header' => "Titel",
+	'menu:title:widgets:header' => "Widget beheer",
+	'menu:topbar:header' => "Topbar",
+	'menu:user_hover:header' => "Gebruiker zweef",
+	'menu:user:unvalidated:header' => "Niet-gevalideerde gebruiker",
+	'menu:walled_garden:header' => "Privénetwerk",
+	'menu:widget:header' => "Widget beheer",
+
 /**
  * Cli commands
  */
@@ -1788,6 +1842,12 @@ Global variables:
 	'cli:database:seed:option:create_until' => "Een PHP time string om de bovengrens van het creatie tijdstip van seeded entities in te stellen",
 	'cli:database:seed:log:error:faker' => "Dit is een functionaliteit voor ontwikkelaars ten behoeve van testen. Gelieve dit niet voor andere doeleinden te gebruiken.",
 	'cli:database:seed:log:error:logged_in' => "Het seeden van de database behoort niet uitgevoerd te worden met een aangemelde gebruiker",
+	'cli:database:seed:ask:limit' => "Hoeveel items moeten er worden gecreëerd door de '%s' seeder",
+
+	'cli:database:seeders:description' => "Toon alle beschikbare database seeders met het huidige aantal gecreëerde entiteiten",
+	'cli:database:seeders:handler' => "Seed handler",
+	'cli:database:seeders:type' => "Seed type",
+	'cli:database:seeders:count' => "Gecreëerde aantal",
 	
 	'cli:database:unseed:description' => "Verwijder de nep entiteiten uit de database",
 	
@@ -1805,14 +1865,6 @@ Global variables:
 	'cli:plugins:list:option:status' => "Plugin status ( %s )",
 	'cli:plugins:list:option:refresh' => "Ververs de plugin lijst met recentelijk geïnstalleerde plugins",
 	'cli:plugins:list:error:status' => "%s is geen valide status. Toegestane opties zijn: %s",
-	
-	'cli:simpletest:description' => "Voer simpletest test suite uit (verouderd)",
-	'cli:simpletest:option:config' => "Pad naar settings bestand waarmee de Elgg Applicatie moet worden gestart",
-	'cli:simpletest:option:plugins' => "Een lijst van plugins die aan moeten staan voor de tests. Gebruik 'all' voor alle plugins",
-	'cli:simpletest:option:filter' => "Enkel tests uitvoeren die aan het filter voldoen",
-	'cli:simpletest:error:class' => "De Elgg applicatie moet geïnstalleerd worden met '%s'",
-	'cli:simpletest:error:file' => "%sis geen geldige simpletest class",
-	'cli:simpletest:output:summary' => "Duur: %.2fseconden, Geheugen: %.2fMb",
 	
 	'cli:upgrade:description' => "Start systeem upgrades",
 	'cli:upgrade:option:force' => "Forceer upgrades om uit te voeren, ook al loopt er een andere upgrade.",
@@ -1889,7 +1941,6 @@ Global variables:
 	"id" => "Indonesian",
 	"ie" => "Interlingue",
 	"ik" => "Inupiak",
-	//"in" => "Indonesian",
 	"is" => "Icelandic",
 	"it" => "Italian",
 	"iu" => "Inuktitut",
@@ -1987,8 +2038,9 @@ Global variables:
 	"zh_hans" => "Vereenvoudigd Chinees",
 	"zu" => "Zulu",
 
-	"field:required" => 'Vereist',
-
+/**
+ * Upgrades
+ */
 	"core:upgrade:2017080900:title" => "Wijzig de database codering om multi-byte te ondersteunen",
 	"core:upgrade:2017080900:description" => "Wijzigt de database codering naar utf8mb4 om ondersteuning te bieden voor multi-byte karakters zoals emoji's",
 	
@@ -2009,4 +2061,7 @@ Global variables:
 	
 	'core:upgrade:2021060401:title' => "Voeg content eigenaren toe als abonnees op hun eigen content",
 	'core:upgrade:2021060401:description' => "Content eigenaren behoren geabonneerd te zijn op hun eigen content. Deze  upgrade zorgt dat dat voor oude content ook het geval is.",
+	
+	'core:upgrade:2023011701:title' => "Verwijder verweesde reacties",
+	'core:upgrade:2023011701:description' => "Er zijn in sommige gevallen reacties op reacties achtergebleven in de database. Deze upgrade zal deze opruimen.",
 );

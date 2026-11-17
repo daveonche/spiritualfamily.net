@@ -8,6 +8,7 @@
 
 use Elgg\Database\DbConfig;
 use Elgg\Http\Request;
+use Elgg\Router\RewriteTester;
 
 $icon_ok = elgg_view_icon('check');
 $icon_warning = elgg_view_icon('exclamation-triangle');
@@ -115,6 +116,7 @@ if ($client !== 'PDO MySQL Driver') {
 	$subtext = elgg_echo('admin:server:requirements:database:client:required');
 	$icon = $icon_error;
 }
+
 echo $view_module($icon, elgg_echo('admin:server:requirements:database:client'), $client, $subtext);
 
 // rewrite test
@@ -123,7 +125,7 @@ $url = elgg_http_add_url_query_elements(Request::REWRITE_TEST_TOKEN, [
 ]);
 $url = elgg_normalize_site_url($url);
 
-$tester = new ElggRewriteTester();
+$tester = new RewriteTester();
 
 $icon = $icon_ok;
 $title = elgg_echo('admin:server:requirements:rewrite');

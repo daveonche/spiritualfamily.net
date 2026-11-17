@@ -7,6 +7,7 @@ Elgg comes with a set of plugins. These provide the basic functionality for your
    :maxdepth: 1
    
    blog
+   ckeditor
    dashboard
    discussions
    file
@@ -25,10 +26,8 @@ The following plugins are also bundled with Elgg, but are not (yet) documented
 
 - activity
 - bookmarks
-- ckeditor
 - custom_index
 - developers
-- embed
 - externalpages
 - friends_collections
 - garbagecollector
@@ -38,4 +37,5 @@ The following plugins are also bundled with Elgg, but are not (yet) documented
 - search
 - system_log
 - tagcloud
+- theme_sandbox
 - web_services

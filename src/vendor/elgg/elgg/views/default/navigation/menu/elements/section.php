@@ -15,6 +15,7 @@ $items = elgg_extract('items', $vars, []);
 if (empty($items) || !is_array($items)) {
 	return;
 }
+
 unset($vars['items']);
 
 $headers = elgg_extract('show_section_headers', $vars, false);
@@ -38,10 +39,20 @@ if ($headers) {
 
 $lis = [];
 foreach ($items as $menu_item) {
-	$lis[] = elgg_view('navigation/menu/elements/item', [
+	$item = elgg_view('navigation/menu/elements/item', [
 		'item' => $menu_item,
 		'item_class' => $item_class,
 	]);
+	
+	if (empty($item)) {
+		continue;
+	}
+	
+	$lis[] = $item;
+}
+
+if (empty($lis)) {
+	return;
 }
 
 echo elgg_format_element('ul', $vars, implode(PHP_EOL, $lis));

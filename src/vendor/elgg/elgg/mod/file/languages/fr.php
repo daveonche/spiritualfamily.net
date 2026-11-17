@@ -8,6 +8,22 @@
 return array(
 
 	'item:object:file' => 'Fichier',
+	'item:object:file:application' => 'Application',
+	'item:object:file:archive' => 'Archive',
+	'item:object:file:excel' => 'Excel',
+	'item:object:file:image' => 'Image',
+	'item:object:file:music' => 'Musique',
+	'item:object:file:openoffice' => 'OpenOffice',
+	'item:object:file:pdf' => 'PDF',
+	'item:object:file:ppt' => 'PowerPoint',
+	'item:object:file:text' => 'Texte',
+	'item:object:file:vcard' => 'vCard',
+	'item:object:file:video' => 'Vidéo',
+	'item:object:file:word' => 'Word',
+	
+	'file:upgrade:2022092801:title' => 'Déplacer des fichiers',
+	'file:upgrade:2022092801:description' => 'Déplace les fichiers téléchargés qui utilisent le plugin "file" vers le dossier de l\'entité du fichier au lieu du dossier de l\'entité propriétaire.',
+	
 	'collection:object:file' => 'Fichiers',
 	'collection:object:file:all' => "Tous les fichiers du site",
 	'collection:object:file:owner' => "Fichiers de %s",
@@ -61,12 +77,14 @@ return array(
 
 	'file:notify:summary' => 'Nouveau fichier intitulé %s',
 	'file:notify:subject' => 'Nouveau fichier : %s',
-	'file:notify:body' => '%s a téléchargé un nouveau fichier : %s
+	'file:notify:body' => '%s a chargé un nouveau fichier : %s
 
 %s
 
 Afficher et commenter le fichier :
 %s',
+	
+	'notification:mentions:object:file:subject' => '%s vous a mentionné dans un fichier',
 
 	/**
 	 * Status messages

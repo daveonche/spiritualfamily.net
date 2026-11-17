@@ -8,16 +8,8 @@ use Elgg\UnitTestCase;
  * For elgg_get_metadata_from_id() to work with the mocks, the SQL query must be
  * an exact match, so any new commas, brackets and clauses need to be reflected in the
  * mock class.
- *
- * @group ElggMetadata
- * @group UnitTests
- * @group ElggData
  */
 class ElggMetadataUnitTest extends UnitTestCase {
-
-	public function up() {
-		_elgg_services()->metadataTable->setCurrentTime();
-	}
 
 	public function testExtenderConstructor() {
 
@@ -78,10 +70,10 @@ class ElggMetadataUnitTest extends UnitTestCase {
 
 		$this->assertInstanceOf(\ElggMetadata::class, $metadata);
 		
-		_elgg_services()->hooks->backup();
+		_elgg_services()->events->backup();
 
-		_elgg_services()->hooks->registerHandler('extender:url', 'metadata', function(\Elgg\Hook $hook) use ($metadata, $name) {
-			$extender = $hook->getParam('extender');
+		_elgg_services()->events->registerHandler('extender:url', 'metadata', function(\Elgg\Event $event) use ($metadata, $name) {
+			$extender = $event->getParam('extender');
 			$this->assertEquals($metadata, $extender);
 			if ($extender->getSubtype() == $name) {
 				return 'foo';
@@ -90,13 +82,13 @@ class ElggMetadataUnitTest extends UnitTestCase {
 
 		$this->assertEquals(elgg_normalize_url('foo'), $metadata->getURL());
 
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 	}
 
 	public function testCanSaveMetadata() {
 
 		$owner = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($owner);
+		_elgg_services()->session_manager->setLoggedInUser($owner);
 
 		$object = $this->createObject([
 			'owner_guid' => $owner->guid,
@@ -106,7 +98,6 @@ class ElggMetadataUnitTest extends UnitTestCase {
 		$metadata->entity_guid = $object->guid;
 		$metadata->name = 'foo';
 		$metadata->value = 'bar';
-		$metadata->time_created = _elgg_services()->metadataTable->getCurrentTime()->getTimestamp();
 
 		$this->assertTrue($metadata->save());
 		$this->assertGreaterThan(0, $metadata->id);
@@ -114,7 +105,7 @@ class ElggMetadataUnitTest extends UnitTestCase {
 	
 	public function testCanUpdateMetadata() {
 		$owner = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($owner);
+		_elgg_services()->session_manager->setLoggedInUser($owner);
 
 		$object = $this->createObject([
 			'owner_guid' => $owner->guid,
@@ -141,7 +132,7 @@ class ElggMetadataUnitTest extends UnitTestCase {
 	public function testCanDeleteMetadata() {
 
 		$owner = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($owner);
+		_elgg_services()->session_manager->setLoggedInUser($owner);
 
 		$object = $this->createObject([
 			'owner_guid' => $owner->guid,
@@ -202,7 +193,6 @@ class ElggMetadataUnitTest extends UnitTestCase {
 		$metadata->entity_guid = $object->guid;
 		$metadata->name = 'foo';
 		$metadata->value = 'bar';
-		$metadata->time_created = _elgg_services()->metadataTable->getCurrentTime()->getTimestamp();
 		$metadata->save();
 
 		$this->assertEquals($metadata->id, $metadata['id']);
@@ -215,12 +205,14 @@ class ElggMetadataUnitTest extends UnitTestCase {
 	}
 
 	public function testIsLoggable() {
+		$unsaved = new \ElggMetadata();
+		$this->assertEmpty($unsaved->getSystemLogID());
+		
 		$object = $this->createObject();
 		$metadata = new ElggMetadata();
 		$metadata->entity_guid = $object->guid;
 		$metadata->name = 'foo';
 		$metadata->value = 'bar';
-		$metadata->time_created = _elgg_services()->metadataTable->getCurrentTime()->getTimestamp();
 		$metadata->save();
 
 		$this->assertEquals($metadata->id, $metadata->getSystemLogID());

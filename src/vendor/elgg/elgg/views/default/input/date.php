@@ -23,8 +23,6 @@ use Elgg\Exceptions\DataFormatException;
 $vars['class'] = elgg_extract_class($vars, 'elgg-input-date');
 
 $defaults = [
-	'value' => '',
-	'disabled' => false,
 	'timestamp' => false,
 	'autocomplete' => 'off',
 	'type' => 'text',
@@ -60,6 +58,7 @@ if ($timestamp) {
 	if (!isset($vars['id'])) {
 		$vars['id'] = $name;
 	}
+	
 	echo elgg_view('input/hidden', [
 		'name' => $name,
 		'value' => $value_timestamp,

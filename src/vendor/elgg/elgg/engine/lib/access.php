@@ -14,14 +14,14 @@
  * @since 1.7.0
  */
 function elgg_get_ignore_access(): bool {
-	return _elgg_services()->session->getIgnoreAccess();
+	return _elgg_services()->session_manager->getIgnoreAccess();
 }
 
 /**
  * Returns an array of access IDs a user is permitted to see.
  *
- * Can be overridden with the 'access:collections:read', 'user' plugin hook.
- * @warning A callback for that plugin hook needs to either not retrieve data
+ * Can be overridden with the 'access:collections:read', 'user' event.
+ * @warning A callback for that event needs to either not retrieve data
  * from the database that would use the access system (triggering the plugin again)
  * or ignore the second call. Otherwise, an infinite loop will be created.
  *
@@ -45,7 +45,7 @@ function elgg_get_access_array(int $user_guid = 0): array {
  *
  * This returns the default access level for the site or optionally of the user.
  * If want you to change the default access based on group of other information,
- * use the 'default', 'access' plugin hook.
+ * use the 'default', 'access' event.
  *
  * @param \ElggUser $user         The user for whom we're getting default access. Defaults to logged in user.
  * @param array     $input_params Parameters passed into an input/access view
@@ -58,11 +58,11 @@ function elgg_get_default_access(\ElggUser $user = null, array $input_params = [
 	$default_access = (int) _elgg_services()->config->default_access;
 	
 	// default to logged in user
-	$user = $user ?? _elgg_services()->session->getLoggedInUser();
+	$user = $user ?? _elgg_services()->session_manager->getLoggedInUser();
 	
 	// user default access if enabled
 	if (_elgg_services()->config->allow_user_default_access && $user instanceof \ElggUser) {
-		$user_access = $user->getPrivateSetting('elgg_default_access');
+		$user_access = $user->elgg_default_access;
 		if ($user_access !== null) {
 			$default_access = (int) $user_access;
 		}
@@ -73,7 +73,7 @@ function elgg_get_default_access(\ElggUser $user = null, array $input_params = [
 		'default_access' => $default_access,
 		'input_params' => $input_params,
 	];
-	return _elgg_services()->hooks->trigger('default', 'access', $params, $default_access);
+	return (int) _elgg_services()->events->triggerResults('default', 'access', $params, $default_access);
 }
 
 /**
@@ -113,7 +113,7 @@ function elgg_has_access_to_entity(int $entity_guid, int $user_guid = 0): bool {
  *    34 => 'My favorite friends',
  * );
  *
- * Plugin hook of 'access:collections:write', 'user'
+ * Event of 'access:collections:write', 'user'
  *
  * @warning this only returns access collections that the user owns plus the
  * standard access levels. It does not return access collections that the user
@@ -135,7 +135,7 @@ function elgg_get_write_access_array(int $user_guid = 0, bool $flush = false, ar
  *
  * Access colletions allow plugins and users to create granular access for entities.
  *
- * Triggers plugin hook 'access:collections:addcollection', 'collection'
+ * Triggers 'create', 'access_collection' event sequence
  *
  * @param string $name       The name of the collection
  * @param int    $owner_guid The GUID of the owner (default: currently logged in user)
@@ -145,12 +145,12 @@ function elgg_get_write_access_array(int $user_guid = 0, bool $flush = false, ar
  * @since 4.3
  */
 function elgg_create_access_collection(string $name, int $owner_guid = 0, string $subtype = null): ?\ElggAccessCollection {
-	$acl_id = _elgg_services()->accessCollections->create($name, $owner_guid, $subtype);
-	if (!isset($acl_id)) {
-		return null;
-	}
+	$acl = new \ElggAccessCollection();
+	$acl->name = $name;
+	$acl->owner_guid = $owner_guid ?: _elgg_services()->session_manager->getLoggedInUserGuid();
+	$acl->subtype = $subtype;
 	
-	return _elgg_services()->accessCollections->get($acl_id);
+	return $acl->save() ? $acl : null;
 }
 
 /**
@@ -172,7 +172,7 @@ function elgg_get_access_collection(int $collection_id): ?\ElggAccessCollection 
  *
  * @return \ElggAccessCollection[]
  */
-function elgg_get_access_collections(array $options = []) {
+function elgg_get_access_collections(array $options = []): array {
 	return _elgg_services()->accessCollections->getEntityCollections($options);
 }
 

@@ -3,8 +3,6 @@
  * Procedural code for creating, loading, and modifying \ElggEntity objects.
  */
 
-use Elgg\Exceptions\InvalidParameterException;
-use Elgg\Database\Clauses\OrderByClause;
 use Elgg\Database\Select;
 
 /**
@@ -17,7 +15,7 @@ use Elgg\Database\Select;
  *
  * @return string
  */
-function elgg_get_entity_class($type, $subtype) {
+function elgg_get_entity_class(string $type, string $subtype): string {
 	return _elgg_services()->entityTable->getEntityClass($type, $subtype);
 }
 
@@ -40,7 +38,7 @@ function elgg_get_entity_class($type, $subtype) {
  *
  * @return void
  */
-function elgg_set_entity_class($type, $subtype, $class = "") {
+function elgg_set_entity_class(string $type, string $subtype, string $class = ''): void {
 	_elgg_services()->entityTable->setEntityClass($type, $subtype, $class);
 }
 
@@ -53,9 +51,9 @@ function elgg_set_entity_class($type, $subtype, $class = "") {
  *
  * @param int $guid The GUID of the object to extract
  *
- * @return \stdClass|false
+ * @return \stdClass|null
  */
-function elgg_get_entity_as_row(int $guid) {
+function elgg_get_entity_as_row(int $guid): ?\stdClass {
 	return _elgg_services()->entityTable->getRow($guid);
 }
 
@@ -64,12 +62,13 @@ function elgg_get_entity_as_row(int $guid) {
  *
  * @param int $guid The GUID of the entity
  *
- * @return \ElggEntity|false The correct Elgg or custom object based upon entity type and subtype
+ * @return null|\ElggEntity The correct Elgg or custom object based upon entity type and subtype
  */
-function get_entity($guid) {
-	if ($guid == 1) {
+function get_entity(int $guid): ?\ElggEntity {
+	if ($guid === 1) {
 		return _elgg_services()->config->site;
 	}
+	
 	return _elgg_services()->entityTable->get($guid);
 }
 
@@ -86,7 +85,7 @@ function get_entity($guid) {
  * @return bool
  * @since 1.8.0
  */
-function elgg_entity_exists($guid) {
+function elgg_entity_exists(int $guid): bool {
 	return _elgg_services()->entityTable->exists($guid);
 }
 
@@ -96,7 +95,7 @@ function elgg_entity_exists($guid) {
  * @return \ElggSite
  * @since 1.8.0
  */
-function elgg_get_site_entity() {
+function elgg_get_site_entity(): \ElggSite {
 	return _elgg_services()->config->site;
 }
 
@@ -256,7 +255,7 @@ function elgg_get_site_entity() {
  * Annotation name value pairs will be joined by the boolean specified in $annotation_name_value_pairs_operator
  * @option array                $annotation_name_value_pairs
  * @option string               $annotation_name_value_pairs_operator
- **
+ *
  * <code>
  * $options['annotation_name_value_pairs'] = [
  *    [
@@ -311,36 +310,6 @@ function elgg_get_site_entity() {
  * ];
  * </code>
  *
- * ----------------------------
- * PRIVATE SETTINGS CONSTRAINTS
- * ----------------------------
- *
- * Filter entities by their private settings
- *
- * The following options will be merged and applied as a private_setting pair to
- * $options['private_setting_name_value_pairs']
- * @option int[]                $private_setting_ids
- * @option string[]             $private_setting_names
- * @option mixed                $private_setting_values
- * @option bool                 $private_setting_case_sensitive
- *
- * Private name value pairs will be joined by the boolean specified in $private_setting_name_value_pairs_operator
- * @option array                $private_setting_name_value_pairs
- * @option string               $private_setting_name_value_pairs_operator
- *
- * Setting names in all pairs can be namespaced using the prefix
- * @option string               $private_setting_name_prefix
- *
- * <code>
- * $options['private_setting_name_value_pairs'] = [
- *    [
- *       'name' => 'handler',
- *       'value' => ['admin', 'dashboard'],
- *       'operand' => 'IN',
- *    ],
- * ];
- * </code>
- *
  * -------
  * SORTING
  * -------
@@ -356,14 +325,14 @@ function elgg_get_site_entity() {
  * Order by arbitrary clauses
  * @option array $order_by
  *
- * Order by attribute/annotation/metadata/private setting
+ * Order by attribute/annotation/metadata
  * @option sort_by an array of sorting definitions
  *
  * <code>
  *
  * $sort_by = new \Elgg\Database\Clauses\EntitySortByClause();
  * $sort_by->property = 'private';
- * $sort_by->property_type = 'private_setting';
+ * $sort_by->property_type = 'metadata';
  * $sort_by->join_type = 'left';
  *
  * $fallback = new \Elgg\Database\Clauses\OrderByClause('e.time_created', 'desc');
@@ -399,12 +368,6 @@ function elgg_get_site_entity() {
  * 			'property' => 'priority',
  * 			'direction' => 'ASC',
  * 			'signed' => true,
- * 		],
- * 		[
- * 			'property_type' => 'private_setting',
- * 			'property' => 'some_name',
- * 			'direction' => 'ASC',
- * 			'signed' => true, // treat the value as an integer
  * 		],
  * 		[
  * 			'property_type' => 'relationship',
@@ -519,10 +482,6 @@ function elgg_get_site_entity() {
  *                                        all the containers of the returned entities resulting in better
  *                                        performance when displaying entities contained by several users/groups
  *                                        Default: false
- * @option bool $preload_private_settings If set to true, this function will preload
- *                                        all the private settings of the returned entities resulting in better
- *                                        performance when displaying entities where private settings are often used, such as widgets
- *                                        Default: false
  * @option bool $batch                    If set to true, an \ElggBatch object will be returned instead of an array.
  *                                        Default: false
  * @option bool $batch_inc_offset         If "batch" is used, this tells the batch to increment the offset
@@ -553,7 +512,7 @@ function elgg_get_entities(array $options = []) {
  *
  * @return int
  */
-function elgg_count_entities(array $options = []) {
+function elgg_count_entities(array $options = []): int {
 	$options['count'] = true;
 	
 	return (int) elgg_get_entities($options);
@@ -586,9 +545,10 @@ function elgg_count_entities(array $options = []) {
  * @see elgg_get_entities()
  * @see elgg_view_entity_list()
  */
-function elgg_list_entities(array $options = [], $getter = 'elgg_get_entities', $viewer = 'elgg_view_entity_list') {
-
-	$offset_key = isset($options['offset_key']) ? $options['offset_key'] : 'offset';
+function elgg_list_entities(array $options = [], callable $getter = null, callable $viewer = null): string {
+	$getter = $getter ?? 'elgg_get_entities'; // callables only support default NULL value
+	$viewer = $viewer ?? 'elgg_view_entity_list'; // callables only support default NULL value
+	$offset_key = $options['offset_key'] ?? 'offset';
 
 	$defaults = [
 		'offset' => (int) max(get_input($offset_key, 0), 0),
@@ -607,15 +567,16 @@ function elgg_list_entities(array $options = [], $getter = 'elgg_get_entities', 
 	if ($options['register_rss_link']) {
 		elgg_register_rss_link();
 	}
-	
-	if ($options['no_results'] === true) {
-		// @todo remove this conversion in 5.0 in favour of page/components/no_results
-		$options['no_results'] = elgg_echo('notfound');
-	}
 
 	$options['count'] = false;
 	$entities = call_user_func($getter, $options);
 	$options['count'] = is_array($entities) ? count($entities) : 0;
+	
+	if (!is_array($entities) && $viewer === 'elgg_view_entity_list') {
+		elgg_log(elgg_echo('list:error:getter:admin', [$getter, gettype($entities), $viewer]), 'ERROR');
+		
+		return elgg_echo('list:error:getter:user');
+	}
 	
 	if (!empty($entities) || !empty($options['offset'])) {
 		$count_needed = true;
@@ -646,10 +607,10 @@ function elgg_list_entities(array $options = [], $getter = 'elgg_get_entities', 
  *
  * @param array $options all entity options supported by {@see elgg_get_entities()}
  *
- * @return array|false Either an array months as YYYYMM, or false on failure
+ * @return array An array months as YYYYMM
  * @since 3.0
  */
-function elgg_get_entity_dates(array $options = []) {
+function elgg_get_entity_dates(array $options = []): array {
 	return \Elgg\Database\Entities::with($options)->getDates();
 }
 
@@ -668,7 +629,6 @@ function elgg_get_entity_dates(array $options = []) {
  * 			'attributes' => ['some attribute', 'some other attribute'],
  *	 		'metadata' => ['some metadata name', 'some other metadata name'],
  * 			'annotations' => ['some annotation name', 'some other annotation name'],
- * 			'private_settings' => ['some private_setting name', 'some other private_setting name'],
  * 		]
  * @option bool   $partial_match Allow partial matches, e.g. find 'elgg' when search for 'el'
  * @option bool   $tokenize      Break down search query into tokens,
@@ -681,7 +641,7 @@ function elgg_get_entity_dates(array $options = []) {
 function elgg_search(array $options = []) {
 	try {
 		return _elgg_services()->search->search($options);
-	} catch (InvalidParameterException $e) {
+	} catch (\Elgg\Exceptions\DomainException $e) {
 		return false;
 	}
 }

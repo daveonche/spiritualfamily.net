@@ -5,9 +5,6 @@ namespace Elgg\Views;
 use Elgg\Project\Paths;
 use Elgg\UnitTestCase;
 
-/**
- * @group ViewsService
- */
 class CoreViewStackUnitTest extends UnitTestCase {
 
 	public function up() {
@@ -63,7 +60,7 @@ class CoreViewStackUnitTest extends UnitTestCase {
 
 		$view_list = _elgg_services()->views->getViewList($view);
 		$this->assertNotEmpty($view_list);
-		$this->assertEquals(count($view_list) > 1, _elgg_services()->views->viewIsExtended($view));
+		$this->assertEquals(count($view_list) > 1, !empty(elgg_get_view_extensions($view)));
 
 		$this->assertEquals($is_simplecache_view, _elgg_services()->views->isCacheableView($view));
 	}

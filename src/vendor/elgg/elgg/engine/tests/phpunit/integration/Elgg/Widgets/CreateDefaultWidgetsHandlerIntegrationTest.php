@@ -12,9 +12,7 @@ class CreateDefaultWidgetsHandlerIntegrationTest extends IntegrationTestCase {
 	 * @var \ElggUser
 	 */
 	var $user;
-	
-	var $default_widgets_hook;
-	
+		
 	/**
 	 * {@inheritDoc}
 	 * @see \Elgg\BaseTestCase::up()
@@ -22,11 +20,23 @@ class CreateDefaultWidgetsHandlerIntegrationTest extends IntegrationTestCase {
 	public function up() {
 		$this->user = $this->createUser();
 
-		_elgg_services()->session->setLoggedInUser($this->user);
-
-		elgg_register_widget_type('test_default_widget1', 'Default Widget 1', '', ['test_context', 'bar_context']);
-		elgg_register_widget_type('test_default_widget2', 'Default Widget 2', '', ['test_context', 'bar_context']);
-		elgg_register_widget_type('test_default_widget3', 'Default Widget 3', '', ['test_context', 'bar_context']);
+		_elgg_services()->session_manager->setLoggedInUser($this->user);
+	
+		elgg_register_widget_type([
+			'id' => 'test_default_widget1',
+			'name' => 'Default Widget 1',
+			'context' => ['test_context', 'bar_context'],
+		]);
+		elgg_register_widget_type([
+			'id' => 'test_default_widget2',
+			'name' => 'Default Widget 2',
+			'context' => ['test_context', 'bar_context'],
+		]);
+		elgg_register_widget_type([
+			'id' => 'test_default_widget3',
+			'name' => 'Default Widget 3',
+			'context' => ['test_context', 'bar_context'],
+		]);
 		
 		$this->default_widgets = elgg_call(ELGG_IGNORE_ACCESS, function() {
 			return [
@@ -58,8 +68,8 @@ class CreateDefaultWidgetsHandlerIntegrationTest extends IntegrationTestCase {
 	public function testDefaultWidgetsCreatedOnEvent() {
 		elgg_register_event_handler('widgets:test', 'user', CreateDefaultWidgetsHandler::class);
 		
-		$test_hook = $this->registerTestingHook('get_list', 'default_widgets', function(\Elgg\Hook $hook) {
-			$return = $hook->getValue();
+		$test_event = $this->registerTestingEvent('get_list', 'default_widgets', function(\Elgg\Event $event) {
+			$return = $event->getValue();
 			$return[] = [
 				'widget_context' => 'test_context',
 				
@@ -76,8 +86,8 @@ class CreateDefaultWidgetsHandlerIntegrationTest extends IntegrationTestCase {
 			'type' => 'object',
 			'subtype' => 'widget',
 			'owner_guid' => $this->user->guid,
-			'private_setting_name' => 'context',
-			'private_setting_value' => 'test_context',
+			'metadata_name' => 'context',
+			'metadata_value' => 'test_context',
 			'limit' => false,
 		];
 		
@@ -85,11 +95,11 @@ class CreateDefaultWidgetsHandlerIntegrationTest extends IntegrationTestCase {
 		
 		elgg_trigger_event('widgets:test', 'user', $this->user);
 		
-		$test_hook->assertNumberOfCalls(1);
+		$test_event->assertNumberOfCalls(1);
 		
-		// triggering event twice should not trigger default widgets hook twice
+		// triggering event twice should not trigger default widgets event twice
 		elgg_trigger_event('widgets:test', 'user', $this->user);
-		$test_hook->assertNumberOfCalls(1);
+		$test_event->assertNumberOfCalls(1);
 		
 		$widgets = elgg_get_entities($widget_options);
 		
@@ -112,8 +122,8 @@ class CreateDefaultWidgetsHandlerIntegrationTest extends IntegrationTestCase {
 	public function testDefaultWidgetsNotCreatedIfWidgetsAlreadyExist() {
 		elgg_register_event_handler('widgets:test2', 'user', CreateDefaultWidgetsHandler::class);
 		
-		$test_hook = $this->registerTestingHook('get_list', 'default_widgets', function(\Elgg\Hook $hook) {
-			$return = $hook->getValue();
+		$test_event = $this->registerTestingEvent('get_list', 'default_widgets', function(\Elgg\Event $event) {
+			$return = $event->getValue();
 			$return[] = [
 				'widget_context' => 'test_context',
 				
@@ -130,8 +140,8 @@ class CreateDefaultWidgetsHandlerIntegrationTest extends IntegrationTestCase {
 			'type' => 'object',
 			'subtype' => 'widget',
 			'owner_guid' => $this->user->guid,
-			'private_setting_name' => 'context',
-			'private_setting_value' => 'test_context',
+			'metadata_name' => 'context',
+			'metadata_value' => 'test_context',
 			'limit' => false,
 		];
 		
@@ -143,7 +153,7 @@ class CreateDefaultWidgetsHandlerIntegrationTest extends IntegrationTestCase {
 		
 		elgg_trigger_event('widgets:test2', 'user', $this->user);
 		
-		$test_hook->assertNumberOfCalls(1);
+		$test_event->assertNumberOfCalls(1);
 		
 		$this->assertEquals(1, elgg_count_entities($widget_options));
 	}

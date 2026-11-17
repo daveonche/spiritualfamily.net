@@ -52,7 +52,7 @@ class Search {
 	 * @return array
 	 */
 	public function getTypeSubtypePairs() {
-		return elgg_trigger_plugin_hook('search:config', 'type_subtype_pairs', $this->params, elgg_entity_types_with_capability('searchable'));
+		return elgg_trigger_event_results('search:config', 'type_subtype_pairs', $this->params, elgg_entity_types_with_capability('searchable'));
 	}
 
 	/**
@@ -61,7 +61,7 @@ class Search {
 	 * @return array
 	 */
 	public function getSearchTypes() {
-		return elgg_trigger_plugin_hook('search:config', 'search_types', $this->params, []);
+		return elgg_trigger_event_results('search:config', 'search_types', $this->params, []);
 	}
 
 	/**
@@ -120,9 +120,8 @@ class Search {
 	 */
 	protected function initParams(array $params = []) {
 
-		// $search_type == all || entities || trigger plugin hook
+		// $search_type == all || entities || trigger event
 		$search_type = get_input('search_type', 'all');
-		$partial_match = true;
 		$fields = get_input('fields');
 		
 		$query = get_input('q', get_input('tag', ''));
@@ -171,8 +170,6 @@ class Search {
 					'property' => 'last_action',
 					'direction' => $order,
 				];
-				$sort = null;
-				$order = null;
 				break;
 
 			case 'created':
@@ -182,8 +179,6 @@ class Search {
 					'property' => 'time_created',
 					'direction' => $order,
 				];
-				$sort = null;
-				$order = null;
 				break;
 
 			case 'updated':
@@ -192,18 +187,14 @@ class Search {
 					'property' => 'time_updated',
 					'direction' => $order,
 				];
-				$sort = null;
-				$order = null;
 				break;
 
-			case 'alpha' :
+			case 'alpha':
 				$sort_by[] = [
 					'property_type' => 'metadata',
 					'property' => $entity_type === 'object' ? 'title' : 'name',
 					'direction' => get_input('order', 'asc'), // different default value
 				];
-				$sort = null;
-				$order = null;
 				break;
 		}
 
@@ -212,11 +203,9 @@ class Search {
 			'offset' => $offset,
 			'limit' => $limit,
 			'sort_by' => $sort_by,
-			'sort' => $sort, // deprecated
-			'order' => $order, // deprecated
 			'search_type' => $search_type,
 			'fields' => $fields,
-			'partial_match' => $partial_match,
+			'partial_match' => true,
 			'tokenize' => $tokenize,
 			'type' => $entity_type,
 			'subtype' => $entity_subtype,
@@ -235,6 +224,7 @@ class Search {
 			// no fields provided by input, so unset the magic fields from normalilzation
 			unset($this->params['fields']);
 		}
+		
 		unset($this->params['_elgg_search_service_normalize_options']);
 	}
 }

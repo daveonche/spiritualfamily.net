@@ -3,19 +3,14 @@
  * View a file
  */
 
-$guid = elgg_extract('guid', $vars);
+$guid = (int) elgg_extract('guid', $vars);
 
 elgg_entity_gatekeeper($guid, 'object', 'file');
 
 /* @var $file \ElggFile */
 $file = get_entity($guid);
 
-elgg_push_entity_breadcrumbs($file, false);
-
-$content = elgg_view_entity($file, [
-	'full_view' => true,
-	'show_responses' => true,
-]);
+elgg_push_entity_breadcrumbs($file);
 
 if ($file->canDownload()) {
 	elgg_register_menu_item('title', [
@@ -28,7 +23,10 @@ if ($file->canDownload()) {
 }
 
 echo elgg_view_page($file->getDisplayName(), [
-	'content' => $content,
+	'content' => elgg_view_entity($file, [
+		'full_view' => true,
+		'show_responses' => true,
+	]),
 	'entity' => $file,
 	'filter_id' => 'file/view',
 ]);

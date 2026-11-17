@@ -2,8 +2,8 @@
 
 namespace Elgg\Router;
 
-use Elgg\Exceptions\InvalidParameterException;
-use Elgg\PluginHooksService;
+use Elgg\EventsService;
+use Elgg\Exceptions\InvalidArgumentException;
 use Elgg\Router\Middleware\MaintenanceGatekeeper;
 use Elgg\Router\Middleware\WalledGarden;
 use Elgg\Traits\Loggable;
@@ -18,9 +18,9 @@ class RouteRegistrationService {
 	use Loggable;
 
 	/**
-	 * @var PluginHooksService
+	 * @var EventsService
 	 */
-	protected $hooks;
+	protected $events;
 
 	/**
 	 * @var RouteCollection
@@ -35,16 +35,16 @@ class RouteRegistrationService {
 	/**
 	 * Constructor
 	 *
-	 * @param PluginHooksService $hooks     Hook service
-	 * @param RouteCollection    $routes    Route collection
-	 * @param UrlGenerator       $generator URL Generator
+	 * @param EventsService   $events    Events service
+	 * @param RouteCollection $routes    Route collection
+	 * @param UrlGenerator    $generator URL Generator
 	 */
 	public function __construct(
-		PluginHooksService $hooks,
+		EventsService $events,
 		RouteCollection $routes,
 		UrlGenerator $generator
 	) {
-		$this->hooks = $hooks;
+		$this->events = $events;
 		$this->routes = $routes;
 		$this->generator = $generator;
 	}
@@ -69,11 +69,11 @@ class RouteRegistrationService {
 	 *                       - methods : HTTP methods
 	 *
 	 * @return Route
-	 * @throws InvalidParameterException
+	 * @throws InvalidArgumentException
 	 */
-	public function register($name, array $params = []) {
+	public function register(string $name, array $params = []): Route {
 
-		$params = $this->hooks->trigger('route:config', $name, $params, $params);
+		$params = $this->events->triggerResults('route:config', $name, $params, $params);
 
 		$path = elgg_extract('path', $params);
 		$controller = elgg_extract('controller', $params);
@@ -85,10 +85,10 @@ class RouteRegistrationService {
 		$deprecated = elgg_extract('deprecated', $params, '');
 		$required_plugins = elgg_extract('required_plugins', $params, []);
 		$detect_page_owner = (bool) elgg_extract('detect_page_owner', $params, false);
-		$legacy_page_owner_detection = (bool) elgg_extract('legacy_page_owner_detection', $params, true);
+		$priority = (int) elgg_extract('priority', $params);
 
 		if (!$path || (!$controller && !$resource && !$handler && !$file)) {
-			throw new InvalidParameterException(
+			throw new InvalidArgumentException(
 				__METHOD__ . ' requires "path" and one of controller parameters ("resource", "controller", "file" or "handler") to be set'
 			);
 		}
@@ -148,13 +148,12 @@ class RouteRegistrationService {
 		$defaults['_middleware'] = $middleware;
 		$defaults['_required_plugins'] = $required_plugins;
 		$defaults['_detect_page_owner'] = $detect_page_owner;
-		$defaults['_legacy_page_owner_detection'] = $legacy_page_owner_detection;
 
 		$route = new Route($path, $defaults, $requirements, [
 			'utf8' => true,
 		], '', [], $methods);
 
-		$this->routes->add($name, $route);
+		$this->routes->add($name, $route, $priority);
 
 		return $route;
 	}
@@ -166,7 +165,7 @@ class RouteRegistrationService {
 	 *
 	 * @return void
 	 */
-	public function unregister($name) {
+	public function unregister(string $name): void {
 		$this->routes->remove($name);
 	}
 
@@ -177,7 +176,7 @@ class RouteRegistrationService {
 	 *
 	 * @return Route|null
 	 */
-	public function get($name) {
+	public function get(string $name): ?Route {
 		return $this->routes->get($name);
 	}
 
@@ -185,7 +184,7 @@ class RouteRegistrationService {
 	 * Get all registered routes
 	 * @return Route[]
 	 */
-	public function all() {
+	public function all(): array {
 		return $this->routes->all();
 	}
 
@@ -195,9 +194,9 @@ class RouteRegistrationService {
 	 * @param string $name       Route name
 	 * @param array  $parameters Query parameters
 	 *
-	 * @return false|string
+	 * @return string|null
 	 */
-	public function generateUrl($name, array $parameters = []) {
+	public function generateUrl(string $name, array $parameters = []): ?string {
 		try {
 			$route = $this->get($name);
 			if ($route instanceof Route) {
@@ -215,7 +214,7 @@ class RouteRegistrationService {
 			$this->getLogger()->notice($exception->getMessage());
 		}
 		
-		return false;
+		return null;
 	}
 
 	/**
@@ -227,7 +226,7 @@ class RouteRegistrationService {
 	 *
 	 * @return array|false
 	 */
-	public function resolveRouteParameters($name, \ElggEntity $entity = null, array $parameters = []) {
+	public function resolveRouteParameters(string $name, \ElggEntity $entity = null, array $parameters = []) {
 		$route = $this->routes->get($name);
 		if (!$route) {
 			return false;
@@ -238,7 +237,7 @@ class RouteRegistrationService {
 		$props = array_merge(array_keys($requirements), array_keys($defaults));
 
 		foreach ($props as $prop) {
-			if (substr($prop, 0, 1) === '_') {
+			if (str_starts_with($prop, '_')) {
 				continue;
 			}
 
@@ -252,12 +251,12 @@ class RouteRegistrationService {
 			}
 
 			switch ($prop) {
-				case 'title' :
-				case 'name' :
+				case 'title':
+				case 'name':
 					$parameters[$prop] = elgg_get_friendly_title($entity->getDisplayName());
 					break;
 
-				default :
+				default:
 					$parameters[$prop] = $entity->$prop;
 					break;
 			}

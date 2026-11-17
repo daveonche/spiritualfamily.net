@@ -22,13 +22,9 @@
  * @uses $vars['class']          Additional CSS class
  */
 
-$vars['class'] = elgg_extract_class($vars, [
-	'elgg-input-dropdown', // legacy class
-	'elgg-input-select',
-]);
+$vars['class'] = elgg_extract_class($vars, ['elgg-input-select']);
 
 $defaults = [
-	'disabled' => false,
 	'value' => '',
 ];
 
@@ -89,7 +85,7 @@ $vars['multiple'] = !empty($vars['multiple']);
 
 // Add trailing [] to name if multiple is enabled to allow the form to send multiple values
 if ($vars['multiple'] && !empty($vars['name']) && is_string($vars['name'])) {
-	if (substr($vars['name'], -2) != '[]') {
+	if (!str_ends_with($vars['name'], '[]')) {
 		$vars['name'] = elgg_extract('name', $vars) . '[]';
 	}
 }

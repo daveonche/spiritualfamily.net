@@ -3,8 +3,6 @@
  * Create or edit a page
  */
 
-elgg_make_sticky_form('page');
-
 $variables = elgg()->fields->get('object', 'page');
 $input = [];
 foreach ($variables as $field) {
@@ -15,6 +13,7 @@ foreach ($variables as $field) {
 	} else {
 		$input[$name] = get_input($name);
 	}
+	
 	if ($field['#type'] === 'tags') {
 		$input[$name] = elgg_string_to_array((string) $input[$name]);
 	}
@@ -34,6 +33,7 @@ if ($page_guid) {
 	if (!$page instanceof ElggPage || !$page->canEdit()) {
 		return elgg_error_response(elgg_echo('pages:cantedit'));
 	}
+	
 	$new_page = false;
 } else {
 	$page = new ElggPage();
@@ -41,7 +41,7 @@ if ($page_guid) {
 	$new_page = true;
 }
 
-if (sizeof($input) > 0) {
+if (count($input) > 0) {
 	// don't change access if not an owner/admin
 	$can_change_access = true;
 
@@ -53,6 +53,7 @@ if (sizeof($input) > 0) {
 		if (($name == 'access_id' || $name == 'write_access_id') && !$can_change_access) {
 			continue;
 		}
+		
 		if ($name == 'parent_guid') {
 			continue;
 		}
@@ -67,6 +68,7 @@ if (!$new_page && $parent_guid && $parent_guid !== $page_guid) {
 	while ($tree_page instanceof ElggPage && $page_guid !== $tree_page->guid) {
 		$tree_page = $tree_page->getParentEntity();
 	}
+	
 	// If is below, bring all child elements forward
 	if ($tree_page instanceof ElggPage && ($page_guid === $tree_page->guid)) {
 		$previous_parent = $page->getParentGUID();
@@ -90,13 +92,20 @@ if (!$new_page && $parent_guid && $parent_guid !== $page_guid) {
 }
 
 // set parent
-$page->setParentByGUID($parent_guid);
+if ($page->guid !== $parent_guid) {
+	// don't set parent to yourself
+	$page->setParentByGUID($parent_guid);
+}
 
 if (!$page->save()) {
 	return elgg_error_response(elgg_echo('pages:notsaved'));
 }
 
-elgg_clear_sticky_form('page');
+if (get_input('header_remove')) {
+	$page->deleteIcon('header');
+} else {
+	$page->saveIconFromUploadedFile('header', 'header');
+}
 
 // Now save description as an annotation
 $page->annotate('page', $page->description ?? '', $page->access_id);

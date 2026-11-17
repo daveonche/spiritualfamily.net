@@ -30,18 +30,12 @@ return array(
 	'APIException:InvalidCallMethod' => "%s muss mit '%s' aufgerufen werden.",
 	'APIException:CallMethodNotImplemented' => "Anfrage-Methode '%s' wird derzeit nicht unterstützt.",
 	'SecurityException:authenticationfailed' => "Der Benutzer konnte nicht authentifiziert werden.",
-	'SecurityException:DuplicateEmailUser' => "Kein eindeutiger Benutzer für angegebene Emailadresse gefunden. Token konnte daher nicht erzeugt werden.",
 	'SecurityException:BannedUser' => "Dieser Benutzeraccount ist derzeit gesperrt. Daher kann kein Token bereit gestellt werden.",
-	'InvalidParameterException:APIParametersArrayStructure' => "Die Parameter-Feldstruktur im Aufruf von Expose-Methode '%s' ist falsch.",
-	'InvalidParameterException:UnrecognisedHttpMethod' => "Unbekannte Http-Methode %s für API-Methode '%s'.",
 	'SecurityException:InvalidPostHash' => "POST-Daten-Hash ist ungültig - erwartet wurde %s aber %s erhalten.",
 	'SecurityException:DupePacket' => "Packet-Signatur ist schon von früher bekannt.",
 	'SecurityException:InvalidAPIKey' => "Ungültiger oder fehlender API-Schlüssel.",
 	'BadRequestException:MissingOutputViewInViewtype' => "Fehlende View 'api/output' für Viewtype '%s'.",
 	'BadRequestException:MissingOutputViewInViewtype:DataViewsPlugin' => "Installiere/aktiviere das 'data_views'-Plugin, um diese View hinzuzufügen.",
-	
-	'system.api.list' => "Liste alle im System verfügbaren API-Aufrufe auf.",
-	'auth.gettoken' => "Dieser API-Aufruf ermöglicht es einem Benutzer ein Authentifizierungs-Token zu beziehen, das für die Authentifizierung nachfolgender API-Aufrufe verwendet werden kann. Übergebe es als Parameter auth_token.",
 	
 	'admin:configure_utilities:webservices' => "Webservices",
 	'admin:configure_utilities:ws_list' => "API-Methoden anzeigen",

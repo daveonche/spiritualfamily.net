@@ -1,7 +1,7 @@
 /**
  * Likes module
  */
-define(['jquery', 'elgg', 'elgg/Ajax'], function ($, elgg, Ajax) {
+define(['jquery', 'elgg', 'elgg/Ajax', 'elgg/hooks'], function ($, elgg, Ajax, hooks) {
 
 	var ajax = new Ajax();
 
@@ -27,17 +27,21 @@ define(['jquery', 'elgg', 'elgg/Ajax'], function ($, elgg, Ajax) {
 		// warning: data is "live" and reflects changes from set_liked_state()
 		var data = $(this).data(),
 			guid = data.likesGuid,
-			current_state = data.likesState;
+			current_state = data.likesState,
+			$parent_menu = $(this).closest('.elgg-menu');
 
 		ajax.action(STATES[current_state].action, {
-			data: {guid: guid}
+			data: {guid: guid},
+			success: function() {
+				$parent_menu.find('.elgg-menu-item-likes > a[data-likes-guid=' + guid + ']').focus();
+			}
 		});
 
 		return false;
 	});
 
 	// Any Ajax operation can return likes data
-	elgg.register_hook_handler(Ajax.RESPONSE_DATA_HOOK, 'all', function (hook, type, params, value) {
+	hooks.register(Ajax.RESPONSE_DATA_HOOK, 'all', function (hook, type, params, value) {
 		if (value.likes_status) {
 			var status = value.likes_status;
 			update_like_menu_item(status.guid, status.like_menu_item);

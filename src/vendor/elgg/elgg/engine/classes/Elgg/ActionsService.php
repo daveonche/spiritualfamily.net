@@ -2,6 +2,7 @@
 
 namespace Elgg;
 
+use Elgg\Exceptions\DomainException;
 use Elgg\Project\Paths;
 use Elgg\Router\Middleware\ActionMiddleware;
 use Elgg\Router\Middleware\AdminGatekeeper;
@@ -58,38 +59,38 @@ class ActionsService {
 	/**
 	 * Registers an action
 	 *
-	 * @param string          $action  The name of the action (eg "register", "account/settings/save")
-	 * @param string|callable $handler Optionally, the filename where this action is located. If not specified,
-	 *                                 will assume the action is in elgg/actions/<action>.php
-	 * @param string          $access  Who is allowed to execute this action: public, logged_in, logged_out, admin.
-	 *                                 (default: logged_in)
+	 * @param string $action  The name of the action (eg "register", "account/settings/save")
+	 * @param string $handler Optionally, the filename where this action is located. If not specified,
+	 *                        will assume the action is in elgg/actions/<action>.php
+	 * @param string $access  Who is allowed to execute this action: public, logged_in, logged_out, admin. (default: logged_in)
+	 * @param array  $params  Additional params for the action route registration:
+	 *                        - middleware: additional middleware on the action route
 	 *
-	 * @return bool
-	 *
-	 * @see    elgg_register_action()
+	 * @return void
+	 * @throws \Elgg\Exceptions\DomainException
+	 * @see elgg_register_action()
 	 */
-	public function register(string $action, $handler = '', string $access = 'logged_in') {
+	public function register(string $action, string $handler = '', string $access = 'logged_in', array $params = []): void {
+		if (!in_array($access, self::$access_levels)) {
+			throw new DomainException("Unrecognized value '{$access}' for \$access in " . __METHOD__);
+		}
+		
 		// plugins are encouraged to call actions with a trailing / to prevent 301
 		// redirects but we store the actions without it
 		$action = trim($action, '/');
 
 		if (empty($handler)) {
 			$path = Paths::elgg() . 'actions';
-			$handler = Paths::sanitize("$path/$action.php", false);
+			$handler = Paths::sanitize("{$path}/{$action}.php", false);
 		}
 
 		$file = null;
 		$controller = null;
 
-		if (is_string($handler) && substr($handler, -4) === '.php') {
+		if (str_ends_with($handler, '.php')) {
 			$file = $handler;
 		} else {
 			$controller = $handler;
-		}
-
-		if (!in_array($access, self::$access_levels)) {
-			$this->getLogger()->error("Unrecognized value '{$access}' for \$access in " . __METHOD__);
-			$access = 'admin';
 		}
 
 		$middleware = [];
@@ -107,16 +108,17 @@ class ActionsService {
 		}
 
 		$middleware[] = ActionMiddleware::class;
+		
+		$additional_middleware = (array) elgg_extract('middleware', $params);
+		$middleware = array_merge($middleware, $additional_middleware);
 
-		$this->routes->register("action:$action", [
-			'path' => "/action/$action",
+		$this->routes->register("action:{$action}", [
+			'path' => "/action/{$action}",
 			'file' => $file,
 			'controller' => $controller,
 			'middleware' => $middleware,
 			'walled' => false,
 		]);
-
-		return true;
 	}
 
 	/**
@@ -124,20 +126,19 @@ class ActionsService {
 	 *
 	 * @param string $action Action name
 	 *
-	 * @return bool
+	 * @return void
 	 *
 	 * @see elgg_unregister_action()
 	 */
-	public function unregister(string $action) {
+	public function unregister(string $action): void {
 		$action = trim($action, '/');
 
-		$route = $this->routes->get("action:$action");
+		$route = $this->routes->get("action:{$action}");
 		if (!$route) {
-			return false;
+			return;
 		}
 
-		$this->routes->unregister("action:$action");
-		return true;
+		$this->routes->unregister("action:{$action}");
 	}
 
 	/**
@@ -149,7 +150,7 @@ class ActionsService {
 	 *
 	 * @see elgg_action_exists()
 	 */
-	public function exists(string $action) {
+	public function exists(string $action): bool {
 		$action = trim($action, '/');
 		$route = $this->routes->get("action:$action");
 		if (!$route) {
@@ -179,11 +180,11 @@ class ActionsService {
 	 *
 	 * @return array
 	 */
-	public function getAllActions() {
+	public function getAllActions(): array {
 		$actions = [];
 		$routes = $this->routes->all();
 		foreach ($routes as $name => $route) {
-			if (strpos($name, 'action:') !== 0) {
+			if (!str_starts_with($name, 'action:')) {
 				continue;
 			}
 

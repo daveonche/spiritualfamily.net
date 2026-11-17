@@ -4,9 +4,6 @@ namespace Elgg\Integration;
 
 use Elgg\IntegrationTestCase;
 
-/**
- * @group IntegrationTests
- */
 class ElggRelationshipTest extends IntegrationTestCase {
 
 	/**
@@ -33,7 +30,7 @@ class ElggRelationshipTest extends IntegrationTestCase {
 		_elgg_services()->events->backup();
 
 		$this->user = $this->createUser();
-		elgg()->session->setLoggedInUser($this->user);
+		elgg()->session_manager->setLoggedInUser($this->user);
 		
 		$this->entity1 = $this->createObject(['subtype' => 'elgg_relationship_test']);
 		$this->entity2 = $this->createObject(['subtype' => 'elgg_relationship_test']);
@@ -179,7 +176,7 @@ class ElggRelationshipTest extends IntegrationTestCase {
 		$this->assertFalse($this->entity3->hasRelationship($this->entity1->guid, 'test_relationship'));
 	}
 
-	public function testEntityMethodDeleteRelationships() {
+	public function testEntityMethodRemoveAllRelationships() {
 		$this->assertTrue($this->entity1->addRelationship($this->entity2->guid, 'test_relationship'));
 		$this->assertTrue($this->entity1->hasRelationship($this->entity2->guid, 'test_relationship'));
 
@@ -197,7 +194,7 @@ class ElggRelationshipTest extends IntegrationTestCase {
 
 		// remove all relationships
 		$this->assertTrue($this->entity1->removeAllRelationships());
-		$this->assertTrue($this->entity1->removeAllRelationships(null, true));
+		$this->assertTrue($this->entity1->removeAllRelationships('', true));
 		$this->assertFalse($this->entity1->hasRelationship($this->entity2->guid, 'test_relationship'));
 		$this->assertFalse($this->entity1->hasRelationship($this->entity3->guid, 'test_relationship'));
 		$this->assertFalse($this->entity1->hasRelationship($this->entity2->guid, 'test_relationship2'));

@@ -1,5 +1,5 @@
 /* ***************************************
-	USER PICKER
+	USER PICKER This view is deprecated and replaced by input/entitypicker.css
 *************************************** */
 .elgg-user-picker-list {
 	> li {
@@ -13,7 +13,9 @@
 	}
 }
 
-.elgg-user-picker.elgg-state-disabled > input,
-.elgg-user-picker.elgg-state-disabled > label {
-	display: none;
+.elgg-user-picker.elgg-state-disabled {
+	> input,
+	> label {
+		display: none;
+	}
 }

@@ -5,8 +5,6 @@ namespace Elgg\Integration;
 /**
  * Elgg Regression Tests -- GitHub Bugfixes
  * Any bugfixes from GitHub that require testing belong here.
- *
- * @group IntegrationTests
  */
 class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 
@@ -16,11 +14,11 @@ class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 	protected $ia;
 	
 	public function up() {
-		$this->ia = elgg()->session->setIgnoreAccess(true);
+		$this->ia = elgg()->session_manager->setIgnoreAccess(true);
 	}
 
 	public function down() {
-		elgg()->session->setIgnoreAccess($this->ia);
+		elgg()->session_manager->setIgnoreAccess($this->ia);
 	}
 
 	/**
@@ -55,17 +53,17 @@ class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 		elgg_call(ELGG_ENFORCE_ACCESS, function() use ($user, $object, $group) {
 			$this->assertFalse($object->canWriteToContainer($user->guid, 'object', 'foo'));
 	
-			// register hook to allow access
-			$handler = function (\Elgg\Hook $hook) use ($user) {
-				$hook_user = $hook->getUserParam();
-				if ($hook_user->guid === $user->guid) {
+			// register event to allow access
+			$handler = function (\Elgg\Event $event) use ($user) {
+				$event_user = $event->getUserParam();
+				if ($event_user->guid === $user->guid) {
 					return true;
 				}
 			};
 	
-			elgg_register_plugin_hook_handler('container_permissions_check', 'object', $handler, 600);
+			elgg_register_event_handler('container_permissions_check', 'object', $handler, 600);
 			$this->assertTrue($object->canWriteToContainer($user->guid, 'object', 'foo'));
-			elgg_unregister_plugin_hook_handler('container_permissions_check', 'object', $handler);
+			elgg_unregister_event_handler('container_permissions_check', 'object', $handler);
 	
 			$this->assertFalse($group->canWriteToContainer($user->guid, $object->getType(), $object->getSubtype()));
 			$group->join($user);
@@ -76,6 +74,8 @@ class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 	/**
 	 * @see https://github.com/elgg/elgg/issues/3210 - Don't remove -s in friendly titles
 	 * @see https://github.com/elgg/elgg/issues/2276 - improve char encoding
+	 * @see https://github.com/Elgg/Elgg/issues/13228 - length limit for multybyte characters
+	 * @see https://github.com/Elgg/Elgg/issues/14577 - improved multibyte cutoff place
 	 *
 	 * @dataProvider friendlyTitleProvider
 	 */
@@ -99,6 +99,12 @@ class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 			// accents removed, lower case, other multibyte chars are URL encoded
 			// Iñtërnâtiônàlizætiøn, AND 日本語
 			["I\xC3\xB1t\xC3\xABrn\xC3\xA2ti\xC3\xB4n\xC3\xA0liz\xC3\xA6ti\xC3\xB8n, AND \xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E", 'internationalizaetion-and-%E6%97%A5%E6%9C%AC%E8%AA%9E'],
+			
+			// multybyte length limit #13228
+			['দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষদ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষদ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষদ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষদ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষদ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষদ্ধক্তপ্লক্তক্ষ-দ্ধক্তপ্লক্তক্ষ-দ্ধ', '%E0%A6%A6%E0%A7%8D%E0%A6%A7%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%AA%E0%A7%8D%E0%A6%B2%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%95%E0%A7%8D%E0%A6%B7-%E0%A6%A6%E0%A7%8D%E0%A6%A7%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%AA%E0%A7%8D%E0%A6%B2%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%95%E0%A7%8D%E0%A6%B7%E0%A6%A6%E0%A7%8D%E0%A6%A7%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%AA%E0%A7%8D%E0%A6%B2%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%95%E0%A7%8D%E0%A6%B7-%E0%A6%A6%E0%A7%8D%E0%A6%A7%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%AA%E0%A7%8D%E0%A6%B2%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%95%E0%A7%8D%E0%A6%B7-%E0%A6%A6%E0%A7%8D%E0%A6%A7%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%AA%E0%A7%8D%E0%A6%B2%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%95%E0%A7%8D%E0%A6%B7-%E0%A6%A6%E0%A7%8D%E0%A6%A7%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%AA%E0%A7%8D%E0%A6%B2%E0%A6%95%E0%A7%8D%E0%A6%A4%E0%A6%95%E0%A7%8D%E0%A6%B7%E0%A6%A6%E0%A7%8D%E0%A6%A7%E0%A6%95%E0%A7%8D%E0%A6%A4'],
+			
+			// multibyte chars aren't cut off mid-character #14577
+			['Morihei Ueshiba O Sensei - Rare Aikido Demonstration (1957) 合気道植芝 盛平', 'morihei-ueshiba-o-sensei-rare-aikido-demonstration-1957-%E5%90%88%E6%B0%97%E9%81%93%E6%A4%8D%E8%8A%9D-%E7%9B%9B%E5%B9%B3'],
 		];
 		
 		if (\Elgg\Translit::hasNormalizerSupport()) {

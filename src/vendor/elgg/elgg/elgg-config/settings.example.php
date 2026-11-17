@@ -229,16 +229,6 @@ $CONFIG->dbencoding = 'utf8mb4';
 //$CONFIG->assetroot = "";
 
 /**
- * Plugins with more than the configured number of plugin settings won't be loaded into
- * bootdata cache. This is done to prevent memory issues.
- *
- * If set to < 1 all plugins will be loaded into the bootdata cache
- *
- * Default: 40
- */
-//$CONFIG->bootdata_plugin_settings_limit = 0;
-
-/**
  * Enable SendFile file serving
  *
  * After enabling X-Sendfile/X-Accel on your server, you can enable its support in Elgg. Set the
@@ -271,6 +261,8 @@ $CONFIG->dbencoding = 'utf8mb4';
  *
  * To use, uncomment the appropriate sections below and update for your site.
  *
+ * @see https://www.php.net/manual/en/function.session-get-cookie-params.php
+ *
  * @global array $CONFIG->cookies
  */
 // get the default parameters from php.ini
@@ -281,6 +273,7 @@ $CONFIG->dbencoding = 'utf8mb4';
 //$CONFIG->cookies['session']['domain'] = "";
 //$CONFIG->cookies['session']['secure'] = false;
 //$CONFIG->cookies['session']['httponly'] = false;
+//$CONFIG->cookies['session']['samesite'] = ''; // 'Strict' or 'Lax'
 
 // extended session cookie
 //$CONFIG->cookies['remember_me'] = session_get_cookie_params();
@@ -291,6 +284,7 @@ $CONFIG->dbencoding = 'utf8mb4';
 //$CONFIG->cookies['remember_me']['domain'] = "";
 //$CONFIG->cookies['remember_me']['secure'] = false;
 //$CONFIG->cookies['remember_me']['httponly'] = false;
+//$CONFIG->cookies['remember_me']['samesite'] = ''; // 'Strict' or 'Lax'
 
 /**
  * Disable the database query cache

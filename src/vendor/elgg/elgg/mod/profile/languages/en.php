@@ -10,8 +10,10 @@ return array(
 	'profile:notfound' => 'Sorry. We could not find the requested profile.',
 	
 	'admin:configure_utilities:profile_fields' => 'Edit Profile Fields',
+	'menu:profile_admin:header' => 'Profile administration',
 	
 	'profile:edit' => 'Edit profile',
+	'profile:edit:header' => 'Edit profile header',
 	'profile:description' => "About me",
 	'profile:briefdescription' => "Brief description",
 	'profile:location' => "Location",

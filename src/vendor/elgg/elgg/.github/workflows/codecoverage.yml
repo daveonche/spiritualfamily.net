@@ -2,19 +2,28 @@ name: Code Coverage
 on: [push]
 env:
   ELGG_DB_USER: root
-  ELGG_DB_PASS: root
+  ELGG_DB_PASS: password
   ELGG_DB_NAME: elgg
   ELGG_DB_PREFIX: elgg_
+  ELGG_DB_HOST: 127.0.0.1
   
 jobs:
   scrutinizer:
     name: Scrutinizer - ${{ matrix.testsuite }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    services:
+      elggdb:
+        image: 'mysql:5.7'
+        env:
+          MYSQL_DATABASE: elgg
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
     
     strategy:
       fail-fast: false
       matrix:
-        # Keep number of suites inline with scrutinizer waiting for the same amount of coverage runs
+        # Keep number of suites inline with Scrutinizer waiting for the same amount of coverage runs
         testsuite: ['unit', 'integration-a-to-d', 'integration-e-to-s', 'integration-t-to-all', 'plugins-unit', 'plugins-integration']
 
     steps:
@@ -25,12 +34,13 @@ jobs:
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: '8.0'
           coverage: xdebug
-          extensions: gd,pdo,xml,json,mysqli,pdo_mysql,libxml,mbstring
+          extensions: gd,pdo,xml,json,mysqli,pdo_mysql,libxml,mbstring,intl
+          ini-values: max_execution_time=180
         
       - name: Code checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # Fetch 10 commits or Scrutinizer will throw ("Failed to retrieve commit parents. If you use a shallow git checkout, please checkout at least a depth of one."), see: RepositoryIntrospector at scrutinizer-ci/ocular GitHub repository
           # 10 commits is an arbitrary value that is more than 1 commit
@@ -38,10 +48,10 @@ jobs:
         
       - name: Get Composer Cache Directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> ${GITHUB_OUTPUT}
         
       - name: Restore Composer Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -51,14 +61,16 @@ jobs:
         run: composer install
       
       - name: Install Elgg
-        run: |
-          sudo systemctl start mysql
-          mysql -u root -proot -e 'SET GLOBAL max_connections = 1000;'
-          mysql -u root -proot -e 'create database elgg;'
-          php ./elgg-cli install --config ./install/cli/testing_app.php --verbose
-          php -f ./.scripts/ci/enable_plugins.php
+        run: php ./elgg-cli install --config ./install/cli/testing_app.php --verbose --no-ansi
       
-      - name: Test and publish code coverage
+      - name: Enable Elgg plugins
         run: |
-          ./vendor/bin/phpunit --testsuite ${{ matrix.testsuite }} --coverage-clover=coverage.clover
-          ./vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover
+          php ./elgg-cli plugins:activate activity blog bookmarks ckeditor dashboard developers discussions externalpages file friends friends_collections garbagecollector groups invitefriends likes members messageboard messages pages profile reportedcontent search site_notifications system_log tagcloud theme_sandbox thewire uservalidationbyemail web_services custom_index:last --no-ansi
+          php ./elgg-cli plugins:list --no-ansi
+      
+      - name: Generate code coverage
+        continue-on-error: true
+        run: ./vendor/bin/phpunit --testsuite ${{ matrix.testsuite }} --coverage-clover=coverage.clover
+
+      - name: Upload to Scrutinizer
+        run: ./vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover

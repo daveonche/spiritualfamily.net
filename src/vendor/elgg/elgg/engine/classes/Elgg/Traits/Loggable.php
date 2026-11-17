@@ -57,16 +57,12 @@ trait Loggable {
 	 */
 	public function log($level, $message, array $context = []) {
 		if ($message instanceof \Throwable) {
-			if (!isset($message->timestamp)) {
-				$message->timestamp = time();
-			}
-
 			$context['exception'] = $message;
 		}
 
 		// PSR interface is void, but Monolog returns a boolean
 		$logged = $this->getLogger()->log($level, $message, $context);
-		return isset($logged) ? $logged : true;
+		return $logged ?? true;
 	}
 	
 	/**

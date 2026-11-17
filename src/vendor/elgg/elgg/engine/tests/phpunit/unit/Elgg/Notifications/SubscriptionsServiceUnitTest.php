@@ -7,10 +7,6 @@ use Elgg\Database\Select;
 use Elgg\Exceptions\InvalidArgumentException;
 use PHPUnit\Framework\MockObject\MockObject;
 
-/**
- * @group NotificationsService
- * @group UnitTests
- */
 class SubscriptionsServiceUnitTest extends \Elgg\UnitTestCase {
 
 	/**
@@ -61,7 +57,7 @@ class SubscriptionsServiceUnitTest extends \Elgg\UnitTestCase {
 		return new SubscriptionsService(
 			$this->db,
 			_elgg_services()->relationshipsTable,
-			_elgg_services()->hooks
+			_elgg_services()->events
 		);
 	}
 	

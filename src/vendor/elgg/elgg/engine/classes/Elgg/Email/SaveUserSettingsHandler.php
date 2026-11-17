@@ -12,12 +12,12 @@ class SaveUserSettingsHandler {
 	/**
 	 * Handle the saving of the user settings
 	 *
-	 * @param \Elgg\Hook $hook 'usersettings:save', 'user'
+	 * @param \Elgg\Event $event 'usersettings:save', 'user'
 	 *
 	 * @return void
 	 */
-	public function __invoke(\Elgg\Hook $hook): void {
-		$user = $hook->getUserParam();
+	public function __invoke(\Elgg\Event $event): void {
+		$user = $event->getUserParam();
 		if (!$user instanceof \ElggUser || !$user->canEdit() || !(bool) elgg_get_config('enable_delayed_email')) {
 			return;
 		}
@@ -27,13 +27,13 @@ class SaveUserSettingsHandler {
 			return;
 		}
 		
-		if ($user->getPrivateSetting('delayed_email_interval') === $delayed_email_interval) {
+		if ($user->delayed_email_interval === $delayed_email_interval) {
 			// no change
 			return;
 		}
 		
 		// save new setting
-		$user->setPrivateSetting('delayed_email_interval', $delayed_email_interval);
+		$user->delayed_email_interval = $delayed_email_interval;
 		
 		// update all queued notifications to the new interval
 		_elgg_services()->delayedEmailQueueTable->updateRecipientInterval($user->guid, $delayed_email_interval);

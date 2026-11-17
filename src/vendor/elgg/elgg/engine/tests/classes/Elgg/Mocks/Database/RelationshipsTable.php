@@ -3,7 +3,6 @@
 namespace Elgg\Mocks\Database;
 
 use Elgg\Database\RelationshipsTable as DbRelationshipsTable;
-use stdClass;
 use Elgg\Database\Insert;
 use Elgg\Database\Select;
 use Elgg\Database\Delete;
@@ -20,7 +19,7 @@ use Elgg\Database\Delete;
 class RelationshipsTable extends DbRelationshipsTable {
 
 	/**
-	 * @var stdClass[]
+	 * @var \stdClass[]
 	 */
 	protected $rows = [];
 
@@ -38,7 +37,7 @@ class RelationshipsTable extends DbRelationshipsTable {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function add($guid_one, $relationship, $guid_two, $return_id = false) {
+	public function add(int $guid_one, string $relationship, int $guid_two, bool $return_id = false): bool|int {
 		// Check for duplicates
 		// note: escape $relationship after this call, we don't want to double-escape
 		if ($this->check($guid_one, $relationship, $guid_two)) {
@@ -81,6 +80,7 @@ class RelationshipsTable extends DbRelationshipsTable {
 	 * Clear query specs
 	 *
 	 * @param int $id Relationship ID
+	 *
 	 * @return void
 	 */
 	protected function clearQuerySpecs($id) {
@@ -94,11 +94,11 @@ class RelationshipsTable extends DbRelationshipsTable {
 	/**
 	 * Add query specs for a relationship data row
 	 *
-	 * @param stdClass $row Data row
+	 * @param \stdClass $row Data row
+	 *
 	 * @return void
 	 */
-	protected function addQuerySpecs(stdClass $row) {
-
+	protected function addQuerySpecs(\stdClass $row) {
 		$this->clearQuerySpecs($row->id);
 
 		// Insert a new relationship

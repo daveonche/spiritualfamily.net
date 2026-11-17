@@ -6,7 +6,7 @@ use Elgg\Exceptions\LoginException;
 use Elgg\Http\ResponseBuilder;
 
 /**
- * User Validation related hooks/events
+ * User Validation related events
  *
  * @since 4.0
  */
@@ -46,26 +46,45 @@ class Validation {
 		
 		notify_user($user->guid, $site->guid, $subject, $body, $params, ['email']);
 	}
+
+	/**
+	 * Adds river activity that a new user joined the site
+	 *
+	 * @param \Elgg\Event $event 'validate:after', 'user'
+	 *
+	 * @return void
+	 */
+	public static function addRiverActivityAfterValidation(\Elgg\Event $event) {
+		if (!(bool) elgg_get_config('user_joined_river')) {
+			return;
+		}
+		
+		elgg_create_river_item([
+			'action_type' => 'join',
+			'subject_guid' => $event->getObject()->guid,
+			'object_guid' => elgg_get_site_entity()->guid,
+		]);
+	}
 	
 	/**
 	 * Check if new users need to be validated by an administrator
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'user'
+	 * @param \Elgg\Event $event 'register', 'user'
 	 *
 	 * @return void
 	 */
-	public static function checkAdminValidation(\Elgg\Hook $hook) {
+	public static function checkAdminValidation(\Elgg\Event $event) {
 		
 		if (!(bool) elgg_get_config('require_admin_validation')) {
 			return;
 		}
 		
-		$user = $hook->getUserParam();
+		$user = $event->getUserParam();
 		if (!$user instanceof \ElggUser) {
 			return;
 		}
 		
-		elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES, function() use ($user, $hook) {
+		elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES, function() use ($user, $event) {
 			
 			if ($user->isEnabled()) {
 				// disable the user until validation
@@ -80,7 +99,7 @@ class Validation {
 			$session->set('admin_validation', true);
 			
 			if (elgg_get_config('admin_validation_notification') === 'direct') {
-				self::notifyAdminsAboutPendingUsers($hook);
+				self::notifyAdminsAboutPendingUsers($event);
 			}
 		});
 	}
@@ -88,11 +107,11 @@ class Validation {
 	/**
 	 * Send a notification to all admins that there are pending user validations
 	 *
-	 * @param \Elgg\Hook $hook various hooks
+	 * @param \Elgg\Event $event various events
 	 *
 	 * @return void
 	 */
-	public static function notifyAdminsAboutPendingUsers(\Elgg\Hook $hook) {
+	public static function notifyAdminsAboutPendingUsers(\Elgg\Event $event) {
 		
 		if (empty(elgg_get_config('admin_validation_notification'))) {
 			return;
@@ -121,7 +140,7 @@ class Validation {
 		
 		/* @var $admin \ElggUser */
 		foreach ($admins as $admin) {
-			$user_setting = $admin->getPrivateSetting('admin_validation_notification');
+			$user_setting = $admin->admin_validation_notification;
 			if (isset($user_setting) && !(bool) $user_setting) {
 				continue;
 			}
@@ -173,13 +192,13 @@ class Validation {
 	/**
 	 * Set the correct forward url after user registration
 	 *
-	 * @param \Elgg\Hook $hook 'response', 'action:register'
+	 * @param \Elgg\Event $event 'response', 'action:register'
 	 *
 	 * @return void|ResponseBuilder
 	 */
-	public static function setRegistrationForwardUrl(\Elgg\Hook $hook) {
+	public static function setRegistrationForwardUrl(\Elgg\Event $event) {
 		
-		$response = $hook->getValue();
+		$response = $event->getValue();
 		if (!$response instanceof ResponseBuilder) {
 			return;
 		}
@@ -190,7 +209,7 @@ class Validation {
 		}
 		
 		// if other plugins already have set forwarding, don't do anything
-		if (!empty($response->getForwardURL()) && $response->getForwardURL() !== REFERER) {
+		if (!empty($response->getForwardURL()) && $response->getForwardURL() !== REFERRER) {
 			return;
 		}
 		
@@ -202,12 +221,12 @@ class Validation {
 	/**
 	 * Remove unvalidated users after x days
 	 *
-	 * @param \Elgg\Hook $hook 'cron', 'daily'
+	 * @param \Elgg\Event $event 'cron', 'daily'
 	 *
 	 * @return void
 	 * @since 4.2
 	 */
-	public static function removeUnvalidatedUsers(\Elgg\Hook $hook): void {
+	public static function removeUnvalidatedUsers(\Elgg\Event $event): void {
 		
 		$days = (int) elgg_get_config('remove_unvalidated_users_days');
 		if ($days < 1) {

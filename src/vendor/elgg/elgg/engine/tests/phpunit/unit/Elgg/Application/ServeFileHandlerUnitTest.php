@@ -2,12 +2,8 @@
 
 namespace Elgg\Application;
 
-use Elgg\Exceptions\InvalidArgumentException;
+use Elgg\Exceptions\DomainException;
 
-/**
- * @group UnitTests
- * @group FileService
- */
 class ServeFileHandlerUnitTest extends \Elgg\UnitTestCase {
 
 	/**
@@ -21,10 +17,6 @@ class ServeFileHandlerUnitTest extends \Elgg\UnitTestCase {
 	protected $file;
 
 	public function up() {
-		$session = \ElggSession::getMock();
-		_elgg_services()->set('session', $session);
-		_elgg_services()->session->start();
-
 		$this->handler = _elgg_services()->serveFileHandler;
 	}
 
@@ -232,7 +224,7 @@ class ServeFileHandlerUnitTest extends \Elgg\UnitTestCase {
 		$file = new \Elgg\FileService\File();
 		$file->setFile($test_file);
 		
-		$this->expectException(InvalidArgumentException::class);
+		$this->expectException(DomainException::class);
 		$file->setDisposition('foo');
 		
 		$this->assertTrue($test_file->delete());

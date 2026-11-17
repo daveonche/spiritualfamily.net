@@ -5,9 +5,6 @@ use Elgg\Exceptions\InvalidArgumentException;
 /**
  * This requires elgg_get_logged_in_user_guid() in session.php, the access
  * constants defined in entities.php, and elgg_normalize_url() in output.php
- *
- * @group ElggEntity
- * @group UnitTests
  */
 class ElggEntityUnitTest extends \Elgg\UnitTestCase {
 
@@ -15,7 +12,6 @@ class ElggEntityUnitTest extends \Elgg\UnitTestCase {
 	protected $obj;
 
 	public function up() {
-		_elgg_services()->set('session', \ElggSession::getMock());
 		$this->obj = $this->getMockForAbstractClass('\ElggObject');
 		$reflection = new ReflectionClass('\ElggObject');
 		$method = $reflection->getMethod('initializeAttributes');
@@ -126,14 +122,12 @@ class ElggEntityUnitTest extends \Elgg\UnitTestCase {
 
 	public function testSimpleGetters() {
 		$this->obj->owner_guid = 77;
-		$this->obj->access_id = 2;
 		$this->obj->time_created = 123456789;
 
 		$this->assertEquals($this->obj->getGUID(), $this->obj->guid);
 		$this->assertEquals($this->obj->getType(), $this->obj->type);
 		$this->assertEquals($this->obj->getSubtype(), $this->obj->subtype);
 		$this->assertEquals($this->obj->getOwnerGUID(), $this->obj->owner_guid);
-		$this->assertEquals($this->obj->getAccessID(), $this->obj->access_id);
 		$this->assertEquals($this->obj->getTimeCreated(), $this->obj->time_created);
 		$this->assertEquals($this->obj->getTimeUpdated(), $this->obj->time_updated);
 	}

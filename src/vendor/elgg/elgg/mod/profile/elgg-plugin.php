@@ -7,6 +7,7 @@ return [
 	],
 	'actions' => [
 		'profile/edit' => [],
+		'profile/edit/header' => [],
 		'profile/fields/reset' => [
 			'access' => 'admin',
 		],
@@ -29,7 +30,14 @@ return [
 			'path' => '/profile/{username}/edit',
 			'resource' => 'profile/edit',
 			'middleware' => [
-				\Elgg\Router\Middleware\Gatekeeper::class,
+				\Elgg\Router\Middleware\UserPageOwnerCanEditGatekeeper::class,
+			],
+		],
+		'edit:user:header' => [
+			'path' => '/profile/{username}/edit_header',
+			'resource' => 'profile/edit_header',
+			'middleware' => [
+				\Elgg\Router\Middleware\UserPageOwnerCanEditGatekeeper::class,
 			],
 		],
 	],
@@ -47,8 +55,6 @@ return [
 				\Elgg\Widgets\CreateDefaultWidgetsHandler::class => [],
 			],
 		],
-	],
-	'hooks' => [
 		'fields' => [
 			'user:user' => [
 				\Elgg\Profile\FieldsHandler::class => [],
@@ -60,9 +66,15 @@ return [
 			],
 		],
 		'register' => [
-			'menu:page' => [
-				'Elgg\Profile\Menus\Page::registerAdminProfileFields' => [],
-				'Elgg\Profile\Menus\Page::registerProfileEdit' => [],
+			'menu:admin_header' => [
+				'Elgg\Profile\Menus\AdminHeader::register' => [],
+				'Elgg\Profile\Menus\AdminHeader::registerAdminProfileFields' => [],
+			],
+			'menu:filter:profile/edit' => [
+				'Elgg\Profile\Menus\Filter::registerProfileEdit' => [],
+			],
+			'menu:profile_admin' => [
+				'Elgg\Profile\Menus\ProfileAdmin::registerUserHover' => [],
 			],
 			'menu:title' => [
 				'Elgg\Profile\Menus\Title::register' => [],

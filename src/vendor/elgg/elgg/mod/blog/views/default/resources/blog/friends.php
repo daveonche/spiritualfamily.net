@@ -1,19 +1,13 @@
 <?php
 
-use Elgg\Exceptions\Http\EntityNotFoundException;
-
-$username = elgg_extract('username', $vars);
 $lower = elgg_extract('lower', $vars);
 $upper = elgg_extract('upper', $vars);
 
-$user = get_user_by_username($username);
-if (!$user) {
-	throw new EntityNotFoundException();
-}
+$user = elgg_get_page_owner_entity();
 
 elgg_push_collection_breadcrumbs('object', 'blog', $user, true);
 
-elgg_register_title_button('blog', 'add', 'object', 'blog');
+elgg_register_title_button('add', 'object', 'blog');
 
 $title = elgg_echo('collection:object:blog:friends');
 if ($lower) {

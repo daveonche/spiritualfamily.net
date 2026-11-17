@@ -2,16 +2,13 @@
 
 namespace Elgg\Http;
 
-/**
- * @group UnitTests
- */
 class InputUnitTest extends \Elgg\UnitTestCase {
 
 	public function testGetInputDefaultsToProvidedDefaultValue() {
 		$this->markTestIncomplete();
 	}
 
-	public function testGetInputTriggersValidateInputHookIfAndOnlyIfFilteringIsEnabled() {
+	public function testGetInputTriggersValidateInputEventIfAndOnlyIfFilteringIsEnabled() {
 		$this->markTestIncomplete();
 	}
 

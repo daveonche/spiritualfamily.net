@@ -16,15 +16,9 @@ class AnnotationsTable {
 
 	use TimeUsing;
 
-	/**
-	 * @var Database
-	 */
-	protected $db;
+	protected Database $db;
 
-	/**
-	 * @var EventsService
-	 */
-	protected $events;
+	protected EventsService $events;
 
 	/**
 	 * Constructor
@@ -42,9 +36,9 @@ class AnnotationsTable {
 	 *
 	 * @param int $id The id of the annotation object
 	 *
-	 * @return \ElggAnnotation|false
+	 * @return \ElggAnnotation|null
 	 */
-	public function get(int $id) {
+	public function get(int $id): ?\ElggAnnotation {
 		$qb = Select::fromTable('annotations');
 		$qb->select('*');
 
@@ -53,11 +47,7 @@ class AnnotationsTable {
 		$qb->addClause($where);
 
 		$row = $this->db->getDataRow($qb);
-		if (!empty($row)) {
-			return new \ElggAnnotation($row);
-		}
-
-		return false;
+		return !empty($row) ? new \ElggAnnotation($row) : null;
 	}
 
 	/**
@@ -67,7 +57,7 @@ class AnnotationsTable {
 	 *
 	 * @return bool
 	 */
-	public function delete(\ElggAnnotation $annotation) {
+	public function delete(\ElggAnnotation $annotation): bool {
 		if (!$annotation->canEdit()) {
 			return false;
 		}
@@ -98,7 +88,7 @@ class AnnotationsTable {
 	 *
 	 * @return int|bool
 	 */
-	public function create(\ElggAnnotation $annotation, \ElggEntity $entity) {
+	public function create(\ElggAnnotation $annotation, \ElggEntity $entity): int|bool {
 		if ($annotation->id) {
 			return $this->update($annotation);
 		}
@@ -115,10 +105,6 @@ class AnnotationsTable {
 		//if (!$entity->canAnnotate(0, $annotation->name)) {
 		//	return false;
 		//}
-
-		if (!$this->events->triggerDeprecated('annotate', $entity->getType(), $entity, "The 'annotate', '{$entity->getType()}' event is deprecated. Use the 'create', 'annotation' event instead.", '4.3')) {
-			return false;
-		}
 
 		if (!$this->events->triggerBefore('create', 'annotation', $annotation)) {
 			return false;
@@ -165,7 +151,7 @@ class AnnotationsTable {
 	 *
 	 * @return bool
 	 */
-	public function update(\ElggAnnotation $annotation) {
+	public function update(\ElggAnnotation $annotation): bool {
 		if (!$annotation->canEdit()) {
 			return false;
 		}
@@ -206,8 +192,8 @@ class AnnotationsTable {
 	 * @return bool
 	 * @since 1.8
 	 */
-	public function disable(\ElggAnnotation $annotation) {
-		if ($annotation->enabled == 'no') {
+	public function disable(\ElggAnnotation $annotation): bool {
+		if ($annotation->enabled === 'no') {
 			return true;
 		}
 
@@ -242,7 +228,7 @@ class AnnotationsTable {
 	 * @return bool
 	 * @since 1.8
 	 */
-	public function enable(\ElggAnnotation $annotation) {
+	public function enable(\ElggAnnotation $annotation): bool {
 		if ($annotation->enabled == 'yes') {
 			return true;
 		}
@@ -298,9 +284,9 @@ class AnnotationsTable {
 	 *
 	 * @param array $options Options
 	 *
-	 * @return bool|null true on success, false on failure, null if no annotations to delete.
+	 * @return bool true on success, false on failure
 	 */
-	public function deleteAll(array $options) {
+	public function deleteAll(array $options): bool {
 		if (!$this->isValidOptionsForBatchOperation($options)) {
 			return false;
 		}
@@ -313,7 +299,7 @@ class AnnotationsTable {
 		$count = $annotations->count();
 
 		if (!$count) {
-			return;
+			return true;
 		}
 
 		$success = 0;
@@ -323,7 +309,7 @@ class AnnotationsTable {
 			}
 		}
 
-		return $success == $count;
+		return $success === $count;
 	}
 
 	/**
@@ -332,16 +318,16 @@ class AnnotationsTable {
 	 * @warning Unlike elgg_get_annotations() this will not accept an empty options array!
 	 *
 	 * @param array $options An options array. {@link elgg_get_annotations()}
-	 * @return bool|null true on success, false on failure, null if no annotations disabled.
+	 * @return bool true on success, false on failure
 	 */
-	public function disableAll(array $options) {
+	public function disableAll(array $options): bool {
 		if (!$this->isValidOptionsForBatchOperation($options)) {
 			return false;
 		}
 
 		// if we can see hidden (disabled) we need to use the offset
 		// otherwise we risk an infinite loop if there are more than 50
-		$inc_offset = _elgg_services()->session->getDisabledEntityVisibility();
+		$inc_offset = _elgg_services()->session_manager->getDisabledEntityVisibility();
 
 		$options['batch'] = true;
 		$options['batch_size'] = 50;
@@ -351,7 +337,7 @@ class AnnotationsTable {
 		$count = $annotations->count();
 
 		if (!$count) {
-			return;
+			return true;
 		}
 
 		$success = 0;
@@ -361,7 +347,7 @@ class AnnotationsTable {
 			}
 		}
 
-		return $success == $count;
+		return $success === $count;
 	}
 
 	/**
@@ -370,9 +356,9 @@ class AnnotationsTable {
 	 * @warning Unlike elgg_get_annotations() this will not accept an empty options array!
 	 *
 	 * @param array $options An options array. {@link elgg_get_annotations()}
-	 * @return bool|null true on success, false on failure, null if no metadata enabled.
+	 * @return bool true on success, false on failure
 	 */
-	public function enableAll(array $options) {
+	public function enableAll(array $options): bool {
 		if (!$this->isValidOptionsForBatchOperation($options)) {
 			return false;
 		}
@@ -384,7 +370,7 @@ class AnnotationsTable {
 		$count = $annotations->count();
 
 		if (!$count) {
-			return;
+			return true;
 		}
 
 		$success = 0;
@@ -394,7 +380,7 @@ class AnnotationsTable {
 			}
 		}
 
-		return $success == $count;
+		return $success === $count;
 	}
 	
 	/**
@@ -431,7 +417,7 @@ class AnnotationsTable {
 	 *
 	 * @return bool
 	 */
-	public function exists(int $entity_guid, string $name, int $owner_guid) {
+	public function exists(int $entity_guid, string $name, int $owner_guid): bool {
 		if (!$owner_guid) {
 			return false;
 		}

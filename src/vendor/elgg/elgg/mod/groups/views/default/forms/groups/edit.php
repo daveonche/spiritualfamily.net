@@ -22,6 +22,14 @@ $tabs[] = [
 	'content' => elgg_view('groups/edit/profile', $vars),
 ];
 
+// build the group images
+$tabs[] = [
+	'name' => 'images',
+	'priority' => 150,
+	'text' => elgg_echo('groups:edit:images'),
+	'content' => elgg_view('groups/edit/images', $vars),
+];
+
 // build the group access options
 $tabs[] = [
 	'name' => 'access',
@@ -74,7 +82,7 @@ if ($entity instanceof \ElggGroup) {
 				'#type' => 'button',
 				'id' => 'elgg-groups-edit-footer-navigate-next',
 				'icon_alt' => 'chevron-right',
-				'value' => elgg_echo('next'),
+				'text' => elgg_echo('next'),
 				'class' => 'elgg-button-action',
 			],
 		],
@@ -90,7 +98,7 @@ $footer .= elgg_view_field([
 	'fields' => [
 		[
 			'#type' => 'submit',
-			'value' => elgg_echo('save'),
+			'text' => elgg_echo('save'),
 		],
 	],
 	'align' => 'horizontal',

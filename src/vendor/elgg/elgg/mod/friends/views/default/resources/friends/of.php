@@ -3,17 +3,12 @@
  * Elgg friends of page
  */
 
-use Elgg\Exceptions\Http\EntityNotFoundException;
-
 // needed for correct registration of menu items
 elgg_set_context('friends');
 
 $owner = elgg_get_page_owner_entity();
-if (!$owner instanceof ElggUser) {
-	throw new EntityNotFoundException;
-}
 
-$title = elgg_echo("friends:of:owned", [$owner->getDisplayName()]);
+$title = elgg_echo('friends:of:owned', [$owner->getDisplayName()]);
 
 $content = elgg_list_entities([
 	'relationship' => 'friend',

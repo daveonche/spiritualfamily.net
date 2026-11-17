@@ -18,14 +18,11 @@ return array(
 	'messages:message' => "メッセージ",
 	'messages:title' => "タイトル",
 	'messages:to:help' => "受取人のユーザ名を入力してください。",
-	'messages:inbox' => "受信箱",
 	'messages:sendmessage' => "メッセージの送信",
 	'messages:add' => "メッセージの作成",
 	'messages:sentmessages' => "送信済みメッセージ",
 	'messages:toggle' => '全てを選択',
 	'messages:markread' => '既読マーク',
-
-	'notification:method:site' => 'サイト',
 
 	'messages:error' => 'メッセージの保存の際に問題が発生しました。もう一度やり直してください。',
 

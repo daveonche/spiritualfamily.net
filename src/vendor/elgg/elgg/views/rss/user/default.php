@@ -14,22 +14,19 @@ $title = htmlspecialchars($entity->getDisplayName() ?? '', ENT_NOQUOTES, 'UTF-8'
 
 $description = $entity->getProfileData('description');
 if (!empty($description)) {
-	$description = elgg_autop($description);
+	$description = elgg_autop((string) $description);
 }
 
 $georss = elgg_view('page/components/georss', $vars);
 $extension = elgg_view('extensions/item', $vars);
 
-$item = <<<__HTML
+?>
 <item>
-	<guid isPermaLink="true">$permalink</guid>
-	<pubDate>$pubdate</pubDate>
-	<link>$permalink</link>
-	<title><![CDATA[$title]]></title>
-	<description><![CDATA[$description]]></description>
-	$georss$extension
+	<guid isPermaLink="true"><?= $permalink; ?></guid>
+	<pubDate><?= $pubdate; ?></pubDate>
+	<link><?= $permalink; ?></link>
+	<title><![CDATA[<?= $title; ?>]]></title>
+	<description><![CDATA[<?= $description; ?>]]></description>
+	<?= $georss; ?>
+	<?= $extension; ?>
 </item>
-
-__HTML;
-
-echo $item;

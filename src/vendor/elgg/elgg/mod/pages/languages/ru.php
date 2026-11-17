@@ -19,6 +19,7 @@ return array(
 	'collection:object:page:group' => "Страницы группы",
 	'add:object:page' => "Добавить страницу",
 	'edit:object:page' => "Изменить страницу",
+	'menu:pages_nav:header' => "Подстраницы",
 	'notification:object:page:create' => "Отправить уведомление при создании страницы",
 	'notifications:mute:object:page' => "о странице '%s'",
 
@@ -41,6 +42,8 @@ return array(
 
 Просмотреть и комментировать страницу:
 %s',
+	
+	'notification:mentions:object:page:subject' => '%s упомянул вас на странице',
 
 	'pages:more' => 'Больше страниц',
 	'pages:none' => 'Страниц пока нет',
@@ -68,7 +71,6 @@ return array(
 	'pages:cantedit' => 'Вы не можете изменить эту страницу',
 	'pages:saved' => 'Страница сохранена',
 	'pages:notsaved' => 'Страница не может быть сохранена',
-	'pages:error:no_title' => 'Вы должны указать название страницы.',
 	'entity:delete:object:page:success' => 'Страница успешно удалена.',
 
 	/**

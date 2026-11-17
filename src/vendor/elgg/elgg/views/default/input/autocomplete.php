@@ -21,13 +21,6 @@
 
 $vars['class'] = elgg_extract_class($vars, 'elgg-input-autocomplete');
 
-$defaults = [
-	'value' => '',
-	'disabled' => false,
-];
-
-$vars = array_merge($defaults, $vars);
-
 $params = elgg_extract('options', $vars, []);
 
 if (!empty($params)) {
@@ -69,6 +62,7 @@ if (isset($vars['match_target'])) {
 	} else {
 		$target_guid = (int) $target;
 	}
+	
 	$params['match_target'] = $target_guid;
 	unset($vars['match_target']);
 }

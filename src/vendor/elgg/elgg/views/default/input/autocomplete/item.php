@@ -1,6 +1,6 @@
 <?php
 /**
- * Item view for generating HTML of an entity in an input/autocomplete (or input/userpicker)
+ * Item view for generating HTML of an entity in an input/autocomplete (or input/entitypicker)
  *
  * @uses $vars['entity'] the selected entity
  * @uses $vars['input_name'] name of the returned data array
@@ -17,7 +17,7 @@ $subtype = $entity->getSubtype();
 $views = [
 	"input/autocomplete/{$type}/{$subtype}",
 	"input/autocomplete/{$type}/default",
-	"input/autocomplete/default",
+	'input/autocomplete/default',
 ];
 foreach ($views as $view) {
 	if (elgg_view_exists($view)) {

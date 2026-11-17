@@ -16,17 +16,17 @@
  * ===============================
  * 1. Register the event with elgg_register_notification_event()
  *
- * 2. Register for the notification message plugin hook:
+ * 2. Register for the notification message event:
  *    'prepare', 'notification:[event name]'. The event name is of the form
  *    [action]:[type]:[subtype]. For example, the publish event for a blog
  *    would be named 'publish:object:blog'.
  *
- *    The parameter array for the plugin hook has the keys 'event', 'method',
+ *    The parameter array for the event has the keys 'event', 'method',
  *    'recipient', and 'language'. The event is an \Elgg\Notifications\SubscriptionNotificationEvent
  *    object and can provide access to the original object of the event through
  *    the method getObject() and the original actor through getActor().
  *
- *    The plugin hook callback modifies and returns a
+ *    The event callback modifies and returns a
  *    \Elgg\Notifications\Notification object that holds the message content.
  *
  *
@@ -34,7 +34,7 @@
  * =========================
  * 1. Register the delivery method name with elgg_register_notification_method()
  *
- * 2. Register for the plugin hook for sending notifications:
+ * 2. Register for the event for sending notifications:
  *    'send', 'notification:[method name]'. It receives the notification object
  *    of the namespace Elgg\Notifications;
  *
@@ -70,7 +70,7 @@ use Elgg\Notifications\NotificationEventHandler;
  * @return void
  * @since 1.9
  */
-function elgg_register_notification_event($object_type, $object_subtype, array $actions = [], string $handler = NotificationEventHandler::class): void {
+function elgg_register_notification_event(string $object_type, string $object_subtype, array $actions = [], string $handler = NotificationEventHandler::class): void {
 	_elgg_services()->notifications->registerEvent($object_type, $object_subtype, $actions, $handler);
 }
 
@@ -81,27 +81,28 @@ function elgg_register_notification_event($object_type, $object_subtype, array $
  * @param string $object_subtype The type of the entity
  * @param array  $actions        The notification action to unregister, leave empty for all actions. Example ('create', 'delete', 'publish')
  *
- * @return bool
+ * @return void
  * @since 1.9
  * @see elgg_register_notification_event()
  */
-function elgg_unregister_notification_event($object_type, $object_subtype, array $actions = []): bool {
-	return _elgg_services()->notifications->unregisterEvent($object_type, $object_subtype, $actions);
+function elgg_unregister_notification_event(string $object_type, string $object_subtype, array $actions = []): void {
+	_elgg_services()->notifications->unregisterEvent($object_type, $object_subtype, $actions);
 }
 
 /**
  * Register a delivery method for notifications
  *
- * Register for the 'send', 'notification:[method name]' plugin hook to handle
+ * Register for the 'send', 'notification:[method name]' event to handle
  * sending a notification. A notification object is in the params array for the
- * hook with the key 'notification'. See \Elgg\Notifications\Notification.
+ * event with the key 'notification'. See \Elgg\Notifications\Notification.
  *
  * @param string $name The notification method name
+ *
  * @return void
  * @see elgg_unregister_notification_method()
  * @since 1.9
  */
-function elgg_register_notification_method($name): void {
+function elgg_register_notification_method(string $name): void {
 	_elgg_services()->notifications->registerMethod($name);
 }
 
@@ -125,12 +126,13 @@ function elgg_get_notification_methods(): array {
  * Unregister a delivery method for notifications
  *
  * @param string $name The notification method name
- * @return bool
+ *
+ * @return void
  * @see elgg_register_notification_method()
  * @since 1.9
  */
-function elgg_unregister_notification_method($name): bool {
-	return _elgg_services()->notifications->unregisterMethod($name);
+function elgg_unregister_notification_method(string $name): void {
+	_elgg_services()->notifications->unregisterMethod($name);
 }
 
 /**
@@ -196,18 +198,19 @@ function elgg_get_subscriptions_for_container(int $container_guid): array {
  *
  * @return array Compound array of each delivery user/delivery method's success or failure.
  */
-function notify_user($to, $from = 0, $subject = '', $message = '', array $params = [], $methods_override = null): array {
+function notify_user(int|array $to, int $from = 0, string $subject = '', string $message = '', array $params = [], $methods_override = null): array {
 
 	$params['subject'] = $subject;
 	$params['body'] = $message;
 	$params['methods_override'] = $methods_override;
 
-	if ($from) {
+	if (!empty($from)) {
 		$sender = get_entity($from);
 	} else {
 		$sender = elgg_get_site_entity();
 	}
-	if (!$sender) {
+	
+	if (!$sender instanceof \ElggEntity) {
 		return [];
 	}
 
@@ -215,9 +218,10 @@ function notify_user($to, $from = 0, $subject = '', $message = '', array $params
 	$to = (array) $to;
 	foreach ($to as $guid) {
 		$recipient = get_entity($guid);
-		if (!$recipient) {
+		if (!$recipient instanceof \ElggEntity) {
 			continue;
 		}
+		
 		$recipients[] = $recipient;
 	}
 
@@ -228,6 +232,7 @@ function notify_user($to, $from = 0, $subject = '', $message = '', array $params
  * Send an email to any email address
  *
  * @param \Elgg\Email $email Email
+ *
  * @return bool
  * @since 1.7.2
  */
@@ -236,26 +241,10 @@ function elgg_send_email(\Elgg\Email $email): bool {
 }
 
 /**
- * Replace default email transport
- *
- * @note If you are replacing the transport persistently, e.g. on each page request via
- * a plugin, avoid using plugin settings to store transport configuration, as it
- * may be expensive to fetch these settings. Instead, configure the transport
- * via elgg-config/settings.php or use site config DB storage.
- *
- * @param \Laminas\Mail\Transport\TransportInterface $mailer Transport
- * @return void
- */
-function elgg_set_email_transport(\Laminas\Mail\Transport\TransportInterface $mailer): void {
-	_elgg_services()->set('mailer', $mailer);
-}
-
-/**
  * Enqueue a notification event for delivery.
  * Only use this function if the default event based queueing can't be used.
  *
  * @param string      $action the action of the notification event
- * @param string      $type   the type of the notification event
  * @param \ElggData   $object the object used in the notification event
  * @param \ElggEntity $actor  (optional) the actor of the notification event (default: logged in user or owner of $object)
  *
@@ -264,6 +253,6 @@ function elgg_set_email_transport(\Laminas\Mail\Transport\TransportInterface $ma
  * @return void
  * @since 4.3
  */
-function elgg_enqueue_notification_event(string $action, string $type, \ElggData $object, \ElggEntity $actor = null): void {
-	_elgg_services()->notifications->enqueueEvent($action, $type, $object, $actor);
+function elgg_enqueue_notification_event(string $action, \ElggData $object, \ElggEntity $actor = null): void {
+	_elgg_services()->notifications->enqueueEvent($action, $object, $actor);
 }

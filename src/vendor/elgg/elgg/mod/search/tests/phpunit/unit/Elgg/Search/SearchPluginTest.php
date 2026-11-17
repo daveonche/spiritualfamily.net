@@ -4,10 +4,6 @@ namespace Elgg\Search;
 
 use Elgg\UnitTestCase;
 
-/**
- * @group Search
- * @group SearchPlugin
- */
 class SearchPluginTest extends UnitTestCase {
 
 	public function up() {
@@ -34,13 +30,10 @@ class SearchPluginTest extends UnitTestCase {
 			'query_parts' => ['literal needle'],
 			'offset' => 0,
 			'limit' => 10,
-			'sort' => null,
-			'order' => null,
 			'search_type' => 'custom',
 			'fields' => [
 				'metadata' => [],
 				'annotations' => [],
-				'private_settings' => [],
 				'attributes' => [],
 			],
 			'partial_match' => true,

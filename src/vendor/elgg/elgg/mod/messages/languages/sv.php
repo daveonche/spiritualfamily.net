@@ -18,14 +18,11 @@ return array(
 	'messages:message' => "Meddelande",
 	'messages:title' => "Ämne",
 	'messages:to:help' => "Skriv mottagarens användarnamn här.",
-	'messages:inbox' => "Inkorg",
 	'messages:sendmessage' => "Skicka ett meddelande",
 	'messages:add' => "Skriv ett meddelande",
 	'messages:sentmessages' => "Skickade meddelanden",
 	'messages:toggle' => 'Växla alla',
 	'messages:markread' => 'Markera som lästa',
-
-	'notification:method:site' => 'Webbplats',
 
 	'messages:error' => 'Det var ett problem att spara ditt meddelande. Vänligen försök igen.',
 

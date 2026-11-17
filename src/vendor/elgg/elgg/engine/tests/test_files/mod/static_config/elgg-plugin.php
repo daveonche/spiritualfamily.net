@@ -11,6 +11,12 @@ return [
 			'controller' => \Elgg\StaticConfig\ActionController::class,
 			'access' => 'admin',
 		],
+		'static_config/logged_out' => [
+			'access' => 'logged_out',
+			'middleware' => [
+				\Elgg\Router\Middleware\AjaxGatekeeper::class,
+			],
+		],
 	],
 	'bootstrap' => \Elgg\StaticConfig\Bootstrap::class,
 	'entities' => [
@@ -37,14 +43,6 @@ return [
 				],
 			],
 		],
-	],
-	'group_tools' => [
-		'static_config_unregister' => [
-			'unregister' => true,
-		],
-		'static_config' => [],
-	],
-	'hooks' => [
 		'prevent' => [
 			'something' => [
 				'Elgg\Plugin\ElggPluginStaticConfigIntegrationTest::hookCallback' => [
@@ -58,6 +56,12 @@ return [
 				],
 			],
 		],
+	],
+	'group_tools' => [
+		'static_config_unregister' => [
+			'unregister' => true,
+		],
+		'static_config' => [],
 	],
 	'notifications' => [
 		'object' => [

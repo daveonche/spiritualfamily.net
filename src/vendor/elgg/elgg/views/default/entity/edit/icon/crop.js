@@ -1,5 +1,4 @@
 define(['jquery', 'jquery-cropper/jquery-cropper'], function($) {
-	
 	function Cropper() {
 		var $field;
 		var $fieldWrapper;
@@ -18,14 +17,38 @@ define(['jquery', 'jquery-cropper/jquery-cropper'], function($) {
 			
 			$messagesWrapper = $fieldWrapper.siblings('.elgg-entity-edit-icon-crop-messages');
 			
-			$field.on('change', this.replaceImg);
+			// we need to register on document to work in the correct order with change event from input/file.js
+			$(document).on('change', selector, this.replaceImg);
 			
-			$remove = $fieldWrapper.siblings('.elgg-entity-edit-icon-remove').find('input[type="checkbox"]');
+			var $remove = $fieldWrapper.siblings('.elgg-entity-edit-icon-remove').find('input[type="checkbox"]');
 			$remove.on('change', this.checkRemoveState);
 			
 			if ($img[0].hasAttribute('src')) {
 				this.reload();
 			}
+			
+			$img.on('ready', function() {
+				// enable/disable on tab changes
+				if ($field.not(':visible')) {
+					$field.data('resetNeeded', true);
+				}
+			
+				$field.parents('.elgg-tabs-component').find(' > .elgg-body > .elgg-menu-navigation-tabs-container > ul > li').on('open', function() {
+					if ($field.is(':visible')) {
+						$img.cropper('enable');
+						$img.cropper('resize');
+						
+						if ($field.data('resetNeeded')) {
+							$img.cropper('reset');
+							
+							// only need a reset once
+							$field.data('resetNeeded', false);
+						}
+					} else {
+						$img.cropper('disable');
+					}
+				});
+			});
 		};
 	
 		this.replaceImg = function() {
@@ -38,6 +61,9 @@ define(['jquery', 'jquery-cropper/jquery-cropper'], function($) {
 			$img.cropper('destroy');
 			$img.attr('src', '');
 			
+			var data = $img.data().iconCropper;
+			data.aspectRatio = data.initialAspectRatio;
+						
 			that.resetMessages();
 			
 			// validate image
@@ -78,6 +104,7 @@ define(['jquery', 'jquery-cropper/jquery-cropper'], function($) {
 			if (minWidth > 0 && cropDetails.width < minWidth) {
 				that.showMessage('width');
 			}
+			
 			var minHeight = $messagesWrapper.find('.elgg-entity-edit-icon-crop-error-height').data('minHeight');
 			if (minHeight > 0 && cropDetails.height < minHeight) {
 				that.showMessage('height');

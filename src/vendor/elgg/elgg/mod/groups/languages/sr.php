@@ -26,12 +26,10 @@ return array(
 	'groups:invitations' => 'Позиви у групу',
 	'groups:invitations:pending' => 'Позиви у групу (%s)',
 
-	'groups:icon' => 'Икона групе (оставте празно ако не желите да мењате)',
 	'groups:name' => 'Име групе',
 	'groups:description' => 'Опис',
 	'groups:briefdescription' => 'Кратак опис',
 	'groups:interests' => 'Ознаке',
-	'groups:website' => 'Вебсајт',
 	'groups:members' => 'Чланови групе',
 
 	'groups:members:title' => 'Чланови %s',
@@ -41,21 +39,17 @@ return array(
 	'groups:content_access_mode:warning' => "Упозорење: Мењање овог подешавања неће променити дозволе приступа већ посојећег садржаја у групи.",
 	'groups:content_access_mode:unrestricted' => "Слободан - Приступ зависи од нивоа приступа садржаја",
 	'groups:content_access_mode:membersonly' => "Само чланови - Они који нису чланови не могу да приступе садржају групе",
-	'groups:access' => "Дозволе приступа",
 	'groups:owner' => "Власник",
 	'groups:owner:warning' => "Упозорење: ако промените ову вредност, више нећете бити власник групе.",
 	'groups:widget:num_display' => 'Колико група приказати',
 	'widgets:a_users_groups:name' => 'Чланство групе',
 	'widgets:a_users_groups:description' => 'Прикажи групе у којима сте члан на вашем профилу',
 
-	'groups:noaccess' => 'Немате приступ групи',
 	'groups:cantcreate' => 'Не можете да направите групу. Само админ може.',
 	'groups:cantedit' => 'Можете да измените ову групу',
 	'groups:saved' => 'Група сачувана',
 	'groups:save_error' => 'Група се не може сачувати',
 	'groups:featured' => 'Издвојене групе',
-	'groups:makeunfeatured' => 'Уклони из истакнутих',
-	'groups:makefeatured' => 'Истакни',
 	'groups:featuredon' => '%s је сад истакнута група.',
 	'groups:unfeatured' => '%s је уклоњена из истакнутих група.',
 	'groups:featured_error' => 'Погрешна група.',
@@ -82,7 +76,6 @@ return array(
 
 	'groups:open' => "отворена група",
 	'groups:closed' => "затворена група",
-	'groups:member' => "чланови",
 
 	'groups:more' => 'Више група',
 	'groups:none' => 'Нема група',
@@ -142,4 +135,6 @@ return array(
 	'groups:add:alreadymember' => "%s је већ члан ове групе",
 	
 	// Notification settings
+	
+	// accessibility
 );

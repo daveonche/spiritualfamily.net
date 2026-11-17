@@ -3,6 +3,7 @@
 namespace Elgg\Http;
 
 use Elgg\Exceptions\InvalidArgumentException;
+use Elgg\Exceptions\RangeException;
 
 /**
  * Response builder
@@ -44,6 +45,7 @@ abstract class Response implements ResponseBuilder {
 		if (isset($content) && !is_scalar($content) && !is_array($content)) {
 			throw new InvalidArgumentException(__METHOD__ . ' expects content as a scalar value or array');
 		}
+		
 		$this->content = $content;
 		return $this;
 	}
@@ -75,9 +77,10 @@ abstract class Response implements ResponseBuilder {
 	 */
 	public function setStatusCode(int $status_code) {
 		if ($status_code < 100 || $status_code > 599) {
-			throw new InvalidArgumentException(__METHOD__ . ' expects a valid HTTP status code');
+			throw new RangeException(__METHOD__ . ' expects a valid HTTP status code');
 		}
-		$this->status_code = (int) $status_code;
+		
+		$this->status_code = $status_code;
 		return $this;
 	}
 
@@ -91,10 +94,7 @@ abstract class Response implements ResponseBuilder {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function setForwardURL($forward_url = REFERRER) {
-		if (isset($forward_url) && !is_string($forward_url) && $forward_url !== REFERRER) {
-			throw new InvalidArgumentException(__METHOD__ . ' expects a valid URL or REFERRER');
-		}
+	public function setForwardURL(string $forward_url = REFERRER) {
 		$this->forward_url = $forward_url;
 		return $this;
 	}
@@ -102,7 +102,7 @@ abstract class Response implements ResponseBuilder {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getForwardURL() {
+	public function getForwardURL(): ?string {
 		return $this->forward_url;
 	}
 

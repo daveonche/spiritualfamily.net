@@ -7,6 +7,7 @@ use Elgg\Database;
 use Elgg\Database\Clauses\MetadataWhereClause;
 use Elgg\Database\Clauses\OrderByClause;
 use Elgg\EventsService as Events;
+use Elgg\Exceptions\InvalidArgumentException;
 use Elgg\Exceptions\LogicException;
 use Elgg\Traits\TimeUsing;
 
@@ -18,28 +19,16 @@ use Elgg\Traits\TimeUsing;
 class MetadataTable {
 
 	use TimeUsing;
-
-	/**
-	 * @var MetadataCache
-	 */
-	protected $metadata_cache;
-
-	/**
-	 * @var Database
-	 */
-	protected $db;
-
-	/**
-	 * @var Events
-	 */
-	protected $events;
 	
-	/**
-	 * @var EntityTable
-	 */
-	protected $entityTable;
-
 	const MYSQL_TEXT_BYTE_LIMIT = 65535;
+	
+	protected MetadataCache $metadata_cache;
+
+	protected Database $db;
+
+	protected Events $events;
+	
+	protected EntityTable $entityTable;
 
 	/**
 	 * Constructor
@@ -151,9 +140,9 @@ class MetadataTable {
 	 *
 	 * @param int $id The id of the metadata object being retrieved.
 	 *
-	 * @return \ElggMetadata|false  false if not found
+	 * @return \ElggMetadata|null
 	 */
-	public function get($id) {
+	public function get(int $id): ?\ElggMetadata {
 		$qb = Select::fromTable('metadata');
 		$qb->select('*');
 
@@ -162,11 +151,7 @@ class MetadataTable {
 		$qb->addClause($where);
 
 		$row = $this->db->getDataRow($qb);
-		if (!empty($row)) {
-			return new \ElggMetadata($row);
-		}
-
-		return false;
+		return $row ? new \ElggMetadata($row) : null;
 	}
 
 	/**
@@ -176,7 +161,7 @@ class MetadataTable {
 	 *
 	 * @return bool
 	 */
-	public function delete(\ElggMetadata $metadata) {
+	public function delete(\ElggMetadata $metadata): bool {
 		if (!$metadata->id) {
 			return false;
 		}
@@ -209,9 +194,9 @@ class MetadataTable {
 	 * @return int|false id of metadata or false if failure
 	 * @throws LogicException
 	 */
-	public function create(\ElggMetadata $metadata, $allow_multiple = false) {
+	public function create(\ElggMetadata $metadata, bool $allow_multiple = false): int|false {
 		if (!isset($metadata->value) || !isset($metadata->entity_guid)) {
-			elgg_log("Metadata must have a value and entity guid", 'ERROR');
+			elgg_log('Metadata must have a value and entity guid', 'ERROR');
 			return false;
 		}
 
@@ -221,7 +206,7 @@ class MetadataTable {
 		}
 		
 		if (!is_scalar($metadata->value)) {
-			elgg_log("To set multiple metadata values use ElggEntity::setMetadata", 'ERROR');
+			elgg_log('To set multiple metadata values use ElggEntity::setMetadata', 'ERROR');
 			return false;
 		}
 
@@ -278,17 +263,17 @@ class MetadataTable {
 		$metadata->id = (int) $id;
 		$metadata->time_created = $time_created;
 
-		if ($this->events->trigger('create', 'metadata', $metadata)) {
-			$this->metadata_cache->clear($metadata->entity_guid);
-
-			$this->events->triggerAfter('create', 'metadata', $metadata);
-
-			return $id;
-		} else {
+		if (!$this->events->trigger('create', 'metadata', $metadata)) {
 			$this->delete($metadata);
-
+			
 			return false;
 		}
+		
+		$this->metadata_cache->clear($metadata->entity_guid);
+
+		$this->events->triggerAfter('create', 'metadata', $metadata);
+
+		return $id;
 	}
 
 	/**
@@ -298,8 +283,7 @@ class MetadataTable {
 	 *
 	 * @return bool
 	 */
-	public function update(\ElggMetadata $metadata) {
-
+	public function update(\ElggMetadata $metadata): bool {
 		if (!$this->entityTable->exists($metadata->entity_guid)) {
 			elgg_log("Can't update metadata to a non-existing entity_guid", 'ERROR');
 			return false;
@@ -345,7 +329,6 @@ class MetadataTable {
 	 * @return \ElggMetadata[]|mixed
 	 */
 	public function getAll(array $options = []) {
-
 		$options['metastring_type'] = 'metadata';
 		$options = QueryOptions::normalizeMetastringOptions($options);
 
@@ -363,8 +346,7 @@ class MetadataTable {
 	 *
 	 * @internal
 	 */
-	public function getRowsForGuids(array $guids) {
-
+	public function getRowsForGuids(array $guids): array {
 		$qb = Select::fromTable('metadata');
 		$qb->select('*')
 			->where($qb->compare('entity_guid', 'IN', $guids, ELGG_VALUE_GUID))
@@ -389,9 +371,10 @@ class MetadataTable {
 	 *
 	 * @param array $options Options
 	 *
-	 * @return bool|null true on success, false on failure, null if no metadata to delete.
+	 * @return bool
+	 * @throws InvalidArgumentException
 	 */
-	public function deleteAll(array $options) {
+	public function deleteAll(array $options): bool {
 		$required = [
 			'guid', 'guids',
 			'metadata_name', 'metadata_names',
@@ -409,7 +392,7 @@ class MetadataTable {
 
 		if (!$found) {
 			// requirements not met
-			return false;
+			throw new InvalidArgumentException(__METHOD__ . ' requires at least one of the following keys in $options: ' . implode(', ', $required));
 		}
 
 		// This moved last in case an object's constructor sets metadata. Currently the batch
@@ -424,7 +407,7 @@ class MetadataTable {
 		$count = $metadata->count();
 
 		if (!$count) {
-			return;
+			return true;
 		}
 
 		$success = 0;
@@ -435,7 +418,7 @@ class MetadataTable {
 			}
 		}
 
-		return $success == $count;
+		return $success === $count;
 	}
 
 	/**
@@ -446,7 +429,7 @@ class MetadataTable {
 	 *
 	 * @return int[]|int|null
 	 */
-	protected function getIDsByName($entity_guid, $name) {
+	protected function getIDsByName(int $entity_guid, string $name) {
 		if ($this->metadata_cache->isLoaded($entity_guid)) {
 			$ids = $this->metadata_cache->getSingleId($entity_guid, $name);
 		} else {

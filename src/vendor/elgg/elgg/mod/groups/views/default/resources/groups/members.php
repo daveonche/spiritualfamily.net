@@ -3,16 +3,9 @@
  * Show a list of all group members
  */
 
-$guid = (int) elgg_extract('guid', $vars);
+$group = elgg_get_page_owner_entity();
 
-elgg_entity_gatekeeper($guid, 'group');
-
-$group = get_entity($guid);
-
-elgg_set_page_owner_guid($guid);
-
-elgg_push_breadcrumb(elgg_echo('groups'), elgg_generate_url('collection:group:group:all'));
-elgg_push_breadcrumb($group->getDisplayName(), $group->getURL());
+elgg_push_entity_breadcrumbs($group);
 
 if ($group->canEdit() && elgg_is_active_plugin('friends')) {
 	elgg_register_menu_item('title', [

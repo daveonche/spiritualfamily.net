@@ -20,6 +20,12 @@ class Request extends SymfonyRequest {
 	const REWRITE_TEST_OUTPUT = 'success';
 
 	/**
+	 * @var bool is this Request used in an integration test
+	 * @internal
+	 */
+	public bool $_integration_testing = false;
+	
+	/**
 	 * @var Context
 	 */
 	protected $context_stack;
@@ -65,6 +71,8 @@ class Request extends SymfonyRequest {
 	
 	/**
 	 * Configure trusted proxy servers to allow access to more client information
+	 *
+	 * @param Config $config Elgg config to read trusted proxy configuration from
 	 *
 	 * @return void
 	 */
@@ -179,7 +187,7 @@ class Request extends SymfonyRequest {
 	 *
 	 * @return array
 	 */
-	public function getParams(bool $filter_result = true) {
+	public function getParams(bool $filter_result = true): array {
 		if (isset($this->filtered_params) && isset($this->unfiltered_params)) {
 			return $filter_result ? $this->filtered_params : $this->unfiltered_params;
 		}
@@ -210,13 +218,13 @@ class Request extends SymfonyRequest {
 	public function getCurrentURL() {
 		$url = parse_url(elgg_get_site_url());
 
-		$page = $url['scheme'] . "://" . $url['host'];
+		$page = $url['scheme'] . '://' . $url['host'];
 
 		if (isset($url['port']) && $url['port']) {
-			$page .= ":" . $url['port'];
+			$page .= ':' . $url['port'];
 		}
 
-		$page = trim($page, "/");
+		$page = trim($page, '/');
 
 		$page .= $this->getRequestUri();
 
@@ -235,7 +243,8 @@ class Request extends SymfonyRequest {
 		if (!$raw) {
 			$path = htmlspecialchars($path, ENT_QUOTES, 'UTF-8');
 		}
-		if (!$path) {
+		
+		if (empty($path)) {
 			return [];
 		}
 
@@ -279,7 +288,7 @@ class Request extends SymfonyRequest {
 	 * @return string
 	 */
 	public function getElggPath() {
-		if (php_sapi_name() === 'cli-server') {
+		if (PHP_SAPI === 'cli-server') {
 			$path = $this->getRequestUri();
 		} else {
 			$path = $this->getPathInfo();
@@ -325,7 +334,7 @@ class Request extends SymfonyRequest {
 		$base_url = $this->getBaseUrl();
 
 		// baseURL may end with the PHP script
-		if ('.php' === substr($base_url, -4)) {
+		if (str_ends_with($base_url, '.php')) {
 			$base_url = dirname($base_url);
 		}
 
@@ -367,7 +376,7 @@ class Request extends SymfonyRequest {
 	 * @return bool
 	 */
 	public function isCliServer() {
-		return php_sapi_name() === 'cli-server';
+		return PHP_SAPI === 'cli-server';
 	}
 
 	/**
@@ -384,7 +393,10 @@ class Request extends SymfonyRequest {
 		}
 
 		// http://php.net/manual/en/features.commandline.webserver.php
-		$extensions = ".3gp, .apk, .avi, .bmp, .css, .csv, .doc, .docx, .flac, .gif, .gz, .gzip, .htm, .html, .ics, .jpe, .jpeg, .jpg, .js, .kml, .kmz, .m4a, .mov, .mp3, .mp4, .mpeg, .mpg, .odp, .ods, .odt, .oga, .ogg, .ogv, .pdf, .pdf, .png, .pps, .pptx, .qt, .svg, .swf, .tar, .text, .tif, .txt, .wav, .webm, .wmv, .xls, .xlsx, .xml, .xsl, .xsd, and .zip";
+		$extensions = '.3gp, .apk, .avi, .bmp, .css, .csv, .doc, .docx, .flac, .gif, .gz, .gzip, .htm, .html, .ics,';
+		$extensions .= ' .jpe, .jpeg, .jpg, .js, .kml, .kmz, .m4a, .mov, .mp3, .mp4, .mpeg, .mpg, .odp, .ods, .odt,';
+		$extensions .= ' .oga, .ogg, .ogv, .pdf, .pdf, .png, .pps, .pptx, .qt, .svg, .swf, .tar, .text, .tif, .txt,';
+		$extensions .= ' .wav, .webm, .wmv, .xls, .xlsx, .xml, .xsl, .xsd, and .zip';
 
 		// The CLI server routes ALL requests here (even existing files), so we have to check for these.
 		$ext = pathinfo($file, PATHINFO_EXTENSION);
@@ -404,7 +416,7 @@ class Request extends SymfonyRequest {
 	 *
 	 * @return UploadedFile[]
 	 */
-	public function getFiles($input_name) {
+	public function getFiles(string $input_name): array {
 		$files = $this->files->get($input_name);
 		if (empty($files)) {
 			return [];
@@ -423,21 +435,21 @@ class Request extends SymfonyRequest {
 	 * @param string $input_name         Form input name
 	 * @param bool   $check_for_validity If there is an uploaded file, is it required to be valid
 	 *
-	 * @return UploadedFile|false
+	 * @return UploadedFile|null
 	 */
-	public function getFile($input_name, $check_for_validity = true) {
+	public function getFile(string $input_name, bool $check_for_validity = true): ?UploadedFile {
 		$files = $this->getFiles($input_name);
 		if (empty($files)) {
-			return false;
+			return null;
 		}
 
 		$file = $files[0];
 		if (empty($file)) {
-			return false;
+			return null;
 		}
 
 		if ($check_for_validity && !$file->isValid()) {
-			return false;
+			return null;
 		}
 
 		return $file;
@@ -516,12 +528,7 @@ class Request extends SymfonyRequest {
 			return;
 		}
 		
-		$error_msg = elgg_trigger_deprecated_plugin_hook('action_gatekeeper:upload_exceeded_msg', 'all', [
-			'post_size' => $reported_bytes,
-			'visible_errors' => true,
-		], elgg_echo('actiongatekeeper:uploadexceeded'), "The 'action_gatekeeper:upload_exceeded_msg', 'all' has been deprecated", '4.3');
-		
-		throw new BadRequestException($error_msg);
+		throw new BadRequestException(elgg_echo('actiongatekeeper:uploadexceeded'));
 	}
 	
 	/**

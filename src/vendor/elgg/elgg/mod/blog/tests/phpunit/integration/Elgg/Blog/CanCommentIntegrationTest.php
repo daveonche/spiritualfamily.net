@@ -2,14 +2,9 @@
 
 namespace Elgg\Blog;
 
-use Elgg\Plugins\PluginTesting;
+use Elgg\Plugins\IntegrationTestCase;
 
-/**
- * @group Plugins
- */
-class CanCommentIntegrationTest extends \Elgg\IntegrationTestCase {
-	
-	use PluginTesting;
+class CanCommentIntegrationTest extends IntegrationTestCase {
 	
 	/**
 	 * @dataProvider blogCommentStatusProvider
@@ -17,7 +12,6 @@ class CanCommentIntegrationTest extends \Elgg\IntegrationTestCase {
 	public function testCanComment($enable_comments, $status, $expected) {
 		$blog = $this->createObject([
 			'subtype' => 'blog',
-		], [
 			'comments_on' => $enable_comments,
 			'status' => $status,
 		]);
@@ -26,9 +20,8 @@ class CanCommentIntegrationTest extends \Elgg\IntegrationTestCase {
 		$this->assertFalse($blog->canComment());
 		
 		$user = $this->createUser();
-		$session = _elgg_services()->session;
 		
-		$session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 		
 		$this->assertEquals($expected, $blog->canComment());
 	}

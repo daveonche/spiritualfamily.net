@@ -19,6 +19,7 @@ return array(
 	'collection:object:page:group' => "Groepspagina's",
 	'add:object:page' => "Nieuwe pagina",
 	'edit:object:page' => "Bewerk deze pagina",
+	'menu:pages_nav:header' => "Subpagina's",
 	'notification:object:page:create' => "Stuur een notificatie wanneer een pagina is gemaakt",
 	'notifications:mute:object:page' => "over de pagina '%s'",
 
@@ -41,6 +42,8 @@ return array(
 
 Om de pagina te bekijken en te reageren, klik hier:
 %s',
+	
+	'notification:mentions:object:page:subject' => '%s heeft je vermeld in een pagina',
 
 	'pages:more' => 'Meer pagina\'s',
 	'pages:none' => 'Nog geen pagina\'s aangemaakt',
@@ -68,7 +71,6 @@ Om de pagina te bekijken en te reageren, klik hier:
 	'pages:cantedit' => 'Je kunt deze pagina niet bewerken',
 	'pages:saved' => 'Pagina opgeslagen',
 	'pages:notsaved' => 'Pagina kon niet worden opgeslagen',
-	'pages:error:no_title' => 'Je moet een titel opgeven voor deze pagina.',
 	'entity:delete:object:page:success' => 'Pagina succesvol verwijderd',
 
 	/**

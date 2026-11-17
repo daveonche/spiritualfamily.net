@@ -28,9 +28,10 @@ class CommentEntityRedirectorIntegrationTest extends IntegrationTestCase {
 	 */
 	public function up() {
 		$this->owner = $this->createUser();
-		elgg()->session->setLoggedInUser($this->owner);
+		elgg()->session_manager->setLoggedInUser($this->owner);
 		
 		$this->entity = $this->createObject([
+			'subtype' => 'commentable',
 			'owner_guid' => $this->owner->guid,
 			'container_guid' => $this->owner->guid,
 			'access_id' => ACCESS_PRIVATE,
@@ -52,7 +53,7 @@ class CommentEntityRedirectorIntegrationTest extends IntegrationTestCase {
 			'request' => $request,
 		]);
 		
-		$app->internal_services->session->setLoggedInUser($this->owner);
+		$app->internal_services->session_manager->setLoggedInUser($this->owner);
 		
 		// keep this inline with the route declaration in /engine/routes.php
 		$app->internal_services->routes->register('view:object:comment', [
@@ -100,7 +101,7 @@ class CommentEntityRedirectorIntegrationTest extends IntegrationTestCase {
 		$this->createService($request);
 		
 		$this->expectException(EntityNotFoundException::class);
-		$this->expectErrorMessage(elgg_echo('generic_comment:notfound'));
+		$this->expectExceptionMessage(elgg_echo('generic_comment:notfound'));
 		$this->executeRequest($request);
 	}
 	
@@ -125,10 +126,10 @@ class CommentEntityRedirectorIntegrationTest extends IntegrationTestCase {
 		$this->createService($request);
 		
 		$other_user = $this->createUser();
-		elgg()->session->setLoggedInUser($other_user);
+		elgg()->session_manager->setLoggedInUser($other_user);
 		
 		$this->expectException(EntityNotFoundException::class);
-		$this->expectErrorMessage(elgg_echo('generic_comment:notfound'));
+		$this->expectExceptionMessage(elgg_echo('generic_comment:notfound'));
 		$this->executeRequest($request);
 		
 		$other_user->delete();

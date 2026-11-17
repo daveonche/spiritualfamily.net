@@ -4,13 +4,6 @@ namespace Elgg\Integration;
 
 use Elgg\IntegrationTestCase;
 
-/**
- * Elgg Test annotation api
- *
- * @group IntegrationTests
- * @group EntityAnnotations
- * @group Annotations
- */
 class ElggCoreAnnotationAPITest extends IntegrationTestCase {
 
 	/**
@@ -19,7 +12,7 @@ class ElggCoreAnnotationAPITest extends IntegrationTestCase {
 	protected $object;
 
 	public function up() {
-		_elgg_services()->session->setLoggedInUser($this->getAdmin());
+		_elgg_services()->session_manager->setLoggedInUser($this->getAdmin());
 
 		$this->object = $this->createObject();
 	}
@@ -63,8 +56,8 @@ class ElggCoreAnnotationAPITest extends IntegrationTestCase {
 		$annotations = elgg_get_annotations($options);
 		$this->assertTrue(empty($annotations));
 
-		// nothing to delete so null returned
-		$this->assertNull(elgg_delete_annotations($options));
+		// nothing to delete so true returned
+		$this->assertTrue(elgg_delete_annotations($options));
 	}
 
 	public function testElggDisableAnnotations() {
@@ -104,8 +97,8 @@ class ElggCoreAnnotationAPITest extends IntegrationTestCase {
 
 		$this->assertTrue(elgg_disable_annotations($options));
 
-		// cannot see any annotations so returns null
-		$this->assertNull(elgg_enable_annotations($options));
+		// cannot see any annotations so returns true
+		$this->assertTrue(elgg_enable_annotations($options));
 
 		elgg_call(ELGG_SHOW_DISABLED_ENTITIES, function() use ($options) {
 			$this->assertTrue(elgg_enable_annotations($options));

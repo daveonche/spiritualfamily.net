@@ -14,7 +14,6 @@ $tables = [
 	'entity_relationships',
 	'hmac_cache',
 	'metadata',
-	'private_settings',
 	'queue',
 	'river',
 	'system_log',
@@ -29,7 +28,7 @@ $header .= '<th>' . elgg_echo('admin:statistics:database:row_count') . '</th></t
 $rows = '';
 foreach ($tables as $table_name) {
 	$qb = Select::fromTable($table_name);
-	$qb->select("COUNT(*) AS total");
+	$qb->select('COUNT(*) AS total');
 
 	$row_count = _elgg_services()->db->getDataRow($qb);
 	$row_count = empty($row_count) ? 0 : (int) $row_count->total;

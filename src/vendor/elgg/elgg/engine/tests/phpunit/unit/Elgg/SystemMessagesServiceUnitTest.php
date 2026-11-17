@@ -2,9 +2,6 @@
 
 namespace Elgg;
 
-/**
- * @group UnitTests
- */
 class SystemMessagesServiceUnitTest extends \Elgg\UnitTestCase {
 
 	/**
@@ -18,16 +15,18 @@ class SystemMessagesServiceUnitTest extends \Elgg\UnitTestCase {
 	protected $session;
 
 	public function up() {
-		$this->session = \ElggSession::getMock();
+		$this->session = _elgg_services()->session;
 		$this->svc = new SystemMessagesService($this->session);
 	}
 
 	function testCanStoreAndDumpMessages() {
 		$this->svc->addSuccessMessage('s1');
-		$this->svc->addSuccessMessage(['s2', 's3']);
+		$this->svc->addSuccessMessage('s2');
+		$this->svc->addSuccessMessage('s3');
 
 		$this->svc->addErrorMessage('e1');
-		$this->svc->addErrorMessage(['e2', 'e3']);
+		$this->svc->addErrorMessage('e2');
+		$this->svc->addErrorMessage('e3');
 
 		$this->assertEquals([
 			'success' => ['s1', 's2', 's3'],
@@ -44,8 +43,11 @@ class SystemMessagesServiceUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	function testCanDumpOneRegister() {
-		$this->svc->addSuccessMessage(['s2', 's3']);
-		$this->svc->addErrorMessage(['e1', 'e2', 'e3']);
+		$this->svc->addSuccessMessage('s2');
+		$this->svc->addSuccessMessage('s3');
+		$this->svc->addErrorMessage('e1');
+		$this->svc->addErrorMessage('e2');
+		$this->svc->addErrorMessage('e3');
 
 		$this->assertEquals([
 			'success' => ['s2', 's3'],
@@ -63,15 +65,18 @@ class SystemMessagesServiceUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	function testCanCount() {
-		$this->svc->addSuccessMessage(['s2', 's3']);
-		$this->svc->addErrorMessage(['e1', 'e2', 'e3']);
+		$this->svc->addSuccessMessage('s2');
+		$this->svc->addSuccessMessage('s3');
+		$this->svc->addErrorMessage('e1');
+		$this->svc->addErrorMessage('e2');
+		$this->svc->addErrorMessage('e3');
 
 		$this->assertEquals(2, $this->svc->count("success"));
 		$this->assertEquals(3, $this->svc->count("error"));
 		$this->assertEquals(5, $this->svc->count());
 	}
 
-	function testCanModifyRegisterSet() {
+	function testCanModifyRegister() {
 		$s2 = new \ElggSystemMessage('s2', 'success');
 		$s3 = new \ElggSystemMessage('s3', 'success');
 
@@ -86,13 +91,13 @@ class SystemMessagesServiceUnitTest extends \Elgg\UnitTestCase {
 		$this->svc->addMessage($e3);
 
 		$set = $this->svc->loadRegisters();
-		$this->assertEquals([$s2, $s3], $set->success);
-		$this->assertEquals([$e1, $e2, $e3], $set->error);
+		$this->assertEquals([$s2, $s3], $set['success']);
+		$this->assertEquals([$e1, $e2, $e3], $set['error']);
 
 		// will be filtered
-		$set->success = ['', $s2];
-		$set->error = [$e1, false];
-		$set->invalid = true;
+		$set['success'] = ['', $s2];
+		$set['error'] = [$e1, false];
+		$set['invalid'] = true;
 		$this->svc->saveRegisters($set);
 
 		$this->assertEquals([

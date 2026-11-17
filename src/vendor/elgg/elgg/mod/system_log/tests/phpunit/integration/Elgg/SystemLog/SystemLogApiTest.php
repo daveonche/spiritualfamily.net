@@ -2,13 +2,9 @@
 
 namespace Elgg\SystemLog;
 
-use Elgg\IntegrationTestCase;
-use Elgg\HooksRegistrationService\Event;
+use Elgg\Plugins\IntegrationTestCase;
+use Elgg\Event;
 
-/**
- * @group Plugins
- * @group SystemLogPlugin
- */
 class SystemLogApiTest extends IntegrationTestCase {
 
 	public function up() {
@@ -26,10 +22,10 @@ class SystemLogApiTest extends IntegrationTestCase {
 
 		$event = 'SystemLogApiTest' . rand();
 
-		\Elgg\SystemLog\Logger::log(new Event(elgg(), 'log', 'systemlog', [
+		\Elgg\SystemLog\Logger::log(new Event(elgg(), 'log', 'systemlog', null, ['object' => [
 			'object' => $object,
 			'event' => $event,
-		]));
+		]]));
 
 		_elgg_services()->db->executeDelayedQueries();
 
@@ -73,10 +69,10 @@ class SystemLogApiTest extends IntegrationTestCase {
 
 		$event = 'SystemLogApiTest' . rand();
 
-		\Elgg\SystemLog\Logger::log(new Event(elgg(), 'log', 'systemlog', [
+		\Elgg\SystemLog\Logger::log(new Event(elgg(), 'log', 'systemlog', null, ['object' => [
 			'object' => $object,
 			'event' => $event,
-		]));
+		]]));
 
 		_elgg_services()->db->executeDelayedQueries();
 

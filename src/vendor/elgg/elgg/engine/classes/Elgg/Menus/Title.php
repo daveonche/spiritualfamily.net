@@ -16,18 +16,18 @@ class Title {
 	/**
 	 * Add a link to the avatar edit page
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'menu:title'
+	 * @param \Elgg\Event $event 'register', 'menu:title'
 	 *
 	 * @return void|MenuItems
 	 */
-	public static function registerAvatarEdit(\Elgg\Hook $hook) {
-		$user = $hook->getEntityParam();
+	public static function registerAvatarEdit(\Elgg\Event $event) {
+		$user = $event->getEntityParam();
 		if (!$user instanceof \ElggUser || !$user->canEdit()) {
 			return;
 		}
 		
 		/* @var $return MenuItems */
-		$return = $hook->getValue();
+		$return = $event->getValue();
 		
 		$return[] = \ElggMenuItem::factory([
 			'name' => 'avatar:edit',
@@ -43,17 +43,17 @@ class Title {
 	/**
 	 * Move entity menu items to the title menu
 	 *
-	 * @param \Elgg\Hook $hook 'register', 'menu:title'
+	 * @param \Elgg\Event $event 'register', 'menu:title'
 	 *
 	 * @return void|MenuItems
 	 */
-	public static function registerEntityToTitle(\Elgg\Hook $hook) {
-		$entity = $hook->getEntityParam();
+	public static function registerEntityToTitle(\Elgg\Event $event) {
+		$entity = $event->getEntityParam();
 		if (!$entity instanceof \ElggEntity) {
 			return;
 		}
 		
-		$return = $hook->getValue();
+		$return = $event->getValue();
 		if (!$return instanceof MenuItems) {
 			return;
 		}
@@ -69,6 +69,7 @@ class Title {
 					// move edit always to z-last location
 					$return->get('edit')->setSection('z-last');
 				}
+				
 				continue;
 			}
 			
@@ -98,6 +99,7 @@ class Title {
 			'icon' => 'ellipsis-v',
 			'href' => false,
 			'text' => '',
+			'title' => elgg_echo('more'),
 			'child_menu' => [
 				'display' => 'dropdown',
 				'data-position' => json_encode([
@@ -105,7 +107,7 @@ class Title {
 					'my' => 'right top',
 					'collision' => 'fit fit',
 				]),
-				'class' => "elgg-{$hook->getParam('name')}-dropdown-menu",
+				'class' => "elgg-{$event->getParam('name')}-dropdown-menu",
 			],
 			'show_with_empty_children' => false,
 			'link_class' => [

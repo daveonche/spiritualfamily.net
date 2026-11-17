@@ -1,3 +1,487 @@
+<a name="5.1.12"></a>
+### 5.1.12 (2024-11-20)
+
+#### Contributors
+
+* Jerôme Bakker (1)
+
+
+<a name="5.1.11"></a>
+### 5.1.11 (2024-10-25)
+
+#### Contributors
+
+* Jerôme Bakker (3)
+
+#### Bug fixes
+
+* **comments:** allow multiple replies on the same comment [0ff81db02](https://github.com/Elgg/Elgg//commit/0ff81db02851426016ecf3a7cdbbe8ffb0881e04) closes [#14690](https://github.com/Elgg/Elgg//commit/14690)
+* **i18n:** use correct user language [565605e62](https://github.com/Elgg/Elgg//commit/565605e62e95477134a219e99a7c55aedd70c5fb)
+* **file:** use correct original file name in upgrade [73aaef51e](https://github.com/Elgg/Elgg//commit/73aaef51e3e8c03bc56bc63df32f96dba5ea74a2)
+
+
+<a name="5.1.10"></a>
+### 5.1.10 (2024-10-08)
+
+#### Contributors
+
+* Jerôme Bakker (2)
+
+#### Bug fixes
+
+* **thewire:** correctly handle string length for multi-byte characters [77baddcf3](https://github.com/Elgg/Elgg//commit/77baddcf37123ad20950b1ad2b2d01b79e52ec6f)
+* **i18n:** handle invalid locale date format [9a93d5bdc](https://github.com/Elgg/Elgg//commit/9a93d5bdcf6b34e43147362d3600bc8deedd6eb0) closes [#14712](https://github.com/Elgg/Elgg//commit/14712)
+
+
+<a name="5.1.9"></a>
+### 5.1.9 (2024-08-02)
+
+#### Contributors
+
+* Jerôme Bakker (2)
+
+#### Bug fixes
+
+* **menus:** no longer render empty menu sections [72882fc37](https://github.com/Elgg/Elgg//commit/72882fc37325801d0a95370fe82f92495105a681)
+* **rss:** fatal error that occurred when enabling short_open_tag [d0883e534](https://github.com/Elgg/Elgg//commit/d0883e534f81f50a5837bae03f97386591000aab)
+
+
+<a name="5.1.8"></a>
+### 5.1.8 (2024-07-11)
+
+#### Contributors
+
+* Jeroen Dalsem (1)
+* Jerôme Bakker (1)
+
+#### Bug fixes
+
+* **forms:** prevent type hint crash by casting vars [6286063c8](https://github.com/Elgg/Elgg//commit/6286063c8aadb11941f6eb0dbd2aaf322fd61c14)
+
+
+<a name="5.1.7"></a>
+### 5.1.7 (2024-06-27)
+
+#### Contributors
+
+* Jerôme Bakker (1)
+
+#### Bug fixes
+
+* **email:** use recipient language for email footer link [b5add14a0](https://github.com/Elgg/Elgg//commit/b5add14a02c6b362f8efcd7db8d8faf097c4e2eb)
+
+
+<a name="5.1.6"></a>
+### 5.1.6 (2024-06-14)
+
+#### Contributors
+
+* Jerôme Bakker (3)
+
+#### Bug fixes
+
+* **thewire:** correctly call thewire_filter() [622cfb65f](https://github.com/Elgg/Elgg//commit/622cfb65fd361476f0a69bb6d8500881b918b794) closes [#14611](https://github.com/Elgg/Elgg//commit/14611)
+
+
+<a name="5.1.5"></a>
+### 5.1.5 (2024-03-22)
+
+#### Contributors
+
+* Jerôme Bakker (7)
+* Jeroen Dalsem (1)
+
+#### Bug fixes
+
+* **core:**
+  * improved friendly title for multibyte characters [6d80fa23f](https://github.com/Elgg/Elgg//commit/6d80fa23ff800e4aa67913dd9c76ab157804120a) closes [#14577](https://github.com/Elgg/Elgg//commit/14577)
+  * no longer set dynamic property on exceptions [21b41a6a6](https://github.com/Elgg/Elgg//commit/21b41a6a693479fa93a7dca24bac71d323eb5dfe)
+* **ckeditor:** do not limit html elements in ckeditor [01bacfc51](https://github.com/Elgg/Elgg//commit/01bacfc515e60c6abf3bc299d89f89150458e811)
+* **plugins:** improved handling of composer version constraints [8dd38c0b7](https://github.com/Elgg/Elgg//commit/8dd38c0b7929de6d5d3e0aba6704fe50316538c6) closes [#14580](https://github.com/Elgg/Elgg//commit/14580)
+* **pages:** correctly disable parent page option [02a4f3bfa](https://github.com/Elgg/Elgg//commit/02a4f3bfa372ec5d103ba48d8b27af23d3b134e8)
+
+
+<a name="5.1.4"></a>
+### 5.1.4 (2024-01-12)
+
+#### Contributors
+
+* Jerôme Bakker (3)
+* Jeroen Dalsem (2)
+
+#### Bug fixes
+
+* **comments:** only load comment form when needed [1eaa55b48](https://github.com/Elgg/Elgg//commit/1eaa55b48bd3fc55ac00580627e254e0f8124fa5)
+* **session:** allow samesite cookie configuration [1dcb96c26](https://github.com/Elgg/Elgg//commit/1dcb96c2688da0b7e6cb87d78de12043f05dc8c0)
+* **notifications:** prevent unneeded content subscriptions [3ffedc0ad](https://github.com/Elgg/Elgg//commit/3ffedc0ad92992f930377e5261a24ba51580e61c) closes [#14301](https://github.com/Elgg/Elgg//commit/14301)
+
+
+<a name="5.1.3"></a>
+### 5.1.3 (2023-12-15)
+
+#### Contributors
+
+* Jeroen Dalsem (5)
+* Jerôme Bakker (2)
+
+#### Bug fixes
+
+* **cli:** database seed command no longer queues notifications [7fb4139fe](https://github.com/Elgg/Elgg//commit/7fb4139fea6b61243838adf31beccd09812c453c)
+* **uservalidationbyemail:** only allow confirm link for logged out users [89ba96f5d](https://github.com/Elgg/Elgg//commit/89ba96f5da04ec392d027d4b26c75b6a8946e273)
+* **users:** prevent ban/unban notifications for users during disable [623a2fe6a](https://github.com/Elgg/Elgg//commit/623a2fe6acfa1104414b57cc88ce4ab408c715e1)
+
+
+<a name="5.1.2"></a>
+### 5.1.2 (2023-11-30)
+
+#### Contributors
+
+* Jeroen Dalsem (4)
+* Jerôme Bakker (4)
+
+#### Bug fixes
+
+* **output:** link must have discernible text [8ed45c12d](https://github.com/Elgg/Elgg//commit/8ed45c12d49365306c463a461af7a10ae74bbb1d)
+* **web_services:** only create new tokens on initial save [a1904fc7c](https://github.com/Elgg/Elgg//commit/a1904fc7c64a5ee88ddb65aa5467528b58fde4db) closes [#14516](https://github.com/Elgg/Elgg//commit/14516)
+* **developers:** removed metadata enabled column in entity explorer [4256e4dd7](https://github.com/Elgg/Elgg//commit/4256e4dd7c6fac502de9c6fbc8b6432720667f57)
+
+
+<a name="5.1.1"></a>
+### 5.1.1 (2023-11-17)
+
+#### Contributors
+
+* Jerôme Bakker (9)
+* Jeroen Dalsem (5)
+
+#### Bug fixes
+
+* **webservices:** no longer expose parts of the system during an error [a0db26a40](https://github.com/Elgg/Elgg//commit/a0db26a40fb9b42a9794516890f9efd6a54f1f18)
+* **cli:** provide readable feedback when using incorrect cron interval [c658dd2b7](https://github.com/Elgg/Elgg//commit/c658dd2b7ba4d9c46a0229b8810862110c677b33)
+* **pages:** don't allow a page to be its own parent [f029d1e69](https://github.com/Elgg/Elgg//commit/f029d1e69b1a36b758348c104985ff9c4eaff757)
+* **views:** don't output a summary title if no display name [385475469](https://github.com/Elgg/Elgg//commit/385475469ea96ca3f7034811305fbbde866fc1af)
+* **css:** improved elgg-level behaviour on limited viewports [a1482000f](https://github.com/Elgg/Elgg//commit/a1482000fb9e509f4aa9082d52fd3bc0977ad6e4)
+* **routes:** correctly deprecate the comment/edit route [04bed5687](https://github.com/Elgg/Elgg//commit/04bed5687bb33b65fe8cd00caf03b61a7cd56f5b)
+
+
+<a name="5.1.0"></a>
+## 5.1.0 (2023-10-24)
+
+#### Contributors
+
+* Jeroen Dalsem (37)
+* Jerôme Bakker (36)
+
+#### Features
+
+* **ckeditor:**
+  * updated to v40.0.0 [441c0f442](https://github.com/Elgg/Elgg//commit/441c0f442f87f43eef5c277708316f33a3a8091d)
+  * ctrl+enter in the editor field will submit the form [5b0bd6a8d](https://github.com/Elgg/Elgg//commit/5b0bd6a8d72e2872e447fb3e331356aa5b4f095b)
+* **css:** allow theme variables to be configured by the site admin [3eb7fe354](https://github.com/Elgg/Elgg//commit/3eb7fe3549ef2c7758541c4080d6914bf131815d)
+* **cron:** added custom cron logger class [6535d386b](https://github.com/Elgg/Elgg//commit/6535d386b22d27e8631e59c6cbcaf258e63f7b3e)
+* **a11y:**
+  * added menu aria labels [19869cfc9](https://github.com/Elgg/Elgg//commit/19869cfc9f3e1ddc90f5e15babcb3974dad083be)
+  * added aria search forms [091202e4a](https://github.com/Elgg/Elgg//commit/091202e4a0445d7d2fc37c3b217628f8e0e2f022)
+  * added header, main, footer aria landmarks [61315fe7e](https://github.com/Elgg/Elgg//commit/61315fe7edbb11a13f049517ac13631c57859ed1)
+* **views:** support a title on an imprint element [2ebfccb09](https://github.com/Elgg/Elgg//commit/2ebfccb096dba500bf2f496bd1807b923ca9cb63)
+* **breadcrumbs:**
+  * improved usability of elgg_push_collection_breadcrumb [68c6d069e](https://github.com/Elgg/Elgg//commit/68c6d069e785eeb56446b1db84c4f4bf402e471c)
+  * last item pointing to current page will be removed [95b305458](https://github.com/Elgg/Elgg//commit/95b3054585ca07c85de328a28e0346a51385ead6)
+  * added a home icon as a first item [e78e7ee68](https://github.com/Elgg/Elgg//commit/e78e7ee68519cd44c07721c9a1c95fd6080eea17)
+* **blog:** prevent double submit of the blog form [0a23cd09b](https://github.com/Elgg/Elgg//commit/0a23cd09b2d388a300b48f928b560a36fd9dcc5f)
+* **cli:**
+  * interactively set number of seeded items per seeder [337b1bd71](https://github.com/Elgg/Elgg//commit/337b1bd71040b0d83c41a70a745069b1fbe6f6fd)
+  * added database seeders command [12baa7c68](https://github.com/Elgg/Elgg//commit/12baa7c68317859257d7286ce14e399189d658ed)
+  * activate plugins CLI command supports plugin priority [160fcaf69](https://github.com/Elgg/Elgg//commit/160fcaf69b38e9c7596756708a4cfeb954af0e1f)
+  * installer now has the option to prevent plugin activation [1a20e79ef](https://github.com/Elgg/Elgg//commit/1a20e79eff94503081e29c63b6a1ebee9002126d)
+* **security:** add support for security.txt [2709c2db4](https://github.com/Elgg/Elgg//commit/2709c2db45a455c1e52ec3cc1e438b2155a4627a) closes [#14315](https://github.com/Elgg/Elgg//commit/14315)
+* **admin:** reorganized admin and configure utilities menu items [de1959ad5](https://github.com/Elgg/Elgg//commit/de1959ad580b6e4ea49fdd9f7a7560c0b02bea74)
+* **widgets:** the widget edit form now shows in a lightbox [15e68df90](https://github.com/Elgg/Elgg//commit/15e68df9056284cd3f6c4056be30081433a08dfd)
+* **input:** the value output view for an userpicker can be set [585903bb9](https://github.com/Elgg/Elgg//commit/585903bb94ecb97983bd0754e471fb5d3123cab0)
+* **developers:**
+  * the theme sandbox is now a separated plugin [22cd62e89](https://github.com/Elgg/Elgg//commit/22cd62e897c7c5760246926da24494069168b7d7)
+  * added inspection page for the database CLI seeders [e8255d3f6](https://github.com/Elgg/Elgg//commit/e8255d3f661b1e50d19252da32dbe54e5f9dc12d)
+* **html:** added a scroll to top button [58b1ae7d1](https://github.com/Elgg/Elgg//commit/58b1ae7d12eae286a48fde8afb1bd6e16704e26b)
+* **js:** client side validate max file size for file input [3b19a7071](https://github.com/Elgg/Elgg//commit/3b19a7071591f766fa51706f590c3255ecf3d086) closes [#7059](https://github.com/Elgg/Elgg//commit/7059)
+
+
+#### Bug fixes
+
+* **css:** fixed some margin issues on elgg-field form elements [1565a6d47](https://github.com/Elgg/Elgg//commit/1565a6d475d17124dcc84a77438180d2fb549cbb) closes [#14354](https://github.com/Elgg/Elgg//commit/14354)
+* **a11y:**
+  * topbar sub menu items are now keyboard accessible [6326c3902](https://github.com/Elgg/Elgg//commit/6326c39020e6421ecfbcb3d1890bbb17c610da90) closes [#6759](https://github.com/Elgg/Elgg//commit/6759)
+  * make sure widget edit/delete actions are keyboard accessible [d7b61ed15](https://github.com/Elgg/Elgg//commit/d7b61ed15952556ff394340fa38df16bbc5ba353) closes [#14471](https://github.com/Elgg/Elgg//commit/14471)
+  * tab to first item in opened dropdown menu [487d7370a](https://github.com/Elgg/Elgg//commit/487d7370a2edb4971ab6a66e1cb08d75c9dc0d84)
+  * edit comment form sets focus to comment textarea [477646730](https://github.com/Elgg/Elgg//commit/47764673071fd8301042569f672cd9d92c37578b)
+  * keep focus on toggled menu item [a18ad0057](https://github.com/Elgg/Elgg//commit/a18ad0057c4d79286768e77c14943315350c350d)
+* **cache:** report HTTP 410 Gone on stale cache urls [cfd488361](https://github.com/Elgg/Elgg//commit/cfd488361b7e2eb1783afcf7dd16f00127897c6b) closes [#14086](https://github.com/Elgg/Elgg//commit/14086)
+* **views:**
+  * prevent duplicate ids on widget layouts [b17877975](https://github.com/Elgg/Elgg//commit/b17877975ee5550d7c29b236e2252dacda59d22e) closes [#14428](https://github.com/Elgg/Elgg//commit/14428)
+  * do not use rel to track related hover menu placeholders [972f40873](https://github.com/Elgg/Elgg//commit/972f4087373cc5700a7cd7bd707d29f7193d522a) closes [#14430](https://github.com/Elgg/Elgg//commit/14430)
+* **breadcrumbs:** no longer add a breadcrumb if link to self is false [7a44a533c](https://github.com/Elgg/Elgg//commit/7a44a533c2d68f7402abb0b124698934e6626b75)
+
+
+#### Deprecations
+
+* **views:** resource and route for comment edit are not in use [84deb0e54](https://github.com/Elgg/Elgg//commit/84deb0e54ed887c883f67c5538f0d8d095efd19b)
+
+
+<a name="5.0.7"></a>
+### 5.0.7  (2023-10-10)
+
+#### Contributors
+
+* Jeroen Dalsem (5)
+* Jerôme Bakker (2)
+
+#### Bug Fixes
+
+* **forms:** prevent double submit on comment forms ([1b057186](https://github.com/Elgg/Elgg/commit/1b057186899ceb119b461613f65ac4b1f82e9b3b))
+* **icons:** retry icon resize after failure ([e04e396b](https://github.com/Elgg/Elgg/commit/e04e396b428b850b173fbcc42f3ac4efeb4d08d1))
+
+
+<a name="5.0.6"></a>
+### 5.0.6  (2023-09-07)
+
+#### Contributors
+
+* Jerôme Bakker (2)
+* Nikolai Shcherbin (1)
+
+#### Bug Fixes
+
+* **ckeditor:** early abort object mentions on closing bracket ([b397601c](https://github.com/Elgg/Elgg/commit/b397601cd21212698c16e0ab00eb96d0e9f9679f))
+* **docs:** document correct function ([e9ba84a1](https://github.com/Elgg/Elgg/commit/e9ba84a15c4aeaeb9892ec252bdb5543135251fe))
+
+
+<a name="5.0.5"></a>
+### 5.0.5  (2023-08-16)
+
+#### Contributors
+
+* Jeroen Dalsem (1)
+* Jerôme Bakker (1)
+
+#### Bug Fixes
+
+* **rss:** invalid atom link href in rss channel ([0467cf87](https://github.com/Elgg/Elgg/commit/0467cf8703bb3ea4936bd73bfbb3813a434d9275))
+
+
+<a name="5.0.4"></a>
+### 5.0.4  (2023-07-26)
+
+#### Contributors
+
+* Jerôme Bakker (9)
+* Jeroen Dalsem (1)
+
+#### Bug Fixes
+
+* **ckeditor:** added all block level image alignments to toolbar ([6fff9429](https://github.com/Elgg/Elgg/commit/6fff94290017df4a9bf879236b73c1f0be92c62e))
+* **icons:** prevent racing condition when saving cropping coordinates ([b4993528](https://github.com/Elgg/Elgg/commit/b499352814c45d8fbfc1eefa3fa5294e27de68cb))
+* **notifications:** processing delayed emails could cause OOM issues ([5e0fcab1](https://github.com/Elgg/Elgg/commit/5e0fcab17eb701474d1d121933474eefa52b7aca))
+* **views:**
+  * input/button and output/url must have discernible text ([924b2cdc](https://github.com/Elgg/Elgg/commit/924b2cdcae2a97447a2094b7389fe9ebb1d2f74e))
+  * make sure the icon cropper img has an alt text ([0cc105c8](https://github.com/Elgg/Elgg/commit/0cc105c8b684ed756b4839c1d72df714f17a1865))
+  * allow mobile devices to zoom ([1cee1be1](https://github.com/Elgg/Elgg/commit/1cee1be17474da910172dd5cc829f10a67c7fd0b))
+  * correctly set iframe width for PHPInfo ([e72f476e](https://github.com/Elgg/Elgg/commit/e72f476eb62ce5e8253deaf7ea9ca71fe70c79c5))
+  * only generate listing ID when using pagination ([ffe94eab](https://github.com/Elgg/Elgg/commit/ffe94eab174e0984cf288585fd91d24ac8d07a55))
+
+
+<a name="5.0.3"></a>
+### 5.0.3  (2023-07-14)
+
+#### Contributors
+
+* Jerôme Bakker (7)
+* Jeroen Dalsem (3)
+
+#### Bug Fixes
+
+* **admin:** admin layout now gets correct layout class ([f0c348c0](https://github.com/Elgg/Elgg/commit/f0c348c03973328f07918894d5cbe65ed8a0e9af))
+* **composer:** no longer try to symlink the mods on Windows ([5319f0ea](https://github.com/Elgg/Elgg/commit/5319f0eaf69071602b410a88857511ca80e8358a))
+* **database:** execute delayed queries immediately during CLI ([d2d23209](https://github.com/Elgg/Elgg/commit/d2d2320984994cbfe0cdcd2ec42d6cf1f277f9dc))
+* **email:** image styles will be converted to attributes if possible ([f306388b](https://github.com/Elgg/Elgg/commit/f306388b51d08aeb2a28154a83793775315423a8))
+* **http:** maintain set redirect code in response ([c4ad5037](https://github.com/Elgg/Elgg/commit/c4ad5037bbaa04343c733358931f513765932a19))
+* **icons:** make sure transparent images have a white background ([25d039b2](https://github.com/Elgg/Elgg/commit/25d039b258ad14f77b0193222193deaccc375f9b))
+* **settings:** prevent setting changes from being added to the systemlog ([708cb7ff](https://github.com/Elgg/Elgg/commit/708cb7ff51e8a98b946124f2bcf0c7f38b67f01c))
+* **site_notifications:** return correct actor ([a2ee148f](https://github.com/Elgg/Elgg/commit/a2ee148f954432c3ce876c257c9da15b5671ffaa))
+* **user:** prevent logging of changes to last_login and prev_last_login ([ba28f760](https://github.com/Elgg/Elgg/commit/ba28f760f562e1c493d757d49c2f7b36b1ccc8ba))
+
+
+<a name="5.0.2"></a>
+### 5.0.2  (2023-07-03)
+
+#### Contributors
+
+* Jerôme Bakker (5)
+
+#### Performance
+
+* **site_notifications:** simplify site_notification removal query ([ad8bd918](https://github.com/Elgg/Elgg/commit/ad8bd918edad2c312a4f6bbac042119b446cdc12))
+
+
+#### Bug Fixes
+
+* **thewire:** improved hashtag matching ([67277b2f](https://github.com/Elgg/Elgg/commit/67277b2fe84201b43637cca001be55da5e5faff8))
+* **user:** return correct type for getOwnerGuid ([72856546](https://github.com/Elgg/Elgg/commit/72856546ba14139efa355398514e751b08c5c97b))
+* **views:** correctly handle errors in mention parsing ([92dc5d6d](https://github.com/Elgg/Elgg/commit/92dc5d6df4b1afdd5359211711ec9d66a1dcbc7e))
+
+
+<a name="5.0.1"></a>
+### 5.0.1  (2023-06-19)
+
+#### Contributors
+
+* Jeroen Dalsem (6)
+* Jerôme Bakker (4)
+
+#### Bug Fixes
+
+* **cropper:** only register tab change fixes when cropper is ready ([33feb185](https://github.com/Elgg/Elgg/commit/33feb18571878b1c38cb7f5549efa0e463193904))
+* **db:**
+  * allow passing only relationship_ids to fetch relationships ([ad06ace9](https://github.com/Elgg/Elgg/commit/ad06ace9155f283b1dcaa4f09a2c8568be5c4cf6))
+  * querying relationships with only relationship_guid now works ([8bfe76e7](https://github.com/Elgg/Elgg/commit/8bfe76e72ae34245b42bbd156f37c13389c4f0a1))
+* **js:** use native scrollIntoView to respect element scroll margin ([9b1b1850](https://github.com/Elgg/Elgg/commit/9b1b1850d6bea942b8d307a9e6df5717b3669c99))
+* **registration:** send the new user notification to email ([b845f475](https://github.com/Elgg/Elgg/commit/b845f4753aa4bcc4ea3489bfa8a5e694bcc54d10))
+* **river:** always return a string for RiverItem->getView() function ([10437cf5](https://github.com/Elgg/Elgg/commit/10437cf5848058a7cacc3a9596fc3605f00b5366))
+* **seeder:** validate commentable and likeable capability during seeding ([fb151710](https://github.com/Elgg/Elgg/commit/fb151710b99b3f2ae5877fd598a8cb294be72cfc))
+
+
+<a name="5.0.0"></a>
+## 5.0.0  (2023-06-01)
+
+#### Contributors
+
+* Jerôme Bakker (10)
+* Jeroen Dalsem (4)
+
+#### Features
+
+* **ckeditor:** confirm page navigation on unsaved editor changes ([789c27b0](https://github.com/Elgg/Elgg/commit/789c27b072239e8155c21c664a4f2be43d7b8112))
+
+
+#### Bug Fixes
+
+* **ckeditor:**
+  * use pixels instead of percentages when resizing images ([4bd4e629](https://github.com/Elgg/Elgg/commit/4bd4e629637b602849f7dc57600adaf0e0c00ff4))
+  * image upload progress and icon are beter visible ([7c44af72](https://github.com/Elgg/Elgg/commit/7c44af72ec1ce02003cd2bd0a2802e24f9a39887))
+* **cropper:** fixed issue when the cropper is on a hidden tab ([7b7dcfae](https://github.com/Elgg/Elgg/commit/7b7dcfae43f82eadd735cb0ae425c14c5fc6bdc3))
+* **plugins:** correct layout when a plugin can't be (de)activated ([35a36232](https://github.com/Elgg/Elgg/commit/35a362322e7e2462945a9a79d7661bb52031991a))
+* **views:** validate elgg_list_entities getter return type ([b349f367](https://github.com/Elgg/Elgg/commit/b349f367c42c0f9a4c079e4c86007f5f05b95235))
+
+
+#### Breaking Changes
+
+* **core:** metadata value no longer magically turns into an array ([b0f4695f](https://github.com/Elgg/Elgg/commit/b0f4695f4516443dc306ebc5ab20c7a5b56f2609))
+
+
+<a name="5.0.0-rc.1"></a>
+### 5.0.0-rc.1  (2023-05-22)
+
+#### Contributors
+
+* Jerôme Bakker (11)
+* Jeroen Dalsem (8)
+
+#### Features
+
+* **ckeditor:**
+  * strip empty paragraphs when outputting longtext fields ([dfd24629](https://github.com/Elgg/Elgg/commit/dfd246297220195286213db8793e996481393cb3))
+  * added the simpleButton plugin ([9334b61e](https://github.com/Elgg/Elgg/commit/9334b61ef6799049af6b4ad0c957ba1d483ca888))
+
+
+#### Bug Fixes
+
+* **icons:** show cropper messages for header images ([a09f7d36](https://github.com/Elgg/Elgg/commit/a09f7d3600817aa334dbc1c62576e4c04997b9cc))
+* **output:** correctly format 0 byte output ([1a27a14c](https://github.com/Elgg/Elgg/commit/1a27a14c8d1d192c97600b6ab34247e8a36764dc))
+
+
+<a name="5.0.0-beta.1"></a>
+### 5.0.0-beta.1  (2023-04-05)
+
+#### Contributors
+
+* Jeroen Dalsem (108)
+* Jerôme Bakker (62)
+
+#### Features
+
+* **access_collection:** trigger 'create', 'update' and 'delete' events ([8a8e89a5](https://github.com/Elgg/Elgg/commit/8a8e89a5743b8abda258207041f6bdd1a6c0c427))
+* **actions:** action registration can support additional middleware ([90c786e1](https://github.com/Elgg/Elgg/commit/90c786e108ed75fe6cb5c1e2cc43f05735f3de81))
+* **activity:** commenting bumps related river activity last action ([00868b68](https://github.com/Elgg/Elgg/commit/00868b68a9230d5f532b5960cbb3f65d9f8aa517))
+* **admin:**
+  * added a widget for admins with a feed with latest Elgg news ([697481f1](https://github.com/Elgg/Elgg/commit/697481f1bcadf9e14dd19fd6d9188aa30143b8c5))
+  * moved page menu items to the topbar ([535d0eb2](https://github.com/Elgg/Elgg/commit/535d0eb24faf6ecb7857bcd16a3a69b01d46004e))
+  * admin account menu is now more in line with front end ([405b114e](https://github.com/Elgg/Elgg/commit/405b114e7ed4ceb44915f21b858db9c0fed25042))
+  * moved plugin settings menu items to own section ([6098f150](https://github.com/Elgg/Elgg/commit/6098f1509561930aa7408e4e288882b4eca1f08b))
+* **ckeditor:** replaced ckeditor4 with ckeditor5 ([52ea3488](https://github.com/Elgg/Elgg/commit/52ea34883819b615f4263fe72adb8c14f08d3e3a))
+* **core:**
+  * added download response ([12204ccd](https://github.com/Elgg/Elgg/commit/12204ccda890fb769993f380bdcd3f1afb637cf7))
+  * upgrade batches now have access to upgrade entity ([5cc3a108](https://github.com/Elgg/Elgg/commit/5cc3a108a6c77bf4b54b01db7e64fd0b790feffd))
+  * event and hook deprecation now have a default message ([992e7ef3](https://github.com/Elgg/Elgg/commit/992e7ef374e526dc05295c7ac26c3993c76826cc))
+* **db:** private settings are merged into metadata ([cb9951a5](https://github.com/Elgg/Elgg/commit/cb9951a5425145027579fc6f1e8625cf63197061))
+* **entities:** create event has been split into before and after event ([432b4dad](https://github.com/Elgg/Elgg/commit/432b4dadabf81cc2a4facc6d7ae722d82c5b8f1c))
+* **events:** event sequences have a unique ID ([0febd638](https://github.com/Elgg/Elgg/commit/0febd6383a2a50e82275e71f3d6d266ca4ccff97))
+* **files:**
+  * file plugin files are now stored with the entity ([9df0cd0a](https://github.com/Elgg/Elgg/commit/9df0cd0a8d97c7a009eaba641be18bd63d8cae8d))
+  * no longer show file type icons in regular listings ([fe263adf](https://github.com/Elgg/Elgg/commit/fe263adfdc6e42dd5eb5bfc666fdb1ccdfff9b33))
+* **forms:** automatically support sticky forms ([320a8110](https://github.com/Elgg/Elgg/commit/320a8110afeae54555cfa1c2949f2e62922bb4fd))
+* **garbagecollector:** cleanup orphaned data in the database ([230a8ee9](https://github.com/Elgg/Elgg/commit/230a8ee9bfa6f401740c02891a4bac1aa9ca878a))
+* **gatekeepers:**
+  * added PageOwner gatekeeper middleware ([443c6f27](https://github.com/Elgg/Elgg/commit/443c6f2703226955408eb1da91b544e17cd78b79))
+  * pageownercaneditgatekeeper now requires a pageowner ([6553b9a2](https://github.com/Elgg/Elgg/commit/6553b9a2f8313db24ed233464f8552eaba1fa84f))
+* **http:** added helper function to get a Http Guzzle Client ([d2f60974](https://github.com/Elgg/Elgg/commit/d2f6097434c814e19ef0c260632f2bee86e922ca))
+* **icons:** icon cropping is now default enabled in entity/edit/icon ([a845ce04](https://github.com/Elgg/Elgg/commit/a845ce044c9f20d3bbb15f40faa8d2d498e1f9f9))
+* **plugins:** it is now allowed to set arrays as private settings ([de415231](https://github.com/Elgg/Elgg/commit/de415231ce0528daacfa247afb70fae5fe3fc17a))
+* **reportedcontent:** added detail view for reports with comments ([90fc1195](https://github.com/Elgg/Elgg/commit/90fc119576826b952fccf1236d202d749f8f6399))
+* **routes:** added the ability to influence priority for similar routes ([d257f024](https://github.com/Elgg/Elgg/commit/d257f0243499829600f99bff03e017fd7813f28b))
+* **tests:** allow easier testing with multiple installations ([ac3035e0](https://github.com/Elgg/Elgg/commit/ac3035e0321766f2e2adbfa57d5acac9a979937c))
+* **users:** if configured a river activity is for a new user ([d5a1d944](https://github.com/Elgg/Elgg/commit/d5a1d9448814fa8f920e1ade05f6a72d114c4f12))
+* **views:** page header now has support for header image ([84929789](https://github.com/Elgg/Elgg/commit/84929789bb328b03bd849e7547198ccb885e528b))
+* **web_services:**
+  * API methods can be registered in the elgg-plugin.php ([6357e73e](https://github.com/Elgg/Elgg/commit/6357e73e71e2839042d2e86413afacb90fcbac56))
+  * allow different callbacks depending on HTTP request ([d67507e0](https://github.com/Elgg/Elgg/commit/d67507e0d3d93869e02b06e8db967a8cc6d2be4a))
+* **widgets:**
+  * it is now possible to filter the widgets in the add panel ([7d95d87c](https://github.com/Elgg/Elgg/commit/7d95d87c02f9c564774cf9594225327ff1223c89))
+  * target column and position can now be configured ([97d657c4](https://github.com/Elgg/Elgg/commit/97d657c410500640c8a44c2a9cf9fa44f9de4b8e))
+
+
+#### Documentation
+
+* **events:** added some additional information about migrating hooks ([6d607025](https://github.com/Elgg/Elgg/commit/6d607025d6aed9eef7022c587094c4533d095631))
+
+
+#### Bug Fixes
+
+* **core:** prevent issues with unsaved data and system log ([4048eeec](https://github.com/Elgg/Elgg/commit/4048eeec026267c6266ec6d1070d3bcbd0324798))
+* **filestore:** improved removal of a directory ([a6c09c81](https://github.com/Elgg/Elgg/commit/a6c09c8167e9e2f7327e9af8b08ea95830ff6945))
+* **forms:** draw fieldset legend on correct location ([c1a012ac](https://github.com/Elgg/Elgg/commit/c1a012acaaf6bc8f9214e82d4a4316ae6e48964c))
+* **likes:** use variable in translation string ([d39e33da](https://github.com/Elgg/Elgg/commit/d39e33da306db1c02f5f2157058627bc73b6e91a))
+* **search:** use correct container type title ([ba742d1f](https://github.com/Elgg/Elgg/commit/ba742d1f7cde24cb16d91107826903371a247f08))
+* **views:** output/url now returns nothing if there is no url ([db8b6e06](https://github.com/Elgg/Elgg/commit/db8b6e0617cac67fc3163ebbd2a019cc68d03dd5))
+
+
+#### Breaking Changes
+
+* **hooks:** hooks and events system has been merged ([720a38a5](https://github.com/Elgg/Elgg/commit/720a38a576718b8874b21efd81054da4b8eb0be8))
+* **menus:** elgg_register_title_button has its first argument removed ([ddb25972](https://github.com/Elgg/Elgg/commit/ddb259723073b65faad5ba02f8ab862593828ae1))
+
+
+#### Removed
+
+* **blogs:**
+  * no longer show a delete button on blog edit form ([8274c0e8](https://github.com/Elgg/Elgg/commit/8274c0e845133f492fef3d9c56a4ff5c043d3b78))
+  * auto save draft functionality has been removed ([bb71b807](https://github.com/Elgg/Elgg/commit/bb71b8075dd5aaf13eb09374e814ec0fa2af2899))
+* **core:**
+  * InvalidParameterException as removed ([aedb914c](https://github.com/Elgg/Elgg/commit/aedb914cb205235cd16322cefe8b59c915acc1b2))
+  * the REFERER constant is removed in favor of REFERRER ([a3137340](https://github.com/Elgg/Elgg/commit/a313734035fa1f24af81c642f0ddb8387c7b3867))
+  * it's no longer possible to set site secret in elgg-config ([80e91091](https://github.com/Elgg/Elgg/commit/80e91091376ebe88fd5cd6ed1ef0180efd8d5d96))
+* **files:** file plugin no longer uses custom file type icons ([92c50dd1](https://github.com/Elgg/Elgg/commit/92c50dd1e6c7dc48d9ecde4f7b0f9c1c51a3891a))
+* **plugins:** the embed plugin has been removed ([31a443c5](https://github.com/Elgg/Elgg/commit/31a443c56a48410333a08a1c0d61308f822151a9))
+* **widgets:** class function saveSettings has been removed ([3c58daee](https://github.com/Elgg/Elgg/commit/3c58daeea8bfc48c099827733cbe167462043d5f))
+
+
 <a name="4.3.10"></a>
 ### 4.3.10  (2023-11-17)
 

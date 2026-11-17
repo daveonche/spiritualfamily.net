@@ -3,17 +3,13 @@
  * Individual's or group's files
  */
 
-$group_guid = elgg_extract('guid', $vars);
+elgg_group_tool_gatekeeper('file');
 
-elgg_entity_gatekeeper($group_guid, 'group');
-
-elgg_group_tool_gatekeeper('file', $group_guid);
-
-$container = get_entity($group_guid);
+$container = elgg_get_page_owner_entity();
 
 elgg_push_collection_breadcrumbs('object', 'file', $container);
 
-elgg_register_title_button('file', 'add', 'object', 'file');
+elgg_register_title_button('add', 'object', 'file');
 
 $title = elgg_echo('collection:object:file:owner', [$container->getDisplayName()]);
 

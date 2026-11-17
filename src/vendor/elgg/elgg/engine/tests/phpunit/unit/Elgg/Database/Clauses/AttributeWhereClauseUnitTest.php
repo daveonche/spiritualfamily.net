@@ -6,10 +6,6 @@ use Elgg\Database\QueryBuilder;
 use Elgg\Database\Select;
 use Elgg\UnitTestCase;
 
-/**
- * @group QueryBuilder
- * @group QueryBuilderWhere
- */
 class AttributeWhereClauseUnitTest extends UnitTestCase {
 
 	/**
@@ -22,7 +18,7 @@ class AttributeWhereClauseUnitTest extends UnitTestCase {
 	}
 
 	public function down() {
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 	}
 
 	public function testBuildEmptyQuery() {

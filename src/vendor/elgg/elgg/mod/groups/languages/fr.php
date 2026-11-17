@@ -22,6 +22,7 @@ return array(
 	'groups:add' => "Créer un nouveau groupe",
 	'groups:edit' => "Modifier le groupe",
 	'groups:edit:profile' => "Profil",
+	'groups:edit:images' => "Images",
 	'groups:edit:access' => "Accès",
 	'groups:edit:tools' => "Outils",
 	'groups:edit:settings' => "Configuration",
@@ -34,12 +35,10 @@ return array(
 	'relationship:invited' => '%2$s a été invité à rejoindre %1$s',
 	'relationship:membership_request' => '%s a demandé à rejoindre %s',
 
-	'groups:icon' => 'Icône du groupe (laisser vide pour ne pas changer)',
 	'groups:name' => 'Nom du groupe',
 	'groups:description' => 'Description',
 	'groups:briefdescription' => 'Brève description',
 	'groups:interests' => 'Tags',
-	'groups:website' => 'Site web',
 	'groups:members' => 'Membres du groupe',
 
 	'groups:members_count' => '%s membres',
@@ -51,21 +50,17 @@ return array(
 	'groups:content_access_mode:warning' => "Attention : le changement de ce paramètre ne changera pas le niveau d'accès des contenus déjà publiés.",
 	'groups:content_access_mode:unrestricted' => "Sans restriction - Les membres peuvent définir les accès au niveau de chaque nouvelle publication",
 	'groups:content_access_mode:membersonly' => "Membres seulement - Seuls les membres du groupe peuvent accéder à son contenu",
-	'groups:access' => "Autorisations d'accès",
 	'groups:owner' => "Propriétaire",
 	'groups:owner:warning' => "Attention : si vous faites cette modification vous ne serez plus le propriétaire du groupe.",
 	'groups:widget:num_display' => 'Nombre de groupes à afficher',
 	'widgets:a_users_groups:name' => 'Adhésion au groupe',
 	'widgets:a_users_groups:description' => 'Affiche les groupes dont vous êtes membre sur votre profil',
 
-	'groups:noaccess' => 'Vous n\'avez pas accès au groupe',
 	'groups:cantcreate' => 'Vous ne pouvez créer un groupe. Seuls les administrateurs le peuvent.',
 	'groups:cantedit' => 'Vous ne pouvez pas modifier ce groupe',
 	'groups:saved' => 'Groupe enregistré',
 	'groups:save_error' => 'Le groupe n\'a pas pu être enregistré',
 	'groups:featured' => 'Groupes à la Une',
-	'groups:makeunfeatured' => 'Retirer de la Une',
-	'groups:makefeatured' => 'Mettre en Une',
 	'groups:featuredon' => 'Le groupe %s est maintenant en Une.',
 	'groups:unfeatured' => 'Le groupe %s n\'est plus en Une.',
 	'groups:featured_error' => 'Groupe invalide.',
@@ -96,7 +91,6 @@ return array(
 
 	'groups:open' => "groupe ouvert",
 	'groups:closed' => "groupe fermé",
-	'groups:member' => "membres",
 	'groups:search' => "Rechercher des groupes",
 
 	'groups:more' => 'Plus de groupes',
@@ -144,24 +138,24 @@ return array(
 	'groups:invite:subject' => "%s vous êtes invité à rejoindre %s !",
 	'groups:joinrequest:remove:check' => 'Confirmez-vous vouloir supprimer cette demande d\'adhésion ?',
 	'groups:invite:remove:check' => 'Confirmez-vous vouloir supprimer cette invitation ?',
-	'groups:invite:body' => "%s vous invite à rejoindre le groupe '%s'.
+	'groups:invite:body' => "%s vous invite à rejoindre le groupe \"%s\".
 
-Cliquez sur le lien ci-dessous pour voir vos invitations :
+Cliquez ci-dessous pour voir toutes vos invitations :
 %s",
 
 	'groups:welcome:subject' => "Bienvenue dans le groupe %s !",
-	'groups:welcome:body' => "Vous êtes maintenant membre du groupe '%s'.
+	'groups:welcome:body' => "Vous êtes maintenant membre du groupe \"%s\".
 
-Cliquez le lien ci-dessous pour commencer à participer !
+Cliquez ci-dessous pour commencer à participer !
 %s",
 
 	'groups:request:subject' => "%s a demandé à rejoindre %s",
-	'groups:request:body' => "%s a demandé à rejoindre le groupe '%s'.
+	'groups:request:body' => "%s a demandé à rejoindre le groupe \"%s\".
 
 Pour voir son profil :
 %s
 
-ou pour voir les demandes d'adhésion au groupe :
+ou cliquez ci-dessous pour voir les demandes d'adhésion au groupe :
 %s",
 
 	'river:group:create' => '%s a créé le groupe %s',
@@ -183,5 +177,9 @@ ou pour voir les demandes d'adhésion au groupe :
 	'groups:usersettings:notification:group_join:description' => "Paramètres de notification de groupe par défaut quand vous rejoignez un groupe",
 	
 	'groups:usersettings:notifications:title' => 'Notifications du groupe',
-	'groups:usersettings:notifications:description' => 'Pour recevoir des notifications quand de nouveaux contenus sont publiés dans un groupe dont vous êtes membre, cherchez et choisissez ci-dessous la ou les méthodes de notification que vous souhaitez utiliser.',
+	'groups:usersettings:notifications:description' => 'Pour recevoir des notifications quand de nouveaux contenus sont publiés dans un groupe dont vous êtes membre, cherchez et choisissez ci-dessous la ou les méthode(s) de notification que vous souhaitez utiliser.',
+	
+	// accessibility
+	'groups:aria:label:group_search' => "Rechercher des groupes",
+	'groups:aria:label:search_in_group' => "Chercher dans ce groupe",
 );

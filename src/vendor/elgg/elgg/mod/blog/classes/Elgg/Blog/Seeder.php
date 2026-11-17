@@ -3,6 +3,7 @@
 namespace Elgg\Blog;
 
 use Elgg\Database\Seeds\Seed;
+use Elgg\Exceptions\Seeding\MaxAttemptsException;
 
 /**
  * Add blog seed
@@ -11,7 +12,7 @@ use Elgg\Database\Seeds\Seed;
  */
 class Seeder extends Seed {
 
-	private $status = [
+	protected array $status = [
 		'draft',
 		'published',
 	];
@@ -22,19 +23,17 @@ class Seeder extends Seed {
 	public function seed() {
 		$this->advance($this->getCount());
 
-		$attributes = [
-			'subtype' => 'blog',
-		];
-
 		while ($this->getCount() < $this->limit) {
-			$metadata = [
-				'status' => $this->getRandomStatus(),
-				'comments_on' => $this->faker()->boolean() ? 'On' : 'Off',
-				'excerpt' => $this->faker()->sentence(),
-			];
-
-			$blog = $this->createObject($attributes, $metadata);
-			if (!$blog) {
+			try {
+				/* @var $blog \ElggBlog */
+				$blog = $this->createObject([
+					'subtype' => 'blog',
+					'status' => $this->getRandomStatus(),
+					'comments_on' => $this->faker()->boolean() ? 'On' : 'Off',
+					'excerpt' => $this->faker()->sentence(),
+				]);
+			} catch (MaxAttemptsException $e) {
+				// unable to create a blog with the given options
 				continue;
 			}
 
@@ -60,10 +59,6 @@ class Seeder extends Seed {
 			}
 
 			if ($this->faker()->boolean()) {
-				$blog->annotate('blog_auto_save', $this->faker()->text(500), ACCESS_PRIVATE, $blog->owner_guid);
-			}
-
-			if ($this->faker()->boolean()) {
 				$blog->annotate('blog_revision', $blog->description, ACCESS_PRIVATE, $blog->owner_guid);
 				$blog->description = $this->faker()->text(500);
 			}
@@ -78,7 +73,6 @@ class Seeder extends Seed {
 	 * {@inheritdoc}
 	 */
 	public function unseed() {
-
 		/* @var $blogs \ElggBatch */
 		$blogs = elgg_get_entities([
 			'type' => 'object',
@@ -95,6 +89,8 @@ class Seeder extends Seed {
 				$this->log("Deleted blog {$blog->guid}");
 			} else {
 				$this->log("Failed to delete blog {$blog->guid}");
+				$blogs->reportFailure();
+				continue;
 			}
 
 			$this->advance();
@@ -110,10 +106,11 @@ class Seeder extends Seed {
 
 	/**
 	 * Returns random blog status
+	 *
 	 * @return string
 	 */
-	public function getRandomStatus() {
-		$key = array_rand($this->status, 1);
+	public function getRandomStatus(): string {
+		$key = array_rand($this->status);
 
 		return $this->status[$key];
 	}

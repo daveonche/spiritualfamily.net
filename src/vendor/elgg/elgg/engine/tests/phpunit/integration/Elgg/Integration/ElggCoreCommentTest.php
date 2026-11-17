@@ -4,11 +4,6 @@ namespace Elgg\Integration;
 
 use Elgg\IntegrationTestCase;
 
-/**
- * Elgg Test \ElggComment
- *
- * @group IntegrationTests
- */
 class ElggCoreCommentTest extends IntegrationTestCase {
 	/**
 	 * @var \ElggComment
@@ -22,18 +17,19 @@ class ElggCoreCommentTest extends IntegrationTestCase {
 
 	public function up() {
 
-		$this->commenter = $this->createUser();
-		elgg()->session->setLoggedInUser($this->commenter);
+		$commenter = $this->createUser();
+		elgg()->session_manager->setLoggedInUser($commenter);
 		
-		$this->container_owner = $this->createUser();
+		$container_owner = $this->createUser();
 		$this->container = $this->createObject([
-			'owner_guid' => $this->container_owner->guid,
+			'subtype' => 'commentable',
+			'owner_guid' => $container_owner->guid,
 		]);
 
 		$this->comment = $this->createObject([
 			'subtype' => 'comment',
 			'container_guid' => $this->container->guid,
-			'owner_guid' => $this->commenter->guid,
+			'owner_guid' => $commenter->guid,
 		]);
 	}
 

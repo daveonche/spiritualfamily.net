@@ -29,7 +29,7 @@ class ElggPage extends ElggObject {
 	 *
 	 * @since 3.0
 	 */
-	public function isTopPage() {
+	public function isTopPage(): bool {
 		return empty($this->parent_guid);
 	}
 	
@@ -40,13 +40,14 @@ class ElggPage extends ElggObject {
 	 *
 	 * @since 3.1
 	 */
-	public function getTopParentEntity() {
+	public function getTopParentEntity(): \ElggPage {
 		$top_entity = $this;
 		while (!$top_entity->isTopPage()) {
 			$new_top = $top_entity->getParentEntity();
 			if (!$new_top) {
 				break;
 			}
+			
 			$top_entity = $new_top;
 		}
 		
@@ -56,22 +57,17 @@ class ElggPage extends ElggObject {
 	/**
 	 * Get the parent entity of this page
 	 *
-	 * @return false|ElggPage
+	 * @return \ElggPage|null
 	 *
 	 * @since 3.0
 	 */
-	public function getParentEntity() {
-		
+	public function getParentEntity(): ?\ElggPage {
 		if (empty($this->parent_guid)) {
-			return false;
+			return null;
 		}
 		
-		$parent = get_entity($this->parent_guid);
-		if ($parent instanceof ElggPage) {
-			return $parent;
-		}
-		
-		return false;
+		$parent = get_entity($this->getParentGUID());
+		return $parent instanceof \ElggPage ? $parent : null;
 	}
 	
 	/**
@@ -79,7 +75,7 @@ class ElggPage extends ElggObject {
 	 *
 	 * @return int 0 if no parent
 	 */
-	public function getParentGUID() {
+	public function getParentGUID(): int {
 		return (int) $this->parent_guid;
 	}
 	
@@ -92,12 +88,14 @@ class ElggPage extends ElggObject {
 	 *
 	 * @since 3.0
 	 */
-	public function setParentByGUID($guid) {
-		$guid = (int) $guid;
-		
+	public function setParentByGUID(int $guid): bool {
 		if (empty($guid)) {
 			$this->parent_guid = 0;
 			return true;
+		}
+		
+		if ($guid === $this->guid) {
+			return false;
 		}
 		
 		$new_parent = get_entity($guid);
@@ -113,14 +111,13 @@ class ElggPage extends ElggObject {
 	 *
 	 * @since 3.0
 	 */
-	public function setParentEntity($entity) {
-		
+	public function setParentEntity(\ElggPage $entity = null): bool {
 		if (empty($entity)) {
 			$this->parent_guid = 0;
 			return true;
 		}
 		
-		if (!$entity instanceof ElggPage || empty($entity->guid)) {
+		if (empty($entity->guid) || $entity->guid === $this->guid) {
 			return false;
 		}
 		
@@ -131,7 +128,7 @@ class ElggPage extends ElggObject {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function delete($recursive = true) {
+	public function delete(bool $recursive = true): bool {
 		$parent_guid = $this->getParentGUID();
 		$guid = $this->guid;
 

@@ -1,14 +1,14 @@
 <?php
 /**
  * Elgg messages inbox page
-*/
+ */
 
 /* @var $page_owner \ElggUser */
 $page_owner = elgg_get_page_owner_entity();
 
 elgg_push_collection_breadcrumbs('object', 'messages', $page_owner);
 
-elgg_register_title_button('messages', 'add', 'object', 'messages');
+elgg_register_title_button('add', 'object', 'messages');
 
 $title = elgg_echo('messages:user', [$page_owner->getDisplayName()]);
 

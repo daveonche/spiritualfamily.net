@@ -21,7 +21,6 @@ return array(
 	'loginok' => "Accesso riuscito.",
 	'login:empty' => "Specificare nome utente (email) e password",
 	'login:baduser' => "Impossibile caricare il tuo profilo utente",
-	'auth:nopams' => "Errore interno. Nessun metodo di autenticazione disponibile.",
 
 	'logout' => "Esci",
 	'logoutok' => "Uscita completata.",
@@ -52,14 +51,10 @@ return array(
 
 	'PluginException:CannotStart' => 'Il plugin %s (guid: %s) è stato disattivato perché impossibile avviarlo. Motivo: %s',
 	'PluginException:InvalidID' => "%s non è un ID di plugin valido.",
-	'PluginException:InvalidPath' => "%s non è un percorso valido per il plugin.",
 	'ElggPlugin:MissingID' => 'ID del plugin mancante (guid %s)',
 	'ElggPlugin:Exception:CannotIncludeFile' => 'Impossibile includere %s del plugin %s (guid: %s) a %s.',
-	'ElggPlugin:Exception:IncludeFileThrew' => 'Threw exception including %s for plugin %s (guid: %s) at %s.',
 	'ElggPlugin:Exception:CannotRegisterViews' => 'Impossibile aprire il percorso delle viste del plugin %s (guid: %s) a %s.',
 	'ElggPlugin:InvalidAndDeactivated' => '%s è un plugin non valido ed è stato disattivato.',
-	'ElggPlugin:activate:BadConfigFormat' => 'Plugin file "elgg-plugin.php" did not return a serializable array.',
-	'ElggPlugin:activate:ConfigSentOutput' => 'Plugin file "elgg-plugin.php" sent output.',
 
 	'ElggPlugin:Dependencies:ActiveDependent' => 'Ci sono altri plugin che indicano %s come dipendenza.  Occorre prima di disabilitare il plugin %s occorre disabilitare i seguenti plugin:',
 
@@ -109,31 +104,6 @@ return array(
 /**
  * Table columns
  */
-	'table_columns:fromView:admin' => 'Admin',
-	'table_columns:fromView:banned' => 'Banned',
-	'table_columns:fromView:container' => 'Container',
-	'table_columns:fromView:entity_menu' => 'Menu',
-	'table_columns:fromView:excerpt' => 'Description',
-	'table_columns:fromView:link' => 'Name/Title',
-	'table_columns:fromView:icon' => 'Icon',
-	'table_columns:fromView:item' => 'Item',
-	'table_columns:fromView:language' => 'Language',
-	'table_columns:fromView:owner' => 'Owner',
-	'table_columns:fromView:time_created' => 'Time Created',
-	'table_columns:fromView:time_updated' => 'Time Updated',
-	'table_columns:fromView:unvalidated_menu' => 'Menu',
-	'table_columns:fromView:user' => 'User',
-
-	'table_columns:fromProperty:description' => 'Description',
-	'table_columns:fromProperty:email' => 'Email',
-	'table_columns:fromProperty:name' => 'Name',
-	'table_columns:fromProperty:type' => 'Type',
-	'table_columns:fromProperty:username' => 'Username',
-
-	'table_columns:fromMethod:getSubtype' => 'Subtype',
-	'table_columns:fromMethod:getDisplayName' => 'Name/Title',
-	'table_columns:fromMethod:getMimeType' => 'MIME Type',
-	'table_columns:fromMethod:getSimpleType' => 'Type',
 
 /**
  * User details
@@ -175,12 +145,8 @@ return array(
 	'widget:delete' => 'Rimuovi %s',
 	'widget:edit' => 'Personalizza questo widget',
 
-	'widgets' => "Widget",
-	'widget' => "Widget",
 	'item:object:widget' => "Widget",
 	'collection:object:widget' => 'Widget',
-	'widgets:save:success' => "Il Widget è stato salvato.",
-	'widgets:save:failure' => "Impossibile salvare il tuo widget.",
 	'widgets:add:success' => "Il widget è stato aggiunto.",
 	'widgets:add:failure' => "Impossibile aggiungere il tuo widget.",
 	'widgets:move:failure' => "Impossibile memorizzare la posizione del nuovo widget.",
@@ -211,20 +177,11 @@ return array(
 	'friends' => "Amici",
 
 	'avatar' => 'Immagine del profilo',
-	'avatar:noaccess' => "Non sei autorizzato a modificare l'immagine del profilo di questo utente",
-	'avatar:create' => 'Crea la tua immagine del profilo',
 	'avatar:edit' => 'Modifica immagine del profilo',
-	'avatar:upload' => 'Carica una nuova immagine del profilo',
-	'avatar:current' => 'Immagine del profilo attuale',
-	'avatar:remove' => 'Rimuovi la tua immagine del profilo e inserisci quella predefinita',
-	'avatar:crop:title' => 'Strumento per ritagliare l\'immagine',
 	'avatar:upload:instructions' => "L'immagine del tuo profilo viene mostrata ovunque nel sito. Puoi cambiarla quando vuoi (formati di file accettati: GIF, JPG o PNG)",
-	'avatar:create:instructions' => 'Clicca e trascina il quadrato in basso per ritagliare la tua immagine del profilo a piacimento. Un\'anteprima comparirà nel riquadro a destra. Una volta soddisfatti clicca su \'Crea la tua immagine del profilo\'. Questa versione ritagliata sarà usata in tutto il sito come tua immagine del profilo',
 	'avatar:upload:success' => 'Immagine del profilo caricata',
 	'avatar:upload:fail' => 'Impossibile caricare l\'immagine del profilo',
 	'avatar:resize:fail' => 'Impossibile ridimensionare l\'immagine del profilo',
-	'avatar:crop:success' => 'Ritaglio dell\'immagine del profilo completata',
-	'avatar:crop:fail' => 'Impossibile ritagliare l\'immagine del profilo',
 	'avatar:remove:success' => 'Rimozione dell\'immagine del profilo completata',
 	'avatar:remove:fail' => 'Impossibile rimuovere l\'immagine del profilo',
 	'action:user:validate:error' => "Si è verificato un errore durante la convalida di %s",
@@ -246,10 +203,7 @@ return array(
 	'river' => "Attività",
 	'river:user:friend' => "%s è ora amico di %s",
 	'river:update:user:avatar' => '%s ha una nuova immagine del profilo',
-	'river:noaccess' => 'Permessi insufficienti per visualizzare questo elemento.',
 	'river:posted:generic' => '%s inviato',
-	'riveritem:single:user' => 'un utente',
-	'riveritem:plural:user' => 'alcuni utenti',
 	'river:ingroup' => 'nel gruppo %s',
 	'river:none' => 'Nessuna attività',
 	'river:update' => 'Aggiornamento di %s',
@@ -288,10 +242,6 @@ return array(
  */
 
 	'search' => "Cerca",
-	'searchtitle' => "Cerca: %s",
-	'users:searchtitle' => "Cerca tra gli utenti: %s",
-	'groups:searchtitle' => "Cerca tra i gruppi: %s",
-	'advancedsearchtitle' => "%s con risultati che corrispondono a %s",
 	'notfound' => "Nessun risultato trovato.",
 
 	'viewtype:change' => "Cambia tipo di elenco",
@@ -324,10 +274,8 @@ return array(
 	'registration:passwordnotvalid' => 'Spiacenti, la password inserita non è valida in questo sistema',
 	'registration:usernamenotvalid' => 'Spiacenti, il nome utente inserito non è valido in questo sistema',
 
-	'adduser' => "Aggiungi utente",
 	'adduser:ok' => "Nuovo utente aggiunto",
-	'adduser:bad' => "Impossibile creare il nuovo utente",
-
+	
 	'user:set:name' => "Impostazioni del nome di profilo",
 	'user:name:label' => "Nome visualizzato",
 	'user:name:success' => "Il nome visualizzato è stato cambiato nel sistema.",
@@ -338,23 +286,17 @@ return array(
 	'user:password:label' => "Nuova password",
 	'user:password2:label' => "Ripetere la nuova password",
 	'user:password:success' => "Password cambiata",
-	'user:password:fail' => "Impossibile cambiare la password nel sistema.",
-	'user:password:fail:notsame' => "Le due password non coincidono!",
-	'user:password:fail:tooshort' => "La password è troppo corta.",
-	'user:password:fail:incorrect_current_password' => 'La password attuale inserita non è corretta.',
 	'user:changepassword:unknown_user' => 'Utente non valido.',
 	'user:changepassword:change_password_confirm' => 'Questo cambierà la tua password.',
 
 	'user:set:language' => "Impostazioni della lingua",
 	'user:language:label' => "Lingua",
 	'user:language:success' => "Le impostazioni della lingua sono state aggiornate.",
-	'user:language:fail' => "Impossibile salvare le impostazioni della lingua.",
 
 	'user:username:notfound' => 'Nome utente %s non trovato.',
 
 	'user:password:lost' => 'Password smarrita',
 	'user:password:changereq:success' => 'Richiesta di una nuova password completata, email inviata.',
-	'user:password:changereq:fail' => 'Impossibile richiedere una nuova password.',
 
 	'user:password:text' => 'Per richiedere una nuova password inserire il tuo nome utente o l\'indirizzo email con cui ti sei registrato e clicca sul pulsante Richiedi',
 
@@ -393,10 +335,6 @@ Consente a Elgg di saltare la connessione al database quando servono file JavaSc
 	
 	'admin:statistics' => 'Statistiche',
 	'admin:server' => 'Server',
-	'admin:cron:record' => 'Latest Cron Jobs',
-	'admin:cron:period' => 'Cron period',
-	'admin:cron:friendly' => 'Last completed',
-	'admin:cron:date' => 'Date and time',
 	'admin:cron:msg' => 'Messaggio',
 	'admin:cron:started' => 'Cron job per "%s" avviati alle %s',
 	'admin:cron:started:actual' => 'Intervallo cron "%s" ha iniziato l\'elaborazione alle %s',
@@ -552,25 +490,8 @@ Per andare sul sito, clicca qui:
 /**
  * Plugins
  */
-
-	'plugins:disabled' => 'Plugins are not being loaded because a file named "disabled" is in the mod directory.',
 	'plugins:settings:save:ok' => "Impostazioni per il plugin %s salvate con successo.",
-	'plugins:settings:save:fail' => "There was a problem saving settings for the %s plugin.",
 	'plugins:settings:remove:fail' => "Si è verificato un errore durante la rimozione di tutte le impostazioni per il plug-in %s",
-	'plugins:usersettings:save:ok' => "User settings for the %s plugin were saved successfully.",
-	'plugins:usersettings:save:fail' => "There was a problem saving user settings for the %s plugin.",
-	
-	'item:object:plugin' => 'Plugins',
-	'collection:object:plugin' => 'Plugins',
-
-	'admin:plugins' => "Plugins",
-	'admin:plugins:activate_all' => 'Activate All',
-	'admin:plugins:deactivate_all' => 'Deactivate All',
-	'admin:plugins:activate' => 'Activate',
-	'admin:plugins:deactivate' => 'Deactivate',
-	'admin:plugins:description' => "This admin panel allows you to control and configure tools installed on your site.",
-	'admin:plugins:opt:linktext' => "Configure tools...",
-	'admin:plugins:opt:description' => "Configure the tools installed on the site.",
 	'admin:plugins:label:id' => "ID",
 	'admin:plugins:label:name' => "Nome",
 	'admin:plugins:label:authors' => "Autori",
@@ -590,25 +511,8 @@ Per andare sul sito, clicca qui:
 	'admin:plugins:label:location' => 'Ubicazione',
 	'admin:plugins:label:priority' => 'Priorità',
 	'admin:plugins:label:dependencies' => 'Dipendenze',
-
-	'admin:plugins:warning:unmet_dependencies' => 'This plugin has unmet dependencies and cannot be activated. Check dependencies under more info.',
-	'admin:plugins:warning:invalid' => 'This plugin is invalid: %s',
-	'admin:plugins:warning:invalid:check_docs' => 'Check <a rel="nofollow" href="http://docs.elgg.org/Invalid_Plugin">the Elgg documentation</a> for troubleshooting tips.',
-	'admin:plugins:cannot_activate' => 'cannot activate',
-	'admin:plugins:cannot_deactivate' => 'cannot deactivate',
 	'admin:plugins:already:active' => 'I plugin selezionati sono già attivi.',
 	'admin:plugins:already:inactive' => 'I plugin selezionati sono già inattivi.',
-
-	'admin:plugins:set_priority:yes' => "Reordered %s.",
-	'admin:plugins:set_priority:no' => "Could not reorder %s.",
-	'admin:plugins:deactivate:yes' => "Deactivated %s.",
-	'admin:plugins:deactivate:no' => "Could not deactivate %s.",
-	'admin:plugins:deactivate:no_with_msg' => "Could not deactivate %s. Error: %s",
-	'admin:plugins:activate:yes' => "Activated %s.",
-	'admin:plugins:activate:no' => "Could not activate %s.",
-	'admin:plugins:activate:no_with_msg' => "Could not activate %s. Error: %s",
-	'admin:plugins:categories:all' => 'All categories',
-	'admin:plugins:plugin_website' => 'Plugin website',
 	'admin:plugins:author' => '%s',
 	'admin:plugins:version' => 'Versione %s',
 	'admin:plugin_settings' => 'Impostazioni plugin',
@@ -696,25 +600,13 @@ Per migliorare le prestazioni, si consiglia di abilitare e configurare redis (o 
  * User settings
  */
 
-	'usersettings:description' => "Il pannello delle impostazioni utente permette di controllare tutte le tue impostazioni personali, dalla gestione dell'utente a come i plugin si comportano. Selezionare un'opzione qui sotto per iniziare.",
-
 	'usersettings:statistics' => "Statistiche",
-	'usersettings:statistics:opt:description' => "Visualizza le informazioni statistiche sugli utenti e gli oggetti di questo sito.",
 	'usersettings:statistics:opt:linktext' => "Statistiche del profilo utente",
 
-	'usersettings:statistics:login_history' => "Login History",
-	'usersettings:statistics:login_history:date' => "Date",
-	'usersettings:statistics:login_history:ip' => "IP Address",
-
 	'usersettings:user' => "Impostazioni di %s",
-	'usersettings:user:opt:description' => "Questo ti permette di controllare le impostazioni dell'utente",
 	'usersettings:user:opt:linktext' => "Cambia le tue impostazioni",
 
-	'usersettings:plugins' => "Strumenti",
-	'usersettings:plugins:opt:description' => "Configura le impostazioni degli strumenti attivi (se ce ne sono).",
 	'usersettings:plugins:opt:linktext' => "Configura i tuoi strumenti",
-
-	'usersettings:plugins:description' => "Questo pannello permette di controllare e configurare le impostazioni personali degli strumenti installati dall'amministratore.",
 	
 	'usersettings:statistics:yourdetails' => "I tuoi dati",
 	'usersettings:statistics:label:name' => "Nome completo",
@@ -722,8 +614,6 @@ Per migliorare le prestazioni, si consiglia di abilitare e configurare redis (o 
 	'usersettings:statistics:label:lastlogin' => "Ultimo accesso",
 	'usersettings:statistics:label:membersince' => "Membro dal",
 	'usersettings:statistics:label:numentities' => "I tuoi contenuti",
-	
-	'usersettings:delayed_email' => "Impostazioni e-mail ritardate",
 
 /**
  * Activity river
@@ -734,9 +624,7 @@ Per migliorare le prestazioni, si consiglia di abilitare e configurare redis (o 
 	'river:owner' => 'Attività di %s',
 	'river:friends' => 'Attività degli amici',
 	'river:select' => 'Mostra %s',
-	'river:comments:more' => '+%u altro',
 	'river:comments:all' => 'Visualizza tutti i %u commenti',
-	'river:generic_comment' => 'ha commentato %s %s',
 
 /**
  * Icons
@@ -1023,10 +911,6 @@ Per migliorare le prestazioni, si consiglia di abilitare e configurare redis (o 
 	'installation:sitename' => "Nome del sito:",
 	'installation:sitedescription' => "Breve descrizione del sito (opzionale):",
 	'installation:sitedescription:help' => "Con i plug-in in bundle questo appare solo nel meta tag descrizione per i risultati dei motori di ricerca.",
-	'installation:wwwroot' => "URL del sito:",
-	'installation:path' => "Percorso completo d'installazione di Elgg:",
-	'installation:dataroot' => "Percorso completa della cartella dati:",
-	'installation:dataroot:warning' => "Occorre creare questa cartella manualmente. Deve trovarsi in una cartella differente da quella d'installazione di Elgg.",
 	'installation:sitepermissions' => "Permessi di accesso predefiniti:",
 	'installation:language' => "Lingua predefinita del sito:",
 	'installation:debug' => "Determina la quantità di informazioni scritte nel log del server.",
@@ -1045,8 +929,6 @@ Per migliorare le prestazioni, si consiglia di abilitare e configurare redis (o 
 	'installation:walled_garden:description' => 'Abilitare questa opzione per impedire agli utenti non registrati di visualizzare i contenuti del sito ad eccezione delle pagine pubbliche (come ad esempio login e registrazione)',
 	'installation:walled_garden:label' => 'Limita le pagine agli utenti registrati',
 
-	'installation:view' => "Specificare la vista che deve essere usata in modo predefinito per il sito, o lasciare in bianco per abilitare la vista preimpostata (nel dubbio lasciare come preimpostato):",
-
 	'installation:siteemail' => "Indirizzo email del sito (usato quando si inviano email di sistema):",
 	'installation:default_limit' => "Numero predefinito di elementi per pagina",
 
@@ -1060,7 +942,6 @@ Per migliorare le prestazioni, si consiglia di abilitare e configurare redis (o 
 	'installation:cache_symlink:description' => "Il link simbolico alla cartella della cache semplice permette al server di fornire viste statiche evitando l'engine, migliorando considerevolmente le prestazioni e riducendo il carico del server.",
 	'installation:cache_symlink:label' => "Usare un link simbolico alla cache semplice (raccomandato)",
 	'installation:cache_symlink:warning' => "È stato stabilito un link simbolico. Se per qualche ragione si vuole eliminare tale link eliminare la cartella del link simbolico dal server.",
-	'installation:cache_symlink:paths' => 'Correctly configured symbolic link must link <i>%s</i> to <i>%s</i>',
 	'installation:cache_symlink:error' => "A causa della configurazione del server non è possibile stabilire un link simbolico automaticamente. Fare riferimento alla documentazione e creare un link simbolico manualmente.",
 
 	'installation:minify:description' => "La cache semplice può anche aumentare le prestazioni comprimendo file JavaScript e CSS. (Richiede che la cache semplice sia abilitata.)",
@@ -1105,7 +986,6 @@ Per migliorare le prestazioni, si consiglia di abilitare e configurare redis (o 
 	'upgrade:finished_with_errors' => '<p>L\'aggiornamento è terminato con degli errori. Aggiornare la pagina e provare a eseguire nuovamente l\'aggiornamento.</p><br>Se l\'errore si manifesta nuovamente, controllare il log file degli errori del server per trovare le possibili cause. Per eliminare l\'errore si può cercare aiuto nel <a href="http://community.elgg.org/groups/profile/179063/elgg-technical-support">Technical support group</a> della comunità di Elgg.',
 	
 	// Strings specific for the database guid columns reply upgrade
-	'admin:upgrades:database_guid_columns' => 'Align database GUID columns',
 	
 /**
  * Welcome
@@ -1225,7 +1105,12 @@ Se non hai richiesto tu questa modifica, contatta un amministratore del sito.
  * Miscellaneous
  */
 	'elgg:powered' => "Generato da Elgg",
-	
+	'field:required' => "Richiesto",
+
+/**
+ * Accessibility
+ */
+
 /**
  * Cli commands
  */
@@ -1239,8 +1124,6 @@ Se non hai richiesto tu questa modifica, contatta un amministratore del sito.
 	
 	'cli:plugins:list:description' => "Elenca tutti i plugin installati nel sito.",
 	'cli:plugins:list:error:status' => "%s non è uno stato valido. Le opzioni consentite sono: %s",
-	'cli:simpletest:error:class' => "Devi installare la tua applicazione Elgg usando '%s'",
-	'cli:simpletest:error:file' => "%s non è una classe simpletest valida",
 	'cli:upgrade:batch:finished' => "Gli aggiornamenti in corso sono terminati",
 	'cli:upgrade:batch:notfound' => "Nessuna classe di aggiornamento trovata per %s",
 
@@ -1304,7 +1187,6 @@ Se non hai richiesto tu questa modifica, contatta un amministratore del sito.
 	"id" => "Indonesian",
 	"ie" => "Interlingue",
 	"ik" => "Inupiak",
-	//"in" => "Indonesiano",
 	"is" => "Icelandic",
 	"it" => "Italiano",
 	"iu" => "Inuktitut",
@@ -1402,7 +1284,8 @@ Se non hai richiesto tu questa modifica, contatta un amministratore del sito.
 	"zh_hans" => "Chinese Simplified",
 	"zu" => "Zulu",
 
-	"field:required" => 'Richiesto',
-
+/**
+ * Upgrades
+ */
 	"core:upgrade:2017080900:title" => "Modifica la codifica del database per il supporto multibyte",
 );

@@ -28,12 +28,10 @@ return array(
 	'groups:invitations' => 'Zaproszenia do grupy',
 	'groups:invitations:pending' => 'Zaproszenia do grupy (%s)',
 
-	'groups:icon' => 'Ikona grupy',
 	'groups:name' => 'Nazwa grupy',
 	'groups:description' => 'Opis',
 	'groups:briefdescription' => 'Krótki opis',
 	'groups:interests' => 'Zainteresowania',
-	'groups:website' => 'Strona www',
 	'groups:members' => 'Członkowie grupy',
 
 	'groups:members:title' => 'Członkowie %s',
@@ -43,21 +41,17 @@ return array(
 	'groups:content_access_mode:warning' => "Uwaga: Zmiana tego ustawienia nie wpłynie na uprawnienia do treści istniejących już w grupie.",
 	'groups:content_access_mode:unrestricted' => "Brak ograniczeń - Dostęp zależy od ustawień poszczególnych elementów",
 	'groups:content_access_mode:membersonly' => "Tylko dla członków - Osoby spoza grupy nie mają dostępu do treści w grupie",
-	'groups:access' => "Uprawnienia dostępu",
 	'groups:owner' => "Właściciel",
 	'groups:owner:warning' => "Uwaga: jeśli zmienisz tą wartość, to przestaniesz być właścicielem tej grupy.",
 	'groups:widget:num_display' => 'Liczba grup do wyświetlenia',
 	'widgets:a_users_groups:name' => 'Członkostwo grupy',
 	'widgets:a_users_groups:description' => 'Wyświetl w profilu grupy do których należę',
 
-	'groups:noaccess' => 'Brak dostępu do grupy',
 	'groups:cantcreate' => 'Nie możesz utworzyć grupy. Tylko administrator ma taką możliwość.',
 	'groups:cantedit' => 'Nie można edytować tej grupy',
 	'groups:saved' => 'Grupa zapisana',
 	'groups:save_error' => 'Nie można zapisać grupy',
 	'groups:featured' => 'Promowane grupy',
-	'groups:makeunfeatured' => 'Przestań promować',
-	'groups:makefeatured' => 'Promuj',
 	'groups:featuredon' => '%s jest teraz promowaną grupą.',
 	'groups:unfeatured' => '%s przestała być promowaną grupą.',
 	'groups:featured_error' => 'Niepoprawna grupa.',
@@ -84,7 +78,6 @@ return array(
 
 	'groups:open' => "otwartych grup",
 	'groups:closed' => "zamkniętych grup",
-	'groups:member' => "członkowie",
 
 	'groups:more' => 'Więcej grup',
 	'groups:none' => 'Brak grup',
@@ -117,7 +110,6 @@ return array(
 	'groups:addedtogroup' => 'Użytkownik został pomyślnie dodany do tej grupy.',
 	'groups:joinrequestnotmade' => 'Dołączenie do grupy nie powiodło się.',
 	'groups:joinrequestmade' => 'Prośba o dołączenie do grupy wysłana pomyślnie',
-	'groups:joinrequest:exists' => 'You already requested membership for this group',
 	'groups:joined' => 'Pomyślnie dołączyłeś do grupy!',
 	'groups:left' => 'Pomyślnie opuściłeś grupę',
 	'groups:userinvited' => 'Użytkownik został zaproszony.',
@@ -144,4 +136,6 @@ return array(
 	'groups:add:alreadymember' => "%s jest już członkiem tej grupy",
 	
 	// Notification settings
+	
+	// accessibility
 );

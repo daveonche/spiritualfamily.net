@@ -1,7 +1,7 @@
 /**
  * Adds menu item toggle features
  */
-define(['jquery', 'elgg', 'elgg/Ajax'], function ($, elgg, Ajax) {
+define(['jquery', 'elgg/hooks', 'elgg/Ajax'], function ($, hooks, Ajax) {
 	
 	$(document).on('click', '.elgg-menu a[data-toggle]', function() {
 		var $item_clicked = $(this).closest('li');
@@ -16,7 +16,7 @@ define(['jquery', 'elgg', 'elgg/Ajax'], function ($, elgg, Ajax) {
 		var $both_items = $item_clicked.add($other_item);
 		// Be optimistic about success
 		$both_items.toggleClass('hidden');
-		$other_item.focus();
+		$other_item.children('a').focus();
 
 		// Send the ajax request
 		
@@ -24,7 +24,7 @@ define(['jquery', 'elgg', 'elgg/Ajax'], function ($, elgg, Ajax) {
 		ajax.action($(this).attr('href'), {
 			success: function(result) {
 				// let others know we toggled the menu item
-				elgg.trigger_hook('toggle', 'menu_item', {
+				hooks.trigger('toggle', 'menu_item', {
 					itemClicked: $item_clicked,
 					itemToggled: $other_item,
 					menu: $menu,
@@ -34,7 +34,7 @@ define(['jquery', 'elgg', 'elgg/Ajax'], function ($, elgg, Ajax) {
 			error: function() {
 				// Something went wrong, so undo the optimistic changes
 				$both_items.toggleClass('hidden');
-				$item_clicked.focus();
+				$item_clicked.children('a').focus();
 			}
 		});
 		

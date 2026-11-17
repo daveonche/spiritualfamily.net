@@ -23,9 +23,9 @@ namespace Symfony\Component\CssSelector\XPath;
  */
 class XPathExpr
 {
-    private $path;
-    private $element;
-    private $condition;
+    private string $path;
+    private string $element;
+    private string $condition;
 
     public function __construct(string $path = '', string $element = '*', string $condition = '', bool $starPrefix = false)
     {
@@ -46,9 +46,9 @@ class XPathExpr
     /**
      * @return $this
      */
-    public function addCondition(string $condition): self
+    public function addCondition(string $condition): static
     {
-        $this->condition = $this->condition ? sprintf('(%s) and (%s)', $this->condition, $condition) : $condition;
+        $this->condition = '' !== $this->condition ? \sprintf('(%s) and (%s)', $this->condition, $condition) : $condition;
 
         return $this;
     }
@@ -61,10 +61,16 @@ class XPathExpr
     /**
      * @return $this
      */
-    public function addNameTest(): self
+    public function addNameTest(): static
     {
         if ('*' !== $this->element) {
-            $this->addCondition('name() = '.Translator::getXpathLiteral($this->element));
+            if ('*/' === $this->path) {
+                // after the name test, position() and last() would count the siblings of any type
+                $this->condition = self::positionsToSiblings($this->condition, $this->element);
+            }
+
+            // name() returns the prefix used by the document, which may not be the prefix of the selector
+            $this->addCondition(str_contains($this->element, ':') ? 'self::'.$this->element : 'name() = '.Translator::getXpathLiteral($this->element));
             $this->element = '*';
         }
 
@@ -74,9 +80,11 @@ class XPathExpr
     /**
      * @return $this
      */
-    public function addStarPrefix(): self
+    public function addStarPrefix(): static
     {
-        $this->path .= '*/';
+        if ('*/' !== $this->path) {
+            $this->path .= '*/';
+        }
 
         return $this;
     }
@@ -86,7 +94,7 @@ class XPathExpr
      *
      * @return $this
      */
-    public function join(string $combiner, self $expr): self
+    public function join(string $combiner, self $expr): static
     {
         $path = $this->__toString().$combiner;
 
@@ -99,6 +107,40 @@ class XPathExpr
         $this->condition = $expr->condition;
 
         return $this;
+    }
+
+    /**
+     * Replaces position() and last() by tests on the siblings of the context node.
+     */
+    public static function positionsToSiblings(string $condition, string $element): string
+    {
+        // [1] stops at the first sibling found: count() is used only when An+B needs it
+        $first = \sprintf('not(preceding-sibling::%s[1])', $element);
+        $last = \sprintf('not(following-sibling::%s[1])', $element);
+        $depth = 0;
+        $result = '';
+
+        foreach (preg_split('/(\'[^\']*+\'|"[^"]*+"|[\[\]]|position\(\) = (?:1|last\(\)(?: - 0)?)(?![\d-]| -)|last\(\) = 1(?!\d)|last\(\) - position\(\)|position\(\)|last\(\))/', $condition, -1, \PREG_SPLIT_DELIM_CAPTURE) as $part) {
+            if ('[' === $part) {
+                ++$depth;
+            } elseif (']' === $part) {
+                --$depth;
+            } elseif (!$depth) {
+                $part = match ($part) {
+                    'position() = 1' => $first,
+                    'position() = last()', 'position() = last() - 0' => $last,
+                    'last() = 1' => $first.' and '.$last,
+                    'last() - position()' => \sprintf('count(following-sibling::%s)', $element),
+                    'position()' => \sprintf('(count(preceding-sibling::%s) + 1)', $element),
+                    'last()' => \sprintf('(count(preceding-sibling::%1$s) + count(following-sibling::%1$s) + 1)', $element),
+                    default => $part,
+                };
+            }
+
+            $result .= $part;
+        }
+
+        return $result;
     }
 
     public function __toString(): string

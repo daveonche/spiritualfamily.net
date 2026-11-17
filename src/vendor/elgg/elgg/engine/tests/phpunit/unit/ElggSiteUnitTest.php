@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @group UnitTests
- * @group ElggData
- */
 class ElggSiteUnitTest extends \Elgg\UnitTestCase {
 
 	public function testCanConstructWithoutArguments() {
@@ -93,6 +89,9 @@ class ElggSiteUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testIsLoggable() {
+		$unsaved = new \ElggSite();
+		$this->assertEmpty($unsaved->getSystemLogID());
+		
 		$site = elgg_get_site_entity();
 
 		$this->assertEquals($site->guid, $site->getSystemLogID());
@@ -106,9 +105,8 @@ class ElggSiteUnitTest extends \Elgg\UnitTestCase {
 		$this->assertFalse($site->canComment());
 		
 		$user = $this->createUser();
-		$session = _elgg_services()->session;
 		
-		$session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 		
 		$this->assertFalse($site->canComment());
 	}

@@ -6,10 +6,9 @@ use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Elgg\Database\Clauses\AnnotationWhereClause;
 use Elgg\Database\Clauses\EntityWhereClause;
 use Elgg\Database\Clauses\MetadataWhereClause;
-use Elgg\Database\Clauses\PrivateSettingWhereClause;
 use Elgg\Database\Clauses\RelationshipWhereClause;
+use Elgg\Exceptions\DomainException;
 use Elgg\Exceptions\InvalidArgumentException;
-use Elgg\Exceptions\InvalidParameterException;
 use Elgg\Exceptions\LogicException;
 
 /**
@@ -26,7 +25,7 @@ class Annotations extends Repository {
 	public function count() {
 		$qb = Select::fromTable('annotations', 'n_table');
 
-		$count_expr = $this->options->distinct ? "DISTINCT n_table.id" : "*";
+		$count_expr = $this->options->distinct ? 'DISTINCT n_table.id' : '*';
 		$qb->select("COUNT({$count_expr}) AS total");
 
 		$qb = $this->buildQuery($qb);
@@ -45,15 +44,14 @@ class Annotations extends Repository {
 	 *
 	 * @param string $function      Valid numeric function
 	 * @param string $property      Property name
-	 * @param string $property_type 'attribute'|'metadata'|'annotation'|'private_setting'
+	 * @param string $property_type 'attribute'|'metadata'|'annotation'
 	 *
 	 * @return int|float
-	 * @throws InvalidParameterException
+	 * @throws DomainException
 	 */
 	public function calculate($function, $property, $property_type = null) {
-
-		if (!in_array(strtolower($function), QueryBuilder::$calculations)) {
-			throw new InvalidArgumentException("'$function' is not a valid numeric function");
+		if (!in_array(strtolower($function), QueryBuilder::CALCULATIONS)) {
+			throw new DomainException("'{$function}' is not a valid numeric function");
 		}
 
 		if (!isset($property_type)) {
@@ -65,28 +63,24 @@ class Annotations extends Repository {
 		switch ($property_type) {
 			case 'attribute':
 				if (!in_array($property, \ElggEntity::PRIMARY_ATTR_NAMES)) {
-					throw new InvalidParameterException("'$property' is not a valid attribute");
+					throw new DomainException("'{$property}' is not a valid attribute");
 				}
 
 				$alias = $qb->joinEntitiesTable('n_table', 'entity_guid', 'inner', 'e');
 				$qb->select("{$function}({$alias}.{$property}) AS calculation");
 				break;
 
-			case 'annotation' :
+			case 'annotation':
 				$alias = 'n_table';
 				if (!empty($this->options->annotation_name_value_pairs) && $this->options->annotation_name_value_pairs[0]->names != $property) {
 					$alias = $qb->joinAnnotationTable('n_table', 'entity_guid', $property);
 				}
+				
 				$qb->select("{$function}($alias.value) AS calculation");
 				break;
 
-			case 'metadata' :
+			case 'metadata':
 				$alias = $qb->joinMetadataTable('n_table', 'entity_guid', $property);
-				$qb->select("{$function}({$alias}.value) AS calculation");
-				break;
-
-			case 'private_setting' :
-				$alias = $qb->joinPrivateSettingsTable('n_table', 'entity_guid', $property);
 				$qb->select("{$function}({$alias}.value) AS calculation");
 				break;
 		}
@@ -95,11 +89,7 @@ class Annotations extends Repository {
 
 		$result = _elgg_services()->db->getDataRow($qb);
 
-		if (empty($result)) {
-			return 0;
-		}
-
-		return (int) $result->calculation;
+		return $result ? (int) $result->calculation : 0;
 	}
 
 	/**
@@ -112,11 +102,10 @@ class Annotations extends Repository {
 	 * @return \ElggAnnotation[]
 	 */
 	public function get($limit = null, $offset = null, $callback = null) {
-
 		$qb = Select::fromTable('annotations', 'n_table');
 
-		$distinct = $this->options->distinct ? "DISTINCT" : "";
-		$qb->select("$distinct n_table.*");
+		$distinct = $this->options->distinct ? 'DISTINCT' : '';
+		$qb->select("{$distinct} n_table.*");
 
 		$this->expandInto($qb, 'n_table');
 
@@ -134,7 +123,7 @@ class Annotations extends Repository {
 			$qb->setFirstResult((int) $offset);
 		}
 
-		$callback = $callback ? : $this->options->callback;
+		$callback = $callback ?: $this->options->callback;
 		if (!isset($callback)) {
 			$callback = function ($row) {
 				return new \ElggAnnotation($row);
@@ -156,28 +145,27 @@ class Annotations extends Repository {
 	 * @throws LogicException
 	 */
 	public function execute() {
-
 		if ($this->options->annotation_calculation) {
 			$clauses = $this->options->annotation_name_value_pairs;
 			if (count($clauses) > 1 && $this->options->annotation_name_value_pairs_operator !== 'OR') {
-				throw new LogicException("Annotation calculation can not be performed on multiple annotation name value pairs merged with AND");
+				throw new LogicException('Annotation calculation can not be performed on multiple annotation name value pairs merged with AND');
 			}
 
 			$clause = array_shift($clauses);
 
 			return $this->calculate($this->options->annotation_calculation, $clause->names, 'annotation');
-		} else if ($this->options->metadata_calculation) {
+		} elseif ($this->options->metadata_calculation) {
 			$clauses = $this->options->metadata_name_value_pairs;
 			if (count($clauses) > 1 && $this->options->metadata_name_value_pairs_operator !== 'OR') {
-				throw new LogicException("Metadata calculation can not be performed on multiple metadata name value pairs merged with AND");
+				throw new LogicException('Metadata calculation can not be performed on multiple metadata name value pairs merged with AND');
 			}
 
 			$clause = array_shift($clauses);
 
 			return $this->calculate($this->options->metadata_calculation, $clause->names, 'metadata');
-		} else if ($this->options->count) {
+		} elseif ($this->options->count) {
 			return $this->count();
-		} else if ($this->options->batch) {
+		} elseif ($this->options->batch) {
 			return $this->batch($this->options->limit, $this->options->offset, $this->options->callback);
 		} else {
 			return $this->get($this->options->limit, $this->options->offset, $this->options->callback);
@@ -187,12 +175,11 @@ class Annotations extends Repository {
 	/**
 	 * Build a database query
 	 *
-	 * @param QueryBuilder $qb
+	 * @param QueryBuilder $qb the Elgg QueryBuilder
 	 *
 	 * @return QueryBuilder
 	 */
 	protected function buildQuery(QueryBuilder $qb) {
-
 		$ands = [];
 
 		foreach ($this->options->joins as $join) {
@@ -207,7 +194,6 @@ class Annotations extends Repository {
 		$ands[] = $this->buildEntityWhereClause($qb);
 		$ands[] = $this->buildPairedMetadataClause($qb, $this->options->metadata_name_value_pairs, $this->options->metadata_name_value_pairs_operator);
 		$ands[] = $this->buildPairedMetadataClause($qb, $this->options->search_name_value_pairs, 'OR');
-		$ands[] = $this->buildPairedPrivateSettingsClause($qb, $this->options->private_setting_name_value_pairs, $this->options->private_setting_name_value_pairs_operator);
 		$ands[] = $this->buildPairedRelationshipClause($qb, $this->options->relationship_pairs);
 
 		$ands = $qb->merge($ands);
@@ -276,31 +262,7 @@ class Annotations extends Repository {
 			} else {
 				$joined_alias = $qb->joinMetadataTable('n_table', 'entity_guid', $clause->names);
 			}
-			$parts[] = $clause->prepare($qb, $joined_alias);
-		}
-
-		return $qb->merge($parts, $boolean);
-	}
-
-	/**
-	 * Process private settings name value pairs
-	 * Joins private settings table on entity_guid in the annotations table and applies where clauses
-	 *
-	 * @param QueryBuilder                $qb      Query builder
-	 * @param PrivateSettingWhereClause[] $clauses Where clauses
-	 * @param string                      $boolean Merge boolean
-	 *
-	 * @return CompositeExpression|string
-	 */
-	protected function buildPairedPrivateSettingsClause(QueryBuilder $qb, $clauses, $boolean = 'AND') {
-		$parts = [];
-
-		foreach ($clauses as $clause) {
-			if (strtoupper($boolean) === 'OR' || count($clauses) > 1) {
-				$joined_alias = $qb->joinPrivateSettingsTable('n_table', 'entity_guid');
-			} else {
-				$joined_alias = $qb->joinPrivateSettingsTable('n_table', 'entity_guid', $clause->names);
-			}
+			
 			$parts[] = $clause->prepare($qb, $joined_alias);
 		}
 
@@ -327,6 +289,7 @@ class Annotations extends Repository {
 			} else {
 				$joined_alias = $qb->joinRelationshipTable('n_table', $join_on, $clause->names, $clause->inverse);
 			}
+			
 			$parts[] = $clause->prepare($qb, $joined_alias);
 		}
 

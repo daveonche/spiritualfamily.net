@@ -28,12 +28,10 @@ return array(
 	'groups:invitations' => 'Pozvání do skupin',
 	'groups:invitations:pending' => 'Pozvání do skupin (%s)',
 
-	'groups:icon' => 'Portrét skupiny (prázdné = žádné změny)',
 	'groups:name' => 'Jméno skupiny',
 	'groups:description' => 'Popis',
 	'groups:briefdescription' => 'Stručný popis',
 	'groups:interests' => 'Štítky',
-	'groups:website' => 'Webové stránky',
 	'groups:members' => 'Počet členů',
 
 	'groups:members:title' => 'Členové skupiny %s',
@@ -43,21 +41,17 @@ return array(
 	'groups:content_access_mode:warning' => "Varování: změna tohoto nastavení nemá vliv na již existující obsah skupiny.",
 	'groups:content_access_mode:unrestricted' => "Volný - Přístup závisí na nastavení přístupu u obsahu",
 	'groups:content_access_mode:membersonly' => "Pouze pro členy - Ne-členové nemají přístup k obsahu skupiny",
-	'groups:access' => "Práva přístupu",
 	'groups:owner' => "Vlastník",
 	'groups:owner:warning' => "Varování: pokud tuto hodnotu změníte, nebudete nadále vlastníkem této skupiny.",
 	'groups:widget:num_display' => 'Počet zobrazených skupin',
 	'widgets:a_users_groups:name' => 'Členství ve skupině',
 	'widgets:a_users_groups:description' => 'Zobrazuje skupiny kterých jste členem',
 
-	'groups:noaccess' => 'K této skupině nemáte přístup',
 	'groups:cantcreate' => 'Nemůžete vytvořit skupinu, to mohou pouze správci.',
 	'groups:cantedit' => 'Nemůžete upravit tuto skupinu',
 	'groups:saved' => 'Skupina uložena',
 	'groups:save_error' => 'Skupinu není možné uložit',
 	'groups:featured' => 'Zajímavé skupiny',
-	'groups:makeunfeatured' => 'Odstranit ze zajímavých',
-	'groups:makefeatured' => 'Zařadit do zajímavých',
 	'groups:featuredon' => '%s je nyní zajímavá skupina.',
 	'groups:unfeatured' => '%s přestala být zajímavou skupinou.',
 	'groups:featured_error' => 'Neplatná skupina.',
@@ -84,7 +78,6 @@ return array(
 
 	'groups:open' => "veřejná skupina",
 	'groups:closed' => "uzavřená skupina",
-	'groups:member' => "členů",
 
 	'groups:more' => 'Více skupin',
 	'groups:none' => 'Žádné skupiny',
@@ -144,4 +137,6 @@ return array(
 	'groups:add:alreadymember' => "%s je již členem této skupiny",
 	
 	// Notification settings
+	
+	// accessibility
 );

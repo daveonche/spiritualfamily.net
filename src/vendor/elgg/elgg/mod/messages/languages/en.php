@@ -18,14 +18,11 @@ return array(
 	'messages:message' => "Message",
 	'messages:title' => "Subject",
 	'messages:to:help' => "Write recipient's username here.",
-	'messages:inbox' => "Inbox",
 	'messages:sendmessage' => "Send a message",
 	'messages:add' => "Compose a message",
 	'messages:sentmessages' => "Sent messages",
 	'messages:toggle' => 'Toggle all',
 	'messages:markread' => 'Mark read',
-
-	'notification:method:site' => 'Site',
 
 	'messages:error' => 'There was a problem saving your message. Please try again.',
 

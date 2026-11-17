@@ -22,6 +22,7 @@ return array(
 	'groups:add' => "Create a new group",
 	'groups:edit' => "Edit group",
 	'groups:edit:profile' => "Profile",
+	'groups:edit:images' => "Images",
 	'groups:edit:access' => "Access",
 	'groups:edit:tools' => "Tools",
 	'groups:edit:settings' => "Settings",
@@ -34,12 +35,10 @@ return array(
 	'relationship:invited' => '%2$s was invited to join %1$s',
 	'relationship:membership_request' => '%s requested to join %s',
 
-	'groups:icon' => 'Group icon (leave blank to leave unchanged)',
 	'groups:name' => 'Group name',
 	'groups:description' => 'Description',
 	'groups:briefdescription' => 'Brief description',
 	'groups:interests' => 'Tags',
-	'groups:website' => 'Website',
 	'groups:members' => 'Group members',
 
 	'groups:members_count' => '%s members',
@@ -51,21 +50,17 @@ return array(
 	'groups:content_access_mode:warning' => "Warning: Changing this setting won't change the access permission of existing group content.",
 	'groups:content_access_mode:unrestricted' => "Unrestricted - Access depends on content-level settings",
 	'groups:content_access_mode:membersonly' => "Members Only - Non-members can never access group content",
-	'groups:access' => "Access permissions",
 	'groups:owner' => "Owner",
 	'groups:owner:warning' => "Warning: if you change this value, you will no longer be the owner of this group.",
 	'groups:widget:num_display' => 'Number of groups to display',
 	'widgets:a_users_groups:name' => 'Group membership',
 	'widgets:a_users_groups:description' => 'Display the groups you are a member of on your profile',
 
-	'groups:noaccess' => 'No access to group',
 	'groups:cantcreate' => 'You can not create a group. Only admins can.',
 	'groups:cantedit' => 'You can not edit this group',
 	'groups:saved' => 'Group saved',
 	'groups:save_error' => 'Group could not be saved',
 	'groups:featured' => 'Featured groups',
-	'groups:makeunfeatured' => 'Unfeature',
-	'groups:makefeatured' => 'Make featured',
 	'groups:featuredon' => '%s is now a featured group.',
 	'groups:unfeatured' => '%s has been removed from the featured groups.',
 	'groups:featured_error' => 'Invalid group.',
@@ -96,7 +91,6 @@ return array(
 
 	'groups:open' => "open group",
 	'groups:closed' => "closed group",
-	'groups:member' => "members",
 	'groups:search' => "Search for groups",
 
 	'groups:more' => 'More groups',
@@ -184,4 +178,8 @@ or click below to view the group's join requests:
 	
 	'groups:usersettings:notifications:title' => 'Group notifications',
 	'groups:usersettings:notifications:description' => 'To receive notifications when new content is added to a group you are a member of, find it below and select the notification method(s) you would like to use.',
+	
+	// accessibility
+	'groups:aria:label:group_search' => "Search for groups",
+	'groups:aria:label:search_in_group' => "Search in this group",
 );

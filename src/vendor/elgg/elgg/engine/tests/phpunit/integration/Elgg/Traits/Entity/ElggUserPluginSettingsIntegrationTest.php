@@ -2,7 +2,7 @@
 
 namespace Elgg\Traits\Entity;
 
-class ElggUserPluginSettingsIntegrationTest extends ElggEntityPluginSettingsTestCase {
+class ElggUserPluginSettingsIntegrationTest extends PluginSettingsIntegrationTestCase {
 
 	public function down() {
 		parent::down();

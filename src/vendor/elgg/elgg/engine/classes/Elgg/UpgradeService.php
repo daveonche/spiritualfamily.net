@@ -146,6 +146,7 @@ class UpgradeService {
 			if (!$upgrade instanceof \ElggUpgrade) {
 				continue;
 			}
+			
 			$promises[] = new Promise(function ($resolve, $reject) use ($upgrade) {
 				try {
 					$result = $this->executeUpgrade($upgrade, false);
@@ -268,13 +269,12 @@ class UpgradeService {
 				$order_by_completed_time = new EntitySortByClause();
 				$order_by_completed_time->direction = 'DESC';
 				$order_by_completed_time->property = 'completed_time';
-				$order_by_completed_time->property_type = 'private_setting';
 				
 				$upgrades = elgg_get_entities([
 					'type' => 'object',
 					'subtype' => 'elgg_upgrade',
-					'private_setting_name' => 'class', // filters old upgrades
-					'private_setting_name_value_pairs' => [
+					'metadata_name' => 'class', // filters old upgrades
+					'metadata_name_value_pairs' => [
 						'name' => 'is_completed',
 						'value' => true,
 					],
@@ -318,7 +318,7 @@ class UpgradeService {
 		return elgg_call(
 			ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES,
 			function () use ($upgrade, $max_duration) {
-				return $this->events->triggerSequence('upgrade:execute', 'system', $upgrade, function() use ($upgrade, $max_duration) {
+				return $this->events->triggerResultsSequence('upgrade:execute', 'system', ['object' => $upgrade], null, function() use ($upgrade, $max_duration) {
 					$result = new Result();
 					
 					$loop = new Loop(

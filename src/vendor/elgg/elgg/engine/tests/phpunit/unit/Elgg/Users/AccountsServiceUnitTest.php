@@ -3,14 +3,10 @@
 namespace Elgg\Users;
 
 use Elgg\Exceptions\Configuration\RegistrationException;
-use Elgg\Exceptions\InvalidParameterException;
+use Elgg\Exceptions\InvalidArgumentException;
 use Elgg\Helpers\CustomUser;
 use Elgg\UnitTestCase;
 
-/**
- * @group Accounts
- * @group Registration
- */
 class AccountsServiceUnitTest extends UnitTestCase {
 
 	/**
@@ -130,6 +126,11 @@ class AccountsServiceUnitTest extends UnitTestCase {
 		$user = $this->createUser();
 		$new_email = uniqid() . '@example.com';
 		
+		elgg_register_route('account:email:confirm', [
+			'path' => '/emailconfirm/{guid}',
+			'controller' => \Elgg\Users\EmailChangeController::class,
+		]); // required for email generation
+		
 		$this->assertTrue(elgg()->accounts->requestNewEmailValidation($user, $new_email));
 	}
 	
@@ -137,7 +138,7 @@ class AccountsServiceUnitTest extends UnitTestCase {
 		$user = $this->createUser();
 		$new_email = 'example.com';
 		
-		$this->expectException(InvalidParameterException::class);
+		$this->expectException(InvalidArgumentException::class);
 		elgg()->accounts->requestNewEmailValidation($user, $new_email);
 	}
 }

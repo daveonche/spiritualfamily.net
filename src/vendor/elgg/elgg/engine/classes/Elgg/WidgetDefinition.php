@@ -2,14 +2,14 @@
 
 namespace Elgg;
 
-use Elgg\Exceptions\InvalidParameterException;
+use Elgg\Exceptions\InvalidArgumentException;
 
 /**
  * WidgetDefinition
  *
  * Helper class for defining a widget
- *
  */
+#[\AllowDynamicProperties]
 class WidgetDefinition {
 
 	/**
@@ -46,11 +46,12 @@ class WidgetDefinition {
 	 * WidgetDefinition constructor
 	 *
 	 * @param string $id Identifier of the widget
-	 * @throws InvalidParameterException
+	 *
+	 * @throws InvalidArgumentException
 	 */
 	public function __construct($id) {
 		if (empty($id)) {
-			throw new InvalidParameterException('Id missing for WidgetDefinition');
+			throw new InvalidArgumentException('"id" missing for ' . __CLASS__);
 		}
 		
 		$this->id = $id;
@@ -70,7 +71,7 @@ class WidgetDefinition {
 	 */
 	public static function factory(array $options) {
 
-		$id = elgg_extract('id', $options);
+		$id = (string) elgg_extract('id', $options);
 		$definition = new WidgetDefinition($id);
 		
 		$name = elgg_extract('name', $options);
@@ -95,17 +96,7 @@ class WidgetDefinition {
 			$definition->description = $description;
 		}
 		
-		$context = (array) elgg_extract('context', $options, ['all']);
-		if (in_array('all', $context)) {
-			$context[] = 'profile';
-			$context[] = 'dashboard';
-			
-			_elgg_services()->logger->warning("The widget '{$id}' need to be registered for explicit contexts");
-			$pos = array_search('all', $context);
-			unset($context[$pos]);
-			
-			$context = array_unique($context);
-		}
+		$context = (array) elgg_extract('context', $options, ['profile', 'dashboard']);
 		$definition->context = $context;
 		
 		$definition->multiple = (bool) elgg_extract('multiple', $options, false);

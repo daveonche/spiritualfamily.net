@@ -8,7 +8,6 @@ use Elgg\Traits\TimeUsing;
  * \ElggExtender, \ElggEntity, and \ElggRelationship
  */
 abstract class ElggData implements CollectionItemInterface,
-								   Loggable,
 								   Iterator,
 								   ArrayAccess {
 
@@ -41,7 +40,7 @@ abstract class ElggData implements CollectionItemInterface,
 	 *
 	 * @return \Elgg\Database The database where this data is (will be) stored.
 	 */
-	protected function getDatabase() {
+	protected function getDatabase(): \Elgg\Database {
 		return _elgg_services()->db;
 	}
 
@@ -76,29 +75,29 @@ abstract class ElggData implements CollectionItemInterface,
 	 *
 	 * @return string
 	 */
-	abstract public function getURL();
+	abstract public function getURL(): string;
 
 	/**
 	 * Save this data to the appropriate database table.
 	 *
 	 * @return bool
 	 */
-	abstract public function save() : bool;
+	abstract public function save(): bool;
 
 	/**
 	 * Delete this data.
 	 *
 	 * @return bool
 	 */
-	abstract public function delete();
+	abstract public function delete(): bool;
 
 	/**
 	 * Returns the UNIX epoch time that this entity was created
 	 *
 	 * @return int UNIX epoch time
 	 */
-	public function getTimeCreated() {
-		return $this->attributes['time_created'];
+	public function getTimeCreated(): int {
+		return (int) $this->attributes['time_created'];
 	}
 
 	/**
@@ -109,11 +108,52 @@ abstract class ElggData implements CollectionItemInterface,
 	 * @return \Elgg\Export\Data
 	 */
 	abstract public function toObject(array $params = []);
-
+	
 	/*
+	 * SYSTEM LOG RELATED FUNCTIONS
+	 */
+	
+	/**
+	 * Return an identification for the object for storage in the system log.
+	 * This id must be an integer. Unsaved implementations should return 0.
+	 *
+	 * @return int
+	 */
+	abstract public function getSystemLogID(): int;
+	
+	/**
+	 * Return the type of the object - eg. object, group, user, relationship, metadata, annotation etc
+	 *
+	 * @return string
+	 */
+	abstract public function getType(): string;
+	
+	/**
+	 * Return a subtype. For metadata & annotations this is the 'name' and for relationship this is the
+	 * relationship type.
+	 *
+	 * @return string
+	 */
+	abstract public function getSubtype(): string;
+	
+	/**
+	 * For a given ID, return the object associated with it.
+	 * This is used by the river functionality primarily.
+	 * This is useful for checking access permissions etc on objects.
+	 *
+	 * @param int $id GUID of an entity
+	 *
+	 * @return static|false
+	 */
+	abstract public function getObjectFromID(int $id);
+
+	/**
 	 * ITERATOR INTERFACE
 	 */
-
+	
+	/**
+	 * @var bool is the iterator still valid
+	 */
 	protected $valid = false;
 
 	/**
@@ -125,7 +165,7 @@ abstract class ElggData implements CollectionItemInterface,
 	 */
 	#[\ReturnTypeWillChange]
 	public function rewind() {
-		$this->valid = (false !== reset($this->attributes));
+		$this->valid = (reset($this->attributes) !== false);
 	}
 
 	/**
@@ -161,7 +201,7 @@ abstract class ElggData implements CollectionItemInterface,
 	 */
 	#[\ReturnTypeWillChange]
 	public function next() {
-		$this->valid = (false !== next($this->attributes));
+		$this->valid = (next($this->attributes) !== false);
 	}
 
 	/**
@@ -185,15 +225,15 @@ abstract class ElggData implements CollectionItemInterface,
 	 *
 	 * @see \ArrayAccess::offsetSet()
 	 *
-	 * @param mixed $key   Name
-	 * @param mixed $value Value
+	 * @param mixed $offset The offset to assign the value to
+	 * @param mixed $value  The value to set
 	 *
 	 * @return void
 	 */
 	#[\ReturnTypeWillChange]
-	public function offsetSet($key, $value) {
-		if (array_key_exists($key, $this->attributes)) {
-			$this->attributes[$key] = $value;
+	public function offsetSet($offset, $value) {
+		if (array_key_exists($offset, $this->attributes)) {
+			$this->attributes[$offset] = $value;
 		}
 	}
 
@@ -202,14 +242,14 @@ abstract class ElggData implements CollectionItemInterface,
 	 *
 	 * @see \ArrayAccess::offsetGet()
 	 *
-	 * @param mixed $key Name
+	 * @param mixed $offset The offset to retrieve
 	 *
 	 * @return mixed
 	 */
 	#[\ReturnTypeWillChange]
-	public function offsetGet($key) {
-		if (array_key_exists($key, $this->attributes)) {
-			return $this->$key;
+	public function offsetGet($offset) {
+		if (array_key_exists($offset, $this->attributes)) {
+			return $this->$offset;
 		}
 
 		return null;
@@ -220,15 +260,15 @@ abstract class ElggData implements CollectionItemInterface,
 	 *
 	 * @see \ArrayAccess::offsetUnset()
 	 *
-	 * @param mixed $key Name
+	 * @param mixed $offset The offset to unset
 	 *
 	 * @return void
 	 */
 	#[\ReturnTypeWillChange]
-	public function offsetUnset($key) {
-		if (array_key_exists($key, $this->attributes)) {
+	public function offsetUnset($offset) {
+		if (array_key_exists($offset, $this->attributes)) {
 			// Full unsetting is dangerous for our objects
-			unset($this->$key);
+			unset($this->$offset);
 		}
 	}
 
@@ -237,7 +277,7 @@ abstract class ElggData implements CollectionItemInterface,
 	 *
 	 * @see \ArrayAccess::offsetExists()
 	 *
-	 * @param int $offset Offset
+	 * @param int $offset An offset to check for
 	 *
 	 * @return bool
 	 */

@@ -21,9 +21,9 @@ class RestServiceController {
 	 *
 	 * @return ResponseBuilder
 	 */
-	public function __invoke(Request $request) {
+	public function __invoke(Request $request): ResponseBuilder {
 		// plugins should return true to control what API and user authentication handlers are registered
-		if (elgg_trigger_plugin_hook('rest', 'init', null, false) === false) {
+		if (elgg_trigger_event_results('rest', 'init', [], false) === false) {
 			// user token can also be used for user authentication
 			elgg_register_pam_handler(\Elgg\WebServices\PAM\User\AuthToken::class);
 			
@@ -31,6 +31,7 @@ class RestServiceController {
 			if (elgg_get_plugin_setting('auth_allow_key', 'web_services')) {
 				elgg_register_pam_handler(\Elgg\WebServices\PAM\API\APIKey::class, 'sufficient', 'api');
 			}
+			
 			// hmac
 			if (elgg_get_plugin_setting('auth_allow_hmac', 'web_services')) {
 				elgg_register_pam_handler(\Elgg\WebServices\PAM\API\Hmac::class, 'sufficient', 'api');
@@ -38,10 +39,10 @@ class RestServiceController {
 		}
 		
 		// Get parameter variables
-		$method = $request->getParam('method');
+		$method = (string) $request->getParam('method');
 		
 		// this will throw an exception if authentication fails
-		$api = $this->authenticateMethod($method);
+		$api = $this->authenticateMethod($method, $request->getMethod());
 		
 		// execute the api method
 		$result = $api->execute($request);
@@ -57,13 +58,14 @@ class RestServiceController {
 	/**
 	 * Check that the method call has the proper API and user authentication
 	 *
-	 * @param string $method The api name that was exposed
+	 * @param string $method              The api name that was exposed
+	 * @param string $http_request_method The HTTP call method (GET|POST|...)
 	 *
 	 * @return ApiMethod
 	 * @throws \APIException
 	 */
-	protected function authenticateMethod($method) {
-		$api = ApiRegistrationService::instance()->getApiMethod($method);
+	protected function authenticateMethod(string $method, string $http_request_method): ApiMethod {
+		$api = ApiRegistrationService::instance()->getApiMethod($method, $http_request_method);
 		
 		// method must be exposed
 		if (!$api instanceof ApiMethod) {
@@ -79,7 +81,7 @@ class RestServiceController {
 			} catch (AuthenticationException $api_exception) {
 				// API authentication failed
 				$message = $api_exception->getMessage() ?: elgg_echo('APIException:APIAuthenticationFailed');
-				$code = $api_exception->getCode() ?: \ErrorResult::$RESULT_FAIL;
+				$code = $api_exception->getCode() ?: \ErrorResult::RESULT_FAIL;
 				throw new \APIException($message, $code, $api_exception);
 			}
 		}
@@ -101,7 +103,7 @@ class RestServiceController {
 				$message = $user_exception->getMessage();
 			}
 			
-			throw new \APIException($message, \ErrorResult::$RESULT_FAIL_AUTHTOKEN);
+			throw new \APIException($message, \ErrorResult::RESULT_FAIL_AUTHTOKEN);
 		}
 		
 		return $api;

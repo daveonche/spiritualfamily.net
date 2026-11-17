@@ -40,12 +40,6 @@ return array(
 
 	'developers:label:submit' => "キャッシュの保存と消去",
 	
-	'developers:debug:off' => 'Off',
-	'developers:debug:error' => 'Error',
-	'developers:debug:warning' => 'Warning',
-	'developers:debug:notice' => 'Notice',
-	'developers:debug:info' => 'Info',
-	
 	// entity explorer
 	'developers:entity_explorer:info:metadata' => 'メタデータ',
 	'developers:entity_explorer:info:relationships' => '関連',
@@ -55,19 +49,15 @@ return array(
 	'developers:inspect:actions' => 'Actions（アクション）',
 	'developers:inspect:events' => 'Events（イベント）',
 	'developers:inspect:menus' => 'Menus（メニュー）',
-	'developers:inspect:pluginhooks' => 'Plugin Hooks（プラグイン・フック）',
 	'developers:inspect:priority' => '優先度',
 	'developers:inspect:simplecache' => 'Simple Cache（シンプル・キャッシュ）',
 	'developers:inspect:views' => 'Views（ビュー）',
-	'developers:inspect:views:all_filtered' => "<b>Note!</b> All view input/output is filtered through these Plugin Hooks:",
-	'developers:inspect:views:input_filtered' => "(input filtered by plugin hook: %s)",
 	'developers:inspect:views:filtered' => "(plugin hook「 %s 」によってフィルタされています)",
 	'developers:inspect:widgets' => 'Widgets（ウィジェット）',
 	'developers:inspect:widgets:context' => 'Context（コンテキスト）',
 	'developers:inspect:functions' => 'Functions（関数）',
 	'developers:inspect:file' => 'ファイル',
 	'developers:inspect:middleware' => 'ファイル',
-	'developers:inspect:service:name' => 'Name',
 
 	// event logging
 	'developers:request_stats' => "リクエストの統計(シャットダウンイベントは除きます)",
@@ -85,7 +75,6 @@ return array(
 	'theme_sandbox:forms' => 'フォーム',
 	'theme_sandbox:grid' => 'グリッド',
 	'theme_sandbox:icons' => 'アイコン',
-	'theme_sandbox:javascript' => 'JavaScript',
 	'theme_sandbox:layouts' => 'レイアウト',
 	'theme_sandbox:modules' => 'モジュール',
 	'theme_sandbox:navigation' => 'ナビゲーション',
@@ -95,6 +84,4 @@ return array(
 
 	// status messages
 	'developers:settings:success' => '設定を保存しました',
-
-	'developers:amd' => 'AMD',
 );

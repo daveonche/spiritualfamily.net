@@ -19,6 +19,7 @@ $dropdown_values = [];
 foreach ($menu_items as $item) {
 	$dropdown_values[$item->getName()] = $item->getText();
 }
+
 $dropdown_values[' '] = elgg_echo('none');
 
 $configure = elgg_view('output/longtext', [
@@ -87,7 +88,7 @@ echo elgg_view_module('info', elgg_echo('admin:add_menu_item'), $add_menu);
 
 $footer = elgg_view_field([
 	'#type' => 'submit',
-	'value' => elgg_echo('save'),
+	'text' => elgg_echo('save'),
 ]);
 
 elgg_set_form_footer($footer);

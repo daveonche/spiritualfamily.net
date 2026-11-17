@@ -19,6 +19,7 @@ return array(
 	'collection:object:page:group' => "Group pages",
 	'add:object:page' => "Add a page",
 	'edit:object:page' => "Edit this page",
+	'menu:pages_nav:header' => "Sub-pages",
 	'notification:object:page:create' => "Send a notification when a page is created",
 	'notifications:mute:object:page' => "about the page '%s'",
 
@@ -41,6 +42,8 @@ return array(
 
 View and comment on the page:
 %s',
+	
+	'notification:mentions:object:page:subject' => '%s mentioned you in a page',
 
 	'pages:more' => 'More pages',
 	'pages:none' => 'No pages created yet',
@@ -68,7 +71,6 @@ View and comment on the page:
 	'pages:cantedit' => 'You cannot edit this page',
 	'pages:saved' => 'Page saved',
 	'pages:notsaved' => 'Page could not be saved',
-	'pages:error:no_title' => 'You must specify a title for this page.',
 	'entity:delete:object:page:success' => 'The page was successfully deleted.',
 
 	/**

@@ -15,13 +15,18 @@ class EnqueueEventHandler {
 	 * Checks to see if this event has been registered for notifications.
 	 * If so, it adds the event to a notification queue.
 	 *
-	 * This function triggers the 'enqueue', 'notification' hook.
+	 * This function triggers the 'enqueue', 'notification' event.
 	 *
 	 * @param \Elgg\Event $event 'all', 'all'
 	 *
 	 * @return void
 	 */
 	public function __invoke(\Elgg\Event $event) {
-		_elgg_services()->notifications->enqueueEvent($event->getName(), $event->getType(), $event->getObject());
+		$object = $event->getObject();
+		if (!$object instanceof \ElggData) {
+			return;
+		}
+		
+		_elgg_services()->notifications->enqueueEvent($event->getName(), $object);
 	}
 }

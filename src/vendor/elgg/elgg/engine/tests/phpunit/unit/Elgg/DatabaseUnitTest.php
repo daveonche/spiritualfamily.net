@@ -2,14 +2,9 @@
 
 namespace Elgg;
 
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\MockObject\Matcher;
 use Elgg\Helpers\Database\DatabaseTestObj;
+use PHPUnit\Framework\MockObject\MockObject;
 
-/**
- * @group UnitTests
- * @group Database
- */
 class DatabaseUnitTest extends \Elgg\UnitTestCase {
 
 	public function testFingerprintingOfCallbacks() {
@@ -54,7 +49,7 @@ class DatabaseUnitTest extends \Elgg\UnitTestCase {
 		
 		$this->expectException(\RuntimeException::class);
 		$this->expectExceptionMessage('$callback must be a callable function. Given blorg!');
-		$db->getData("SELECT 1", 'blorg!');
+		$db->getData(\Elgg\Database\Select::fromTable('foo'), 'blorg!');
 	}
 	
 	/**
@@ -65,7 +60,8 @@ class DatabaseUnitTest extends \Elgg\UnitTestCase {
 			->onlyMethods(['updateData'])
 			->setConstructorArgs([
 				new \Elgg\Database\DbConfig((object) ['dbprefix' => 'test_']),
-				_elgg_services()->queryCache
+				_elgg_services()->queryCache,
+				_elgg_services()->config,
 			])
 			->getMock();
 	}

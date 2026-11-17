@@ -5,8 +5,6 @@
 
 use Elgg\Exceptions\Configuration\RegistrationException;
 
-elgg_make_sticky_form('useradd', ['password', 'password2']);
-
 // Get variables
 $username = get_input('username');
 $password = get_input('password', null, false);
@@ -50,8 +48,6 @@ try {
 		$new_user->makeAdmin();
 	}
 
-	elgg_clear_sticky_form('useradd');
-
 	$new_user->admin_created = true;
 	$new_user->created_by_guid = elgg_get_logged_in_user_guid();
 
@@ -68,7 +64,7 @@ try {
 		'object' => $new_user,
 		'password' => $password,
 		'apply_muting' => false,
-	]);
+	], ['email']);
 
 	return elgg_ok_response('', elgg_echo('adduser:ok', [elgg_get_site_entity()->getDisplayName()]));
 } catch (RegistrationException $r) {

@@ -7,30 +7,21 @@ use Elgg\Http\ErrorResponse;
 use Elgg\Http\OkResponse;
 use Laminas\Mail\Message;
 
-/**
- * @group Actions
- * @group MessagesPlugin
- */
 class SendActionTest extends ActionResponseTestCase {
 
 	public function up() {
 		parent::up();
 		
 		$this->startPlugin();
-		
-		elgg_register_plugin_hook_handler('permissions_check', 'object', 'Elgg\Messages\Permissions::canEdit');
-		elgg_register_plugin_hook_handler('container_permissions_check', 'object', 'Elgg\Messages\Permissions::canEditContainer');
-		
-		parent::up();
 	}
 
 	public function testSendFailsWithoutRecipient() {
 
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'language' => 'de',
 		]);
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('messages/send', [
 			'subject' => 'Message Subject',
@@ -39,16 +30,16 @@ class SendActionTest extends ActionResponseTestCase {
 
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('messages:user:blank'), $response->getContent());
-		$this->assertEquals('messages/add', $response->getForwardURL());
+		$this->assertEquals(REFERRER, $response->getForwardURL());
 	}
 
 	public function testSendFailsToSelf() {
 
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'language' => 'de',
 		]);
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('messages/send', [
 			'subject' => 'Message Subject',
@@ -58,16 +49,16 @@ class SendActionTest extends ActionResponseTestCase {
 
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('messages:user:self'), $response->getContent());
-		$this->assertEquals('messages/add', $response->getForwardURL());
+		$this->assertEquals(REFERRER, $response->getForwardURL());
 	}
 
 	public function testSendFailsToInvalidUser() {
 
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'language' => 'de',
 		]);
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('messages/send', [
 			'subject' => 'Message Subject',
@@ -77,12 +68,12 @@ class SendActionTest extends ActionResponseTestCase {
 
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('messages:user:nonexist'), $response->getContent());
-		$this->assertEquals('messages/add', $response->getForwardURL());
+		$this->assertEquals(REFERRER, $response->getForwardURL());
 	}
 
 	public function testSendFailsWithoutMessageSubject() {
 
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'language' => 'de',
 		]);
 
@@ -90,7 +81,7 @@ class SendActionTest extends ActionResponseTestCase {
 			'language' => 'es',
 		]);
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('messages/send', [
 			'body' => 'Message Body',
@@ -99,12 +90,12 @@ class SendActionTest extends ActionResponseTestCase {
 
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('messages:blank'), $response->getContent());
-		$this->assertEquals('messages/add', $response->getForwardURL());
+		$this->assertEquals(REFERRER, $response->getForwardURL());
 	}
 
 	public function testSendFailsWithoutMessageBody() {
 
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'language' => 'de',
 		]);
 
@@ -112,7 +103,7 @@ class SendActionTest extends ActionResponseTestCase {
 			'language' => 'es',
 		]);
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('messages/send', [
 			'subject' => 'Message Subject',
@@ -121,12 +112,12 @@ class SendActionTest extends ActionResponseTestCase {
 
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('messages:blank'), $response->getContent());
-		$this->assertEquals('messages/add', $response->getForwardURL());
+		$this->assertEquals(REFERRER, $response->getForwardURL());
 	}
 
 	public function testSendSuccess() {
 
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'language' => 'de',
 		]);
 
@@ -136,7 +127,7 @@ class SendActionTest extends ActionResponseTestCase {
 
 		$recipient->setNotificationSetting('email', true);
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$response = $this->executeAction('messages/send', [
 			'subject' => 'Message Subject',
@@ -146,8 +137,8 @@ class SendActionTest extends ActionResponseTestCase {
 
 		$this->assertInstanceOf(OkResponse::class, $response);
 
-		$this->assertSystemMessageEmitted(elgg_echo('messages:posted', [], $user->language));
-		$this->assertEquals('messages/inbox/' . $user->username, $response->getForwardURL());
+		$this->assertSystemMessageEmitted(elgg_echo('messages:posted', [], $user->getLanguage()));
+		$this->assertEquals(elgg_generate_url('collection:object:messages:owner', ['username' => $user->username]), $response->getForwardURL());
 
 		elgg_call(ELGG_IGNORE_ACCESS, function () use ($response) {
 			$data = $response->getContent();
@@ -164,7 +155,7 @@ class SendActionTest extends ActionResponseTestCase {
 
 		$this->assertInstanceOf(Message::class, $notification);
 
-		$expected_subject = elgg_echo('messages:email:subject', [], $recipient->language);
+		$expected_subject = elgg_echo('messages:email:subject', [], $recipient->getLanguage());
 		$expected_body = elgg_echo('messages:email:body', [
 			$user->getDisplayName(),
 			'Message Body',
@@ -176,7 +167,7 @@ class SendActionTest extends ActionResponseTestCase {
 				'send_to' => $user->guid,
 			]),
 		],
-			$recipient->language
+			$recipient->getLanguage()
 		);
 
 		$plain_text_part = null;

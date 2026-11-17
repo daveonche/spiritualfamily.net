@@ -31,7 +31,7 @@ if ($entity->toId == elgg_get_page_owner_guid()) {
 		$byline = elgg_echo('email:from') . ' ' . $user_link;
 	}
 
-	$class[] = $entity->readYet ? 'read': 'unread';
+	$class[] = $entity->readYet ? 'read' : 'unread';
 } else {
 	// sent
 	$user = $entity->getRecipient();
@@ -73,7 +73,7 @@ if (elgg_extract('full_view', $vars)) {
 }
 
 $body = elgg_view('output/longtext', [
-	'value' => elgg_get_excerpt($entity->description),
+	'value' => elgg_get_excerpt((string) $entity->description),
 ]);
 
 $params = [

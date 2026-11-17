@@ -1,7 +1,6 @@
 <?php
 
 use Elgg\Exceptions\InvalidArgumentException as ElggInvalidArgumentException;
-use Elgg\Exceptions\InvalidParameterException;
 use Elgg\Exceptions\Configuration\RegistrationException;
 use Elgg\Traits\Entity\Friends;
 use Elgg\Traits\Entity\PluginSettings;
@@ -30,7 +29,6 @@ class ElggUser extends \ElggEntity {
 
 	use Friends;
 	use PluginSettings {
-		setPluginSetting as protected psSetPluginSetting;
 		getPluginSetting as protected psGetPluginSetting;
 	}
 	use ProfileData;
@@ -58,7 +56,7 @@ class ElggUser extends \ElggEntity {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getType() {
+	public function getType(): string {
 		return 'user';
 	}
 	
@@ -70,18 +68,22 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return string
 	 */
-	public function getLanguage($fallback = null) {
+	public function getLanguage(string $fallback = null): string {
 		if (!empty($this->language)) {
 			return $this->language;
 		}
+		
 		if ($fallback !== null) {
 			return $fallback;
 		}
+		
 		return elgg_get_config('language');
 	}
 
 	/**
 	 * {@inheritdoc}
+	 *
+	 * @throws \Elgg\Exceptions\InvalidArgumentException
 	 */
 	public function __set($name, $value) {
 		switch ($name) {
@@ -90,24 +92,25 @@ class ElggUser extends \ElggEntity {
 				_elgg_services()->logger->error("User entities no longer contain {$name}");
 				return;
 			case 'password_hash':
-				_elgg_services()->logger->error("password_hash is a readonly attribute.");
+				_elgg_services()->logger->error('password_hash is a readonly attribute.');
 				return;
 			case 'email':
 				try {
 					_elgg_services()->accounts->assertValidEmail($value);
 				} catch (RegistrationException $ex) {
-					throw new InvalidParameterException($ex->getMessage(), $ex->getCode(), $ex);
+					throw new ElggInvalidArgumentException($ex->getMessage(), $ex->getCode(), $ex);
 				}
 				break;
 			case 'username':
 				try {
 					_elgg_services()->accounts->assertValidUsername($value);
 				} catch (RegistrationException $ex) {
-					throw new InvalidParameterException($ex->getMessage(), $ex->getCode(), $ex);
+					throw new ElggInvalidArgumentException($ex->getMessage(), $ex->getCode(), $ex);
 				}
-				$existing_user = get_user_by_username($value);
-				if ($existing_user && ($existing_user->guid !== $this->guid)) {
-					throw new InvalidParameterException("{$name} is supposed to be unique for ElggUser");
+				
+				$existing_user = elgg_get_user_by_username($value);
+				if ($existing_user instanceof \ElggUser && ($existing_user->guid !== $this->guid)) {
+					throw new ElggInvalidArgumentException("{$name} is supposed to be unique for ElggUser");
 				}
 				break;
 			case 'admin':
@@ -126,7 +129,7 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return bool
 	 */
-	public function ban($reason = '') {
+	public function ban(string $reason = ''): bool {
 
 		if (!$this->canEdit()) {
 			return false;
@@ -149,7 +152,7 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return bool
 	 */
-	public function unban() {
+	public function unban(): bool {
 		
 		if (!$this->canEdit()) {
 			return false;
@@ -172,7 +175,7 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return bool
 	 */
-	public function isBanned() {
+	public function isBanned(): bool {
 		return $this->banned === 'yes';
 	}
 
@@ -181,7 +184,7 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return bool
 	 */
-	public function isAdmin() {
+	public function isAdmin(): bool {
 		return $this->admin === 'yes';
 	}
 
@@ -190,7 +193,7 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return bool
 	 */
-	public function makeAdmin() {
+	public function makeAdmin(): bool {
 		
 		if ($this->isAdmin()) {
 			return true;
@@ -212,7 +215,7 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return bool
 	 */
-	public function removeAdmin() {
+	public function removeAdmin(): bool {
 
 		if (!$this->isAdmin()) {
 			return true;
@@ -234,8 +237,7 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return void
 	 */
-	public function setLastLogin() {
-		
+	public function setLastLogin(): void {
 		$time = $this->getCurrentTime()->getTimestamp();
 		
 		if ($this->last_login == $time) {
@@ -243,9 +245,11 @@ class ElggUser extends \ElggEntity {
 			return;
 		}
 		
-		// these writes actually work, we just type hint read-only.
-		$this->prev_last_login = $this->last_login;
-		$this->last_login = $time;
+		elgg_call(ELGG_IGNORE_ACCESS | ELGG_DISABLE_SYSTEM_LOG, function() use ($time) {
+			// these writes actually work, we just type hint read-only.
+			$this->prev_last_login = $this->last_login;
+			$this->last_login = $time;
+		});
 	}
 	
 	/**
@@ -253,7 +257,7 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return void
 	 */
-	public function setLastAction() {
+	public function setLastAction(): void {
 		
 		$time = $this->getCurrentTime()->getTimestamp();
 		
@@ -277,18 +281,20 @@ class ElggUser extends \ElggEntity {
 	 *
 	 * @return bool|null Null means status was not set for this user.
 	 */
-	public function isValidated() {
+	public function isValidated(): ?bool {
 		if (!isset($this->validated)) {
 			return null;
 		}
+		
 		return (bool) $this->validated;
 	}
 	
 	/**
 	 * Set the validation status for a user.
 	 *
-	 * @param bool   $status    Validated (true) or unvalidated (false)
-	 * @param string $method    Optional method to say how a user was validated
+	 * @param bool   $status Validated (true) or unvalidated (false)
+	 * @param string $method Optional method to say how a user was validated
+	 *
 	 * @return void
 	 */
 	public function setValidationStatus(bool $status, string $method = ''): void {
@@ -346,16 +352,17 @@ class ElggUser extends \ElggEntity {
 	/**
 	 * Get a user's owner GUID
 	 *
-	 * Returns it's own GUID if the user is not owned.
+	 * Returns its own GUID if the user is not owned.
 	 *
 	 * @return int
 	 */
-	public function getOwnerGUID() {
-		if ($this->owner_guid == 0) {
-			return $this->guid;
+	public function getOwnerGUID(): int {
+		$owner_guid = parent::getOwnerGUID();
+		if ($owner_guid === 0) {
+			$owner_guid = (int) $this->guid;
 		}
 
-		return $this->owner_guid;
+		return $owner_guid;
 	}
 
 	/**
@@ -374,15 +381,16 @@ class ElggUser extends \ElggEntity {
 	 * Set the necessary metadata to store a hash of the user's password.
 	 *
 	 * @param string $password The password to be hashed
+	 *
 	 * @return void
 	 * @since 1.10.0
 	 */
-	public function setPassword($password) {
+	public function setPassword(string $password): void {
 		$this->setMetadata('password_hash', _elgg_services()->passwords->generateHash($password));
 		if ($this->guid === elgg_get_logged_in_user_guid()) {
 			// update the session user token, so this session remains valid
 			// other sessions for this user will be invalidated
-			_elgg_services()->session->setUserToken();
+			_elgg_services()->session_manager->setUserToken();
 		}
 	}
 
@@ -396,7 +404,7 @@ class ElggUser extends \ElggEntity {
 	 * @return bool
 	 * @throws \Elgg\Exceptions\InvalidArgumentException
 	 */
-	public function setNotificationSetting(string $method, bool $enabled = true, string $purpose = 'default') {
+	public function setNotificationSetting(string $method, bool $enabled = true, string $purpose = 'default'): bool {
 		if (empty($purpose)) {
 			throw new ElggInvalidArgumentException(__METHOD__ . ' requires $purpose to be set to a non-empty string');
 		}
@@ -419,7 +427,7 @@ class ElggUser extends \ElggEntity {
 	 * @return array
 	 * @throws \Elgg\Exceptions\InvalidArgumentException
 	 */
-	public function getNotificationSettings(string $purpose = 'default') {
+	public function getNotificationSettings(string $purpose = 'default'): array {
 		if (empty($purpose)) {
 			throw new ElggInvalidArgumentException(__METHOD__ . ' requires $purpose to be set to a non-empty string');
 		}
@@ -437,13 +445,12 @@ class ElggUser extends \ElggEntity {
 		}
 
 		return $settings;
-	
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
-	public function delete($recursive = true) {
+	public function delete(bool $recursive = true): bool {
 		$result = parent::delete($recursive);
 		if ($result) {
 			// cleanup remember me cookie records
@@ -454,38 +461,16 @@ class ElggUser extends \ElggEntity {
 	}
 	
 	/**
-	 * Save a plugin setting
-	 *
-	 * @param string $plugin_id plugin ID
-	 * @param string $name      setting name
-	 * @param mixed  $value     setting value (needs to be a scalar)
-	 *
-	 * @return bool
-	 * @see \Elgg\Traits\Entity\PluginSettings::setPluginSetting()
-	 */
-	public function setPluginSetting(string $plugin_id, string $name, $value): bool {
-		$value = _elgg_services()->hooks->triggerDeprecated('usersetting', 'plugin', [
-			'user' => $this,
-			'plugin' => _elgg_services()->plugins->get($plugin_id),
-			'plugin_id' => $plugin_id,
-			'name' => $name,
-			'value' => $value,
-		], $value, "Please user the plugin hook 'plugin_settings', '{$this->getType()}'", '4.0');
-		
-		return $this->psSetPluginSetting($plugin_id, $name, $value);
-	}
-	
-	/**
 	 * Get a plugin setting
 	 *
 	 * @param string $plugin_id plugin ID
 	 * @param string $name      setting name
-	 * @param mixed  $default   default setting value (will be cast to string)
+	 * @param mixed  $default   default setting value
 	 *
-	 * @return string
+	 * @return mixed
 	 * @see \Elgg\Traits\Entity\PluginSettings::getPluginSetting()
 	 */
-	public function getPluginSetting(string $plugin_id, string $name, $default = null): string {
+	public function getPluginSetting(string $plugin_id, string $name, $default = null) {
 		$plugin = _elgg_services()->plugins->get($plugin_id);
 		if ($plugin instanceof \ElggPlugin) {
 			$static_defaults = (array) $plugin->getStaticConfig('user_settings', []);

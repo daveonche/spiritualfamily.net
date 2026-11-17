@@ -6,14 +6,14 @@
 /**
  * Add messageboard post
  *
- * @param ElggUser $poster    User posting the message
- * @param ElggUser $owner     User who owns the message board
- * @param string   $message   The posted message
- * @param int      $access_id Access level (see defines in constants.php)
+ * @param \ElggUser $poster    User posting the message
+ * @param \ElggUser $owner     User who owns the message board
+ * @param string    $message   The posted message
+ * @param int       $access_id Access level (see defines in constants.php)
  *
  * @return false|int
  */
-function messageboard_add(\ElggUser $poster, \ElggUser $owner, string $message, int $access_id = ACCESS_PUBLIC) {
+function messageboard_add(\ElggUser $poster, \ElggUser $owner, string $message, int $access_id = ACCESS_PUBLIC): int|false {
 	
 	if (empty($message)) {
 		return false;
@@ -35,7 +35,7 @@ function messageboard_add(\ElggUser $poster, \ElggUser $owner, string $message, 
 
 	// Send notification only if poster isn't the owner
 	if ($poster->guid != $owner->guid) {
-		$subject = elgg_echo('messageboard:email:subject', [], $owner->language);
+		$subject = elgg_echo('messageboard:email:subject', [], $owner->getLanguage());
 		$url = elgg_generate_url('collection:annotation:messageboard:owner', [
 			'username' => $owner->username,
 		]);
@@ -46,7 +46,7 @@ function messageboard_add(\ElggUser $poster, \ElggUser $owner, string $message, 
 			$url,
 			$poster->getDisplayName(),
 			$poster->getURL(),
-		], $owner->language);
+		], $owner->getLanguage());
 
 		$params = [
 			'action' => 'create',

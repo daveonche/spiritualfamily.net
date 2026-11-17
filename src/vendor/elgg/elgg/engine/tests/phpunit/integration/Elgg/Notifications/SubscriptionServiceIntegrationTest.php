@@ -3,7 +3,7 @@
 namespace Elgg\Notifications;
 
 use Elgg\IntegrationTestCase;
-use Elgg\TestableHook;
+use Elgg\TestableEventResults;
 
 class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 
@@ -13,9 +13,9 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 	protected $service;
 	
 	/**
-	 * @var TestableHook
+	 * @var TestableEventResults
 	 */
-	protected $testing_hook;
+	protected $testing_event;
 	
 	/**
 	 * {@inheritDoc}
@@ -28,15 +28,15 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 		_elgg_services()->notifications->registerMethod('bananas');
 		
 		$this->service = _elgg_services()->subscriptions;
-		$this->testing_hook = null;
+		$this->testing_event = null;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public function down() {
-		if ($this->testing_hook instanceof TestableHook) {
-			$this->testing_hook->unregister();
+		if ($this->testing_event instanceof TestableEventResults) {
+			$this->testing_event->unregister();
 		}
 	}
 	
@@ -149,10 +149,6 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 	}
 	
 	public function testFilterMutedNotificationsActor() {
-		$reflector = new \ReflectionClass($this->service);
-		$method = $reflector->getMethod('filterMutedNotifications');
-		$method->setAccessible(true);
-		
 		$user = $this->createUser();
 		
 		$event = $this->getSubscriptionNotificationEvent();
@@ -165,14 +161,10 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 			$user->guid => ['apples'],
 		];
 		
-		$this->assertEmpty($method->invoke($this->service, $subscriptions, $event));
+		$this->assertEmpty($this->invokeInaccessableMethod($this->service, 'filterMutedNotifications', $subscriptions, $event));
 	}
 	
 	public function testFilterMutedNotificationsOwner() {
-		$reflector = new \ReflectionClass($this->service);
-		$method = $reflector->getMethod('filterMutedNotifications');
-		$method->setAccessible(true);
-		
 		$user = $this->createUser();
 		
 		$event = $this->getSubscriptionNotificationEvent();
@@ -185,14 +177,10 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 			$user->guid => ['apples'],
 		];
 		
-		$this->assertEmpty($method->invoke($this->service, $subscriptions, $event));
+		$this->assertEmpty($this->invokeInaccessableMethod($this->service, 'filterMutedNotifications', $subscriptions, $event));
 	}
 	
 	public function testFilterMutedNotificationsContainer() {
-		$reflector = new \ReflectionClass($this->service);
-		$method = $reflector->getMethod('filterMutedNotifications');
-		$method->setAccessible(true);
-		
 		$user = $this->createUser();
 		
 		$event = $this->getSubscriptionNotificationEvent();
@@ -205,14 +193,10 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 			$user->guid => ['apples'],
 		];
 		
-		$this->assertEmpty($method->invoke($this->service, $subscriptions, $event));
+		$this->assertEmpty($this->invokeInaccessableMethod($this->service, 'filterMutedNotifications', $subscriptions, $event));
 	}
 	
 	public function testFilterMutedNotificationsEntity() {
-		$reflector = new \ReflectionClass($this->service);
-		$method = $reflector->getMethod('filterMutedNotifications');
-		$method->setAccessible(true);
-		
 		$user = $this->createUser();
 		$user = $this->createUser();
 		
@@ -226,14 +210,10 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 			$user->guid => ['apples'],
 		];
 		
-		$this->assertEmpty($method->invoke($this->service, $subscriptions, $event));
+		$this->assertEmpty($this->invokeInaccessableMethod($this->service, 'filterMutedNotifications', $subscriptions, $event));
 	}
 	
 	public function testFilterDelayedEmailSubscribers() {
-		$reflector = new \ReflectionClass($this->service);
-		$method = $reflector->getMethod('filterDelayedEmailSubscribers');
-		$method->setAccessible(true);
-		
 		$subscriptions = [
 			1 => ['apples'],
 			2 => ['email'],
@@ -252,7 +232,7 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 			6 => ['email', 'apples'],
 		];
 		
-		$this->assertEquals($expected, $method->invoke($this->service, $subscriptions));
+		$this->assertEquals($expected, $this->invokeInaccessableMethod($this->service, 'filterDelayedEmailSubscribers', $subscriptions));
 	}
 	
 	public function testFilterSubscriptionsUniqueMethods() {
@@ -296,8 +276,8 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 		$user2 = $this->createUser();
 		$event = $this->getSubscriptionNotificationEvent();
 		
-		$user1->setPrivateSetting('timed_muting_start', time() - 20);
-		$user1->setPrivateSetting('timed_muting_end', time() - 10);
+		$user1->setMetadata('timed_muting_start', time() - 20);
+		$user1->setMetadata('timed_muting_end', time() - 10);
 		
 		$subscriptions = [
 			$user1->guid => ['apples', 'bananas'],
@@ -312,8 +292,8 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 		$user2 = $this->createUser();
 		$event = $this->getSubscriptionNotificationEvent();
 		
-		$user1->setPrivateSetting('timed_muting_start', time() - 20);
-		$user1->setPrivateSetting('timed_muting_end', time() + 10);
+		$user1->setMetadata('timed_muting_start', time() - 20);
+		$user1->setMetadata('timed_muting_end', time() + 10);
 		
 		$subscriptions = [
 			$user1->guid => ['apples', 'bananas'],
@@ -332,8 +312,8 @@ class SubscriptionServiceIntegrationTest extends IntegrationTestCase {
 		$user2 = $this->createUser();
 		$event = $this->getSubscriptionNotificationEvent();
 		
-		$user1->setPrivateSetting('timed_muting_start', time() + 20);
-		$user1->setPrivateSetting('timed_muting_end', time() + 40);
+		$user1->setMetadata('timed_muting_start', time() + 20);
+		$user1->setMetadata('timed_muting_end', time() + 40);
 		
 		$subscriptions = [
 			$user1->guid => ['apples', 'bananas'],

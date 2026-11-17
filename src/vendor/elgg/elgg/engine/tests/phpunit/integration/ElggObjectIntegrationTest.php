@@ -2,16 +2,12 @@
 
 use Elgg\IntegrationTestCase;
 
-/**
- * @group IntegrationTests
- * @group ElggObject
- */
 class ElggObjectIntegrationTest extends IntegrationTestCase {
 	
 	public function testCantCommentLoggedOut() {
 		$user = $this->createUser();
-		$object = $this->createObject();
-		$object2 = $this->createObject();
+		$object = $this->createObject(['subtype' => 'commentable']);
+		$object2 = $this->createObject(['subtype' => 'commentable']);
 		
 		$this->assertFalse($object->canComment());
 		$this->assertTrue($object->canComment($user->guid));
@@ -24,11 +20,10 @@ class ElggObjectIntegrationTest extends IntegrationTestCase {
 		$user = $this->createUser();
 		$other_user = $this->createUser();
 		
-		$session = elgg_get_session();
-		$session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 		
-		$object = $this->createObject();
-		$object2 = $this->createObject();
+		$object = $this->createObject(['subtype' => 'commentable']);
+		$object2 = $this->createObject(['subtype' => 'commentable']);
 				
 		$this->assertTrue($object->canComment());
 		$this->assertTrue($object->canComment($other_user->guid));
@@ -40,14 +35,14 @@ class ElggObjectIntegrationTest extends IntegrationTestCase {
 		$user = $this->createUser();
 		$user2 = $this->createUser();
 		
-		$session = elgg_get_session();
-		$session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 		
 		$group = $this->createGroup([
 			'owner_guid' => $user2->guid,
 		]);
 		
 		$object = $this->createObject([
+			'subtype' => 'commentable',
 			'owner_guid' => $user2->guid,
 			'container_guid' => $group->guid,
 		]);

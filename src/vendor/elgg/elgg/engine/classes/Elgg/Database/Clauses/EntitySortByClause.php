@@ -3,8 +3,7 @@
 namespace Elgg\Database\Clauses;
 
 use Elgg\Database\QueryBuilder;
-use Elgg\Exceptions\InvalidParameterException;
-use ElggEntity;
+use Elgg\Exceptions\DomainException;
 
 /**
  * Extends QueryBuilder with clauses necesary to sort entity lists by entity properties
@@ -43,11 +42,13 @@ class EntitySortByClause extends OrderByClause {
 
 	/**
 	 * {@inheritdoc}
+	 *
+	 * @throws DomainException
 	 */
 	public function prepare(QueryBuilder $qb, $table_alias = null) {
 
 		if (!isset($this->property_type)) {
-			if (in_array($this->property, ElggEntity::PRIMARY_ATTR_NAMES)) {
+			if (in_array($this->property, \ElggEntity::PRIMARY_ATTR_NAMES)) {
 				$this->property_type = 'attribute';
 			} else {
 				$this->property_type = 'metadata';
@@ -60,7 +61,6 @@ class EntitySortByClause extends OrderByClause {
 		switch ($qb->getTableName()) {
 			case QueryBuilder::TABLE_ANNOTATIONS:
 			case QueryBuilder::TABLE_METADATA:
-			case QueryBuilder::TABLE_PRIVATE_SETTINGS:
 				$from_column = 'entity_guid';
 				break;
 			case QueryBuilder::TABLE_RELATIONSHIPS:
@@ -78,8 +78,8 @@ class EntitySortByClause extends OrderByClause {
 				break;
 
 			case 'attribute':
-				if (!in_array($this->property, ElggEntity::PRIMARY_ATTR_NAMES)) {
-					throw new InvalidParameterException("'{$this->property}' is not a valid entity attribute");
+				if (!in_array($this->property, \ElggEntity::PRIMARY_ATTR_NAMES)) {
+					throw new DomainException("'{$this->property}' is not a valid entity attribute");
 				}
 				
 				if ($qb->getTableName() !== QueryBuilder::TABLE_ENTITIES) {
@@ -89,11 +89,6 @@ class EntitySortByClause extends OrderByClause {
 				}
 				
 				$column = "{$e_alias}.{$this->property}";
-				break;
-
-			case 'private_setting':
-				$ps_alias = $qb->joinPrivateSettingsTable($table_alias, $from_column, $this->property, $this->join_type);
-				$column = "{$ps_alias}.value";
 				break;
 
 			case 'annotation':
@@ -111,6 +106,7 @@ class EntitySortByClause extends OrderByClause {
 				} else {
 					$er_alias = $table_alias;
 				}
+				
 				$column = "{$er_alias}.time_created";
 				
 				break;

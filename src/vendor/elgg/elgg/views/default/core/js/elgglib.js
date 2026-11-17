@@ -8,9 +8,7 @@ var elgg = elgg || {};
  */
 elgg.assertTypeOf = function(type, val) {
 	if (typeof val !== type) {
-		throw new TypeError("Expecting param of " +
-							arguments.caller + "to be a(n) " + type + "." +
-							"  Was actually a(n) " + typeof val + ".");
+		throw new TypeError("Expecting param of " + arguments.caller + "to be a(n) " + type + ". Was actually a(n) " + typeof val + ".");
 	}
 };
 
@@ -25,6 +23,7 @@ elgg.assertTypeOf = function(type, val) {
  * elgg.normalize_url('//google.com/');      // no change
  *
  * @param {String} url The url to normalize
+ *
  * @return {String} The extended url
  */
 elgg.normalize_url = function(url) {
@@ -36,24 +35,28 @@ elgg.normalize_url = function(url) {
 		if (url.scheme) {
 			url.scheme = url.scheme.toLowerCase();
 		}
+		
 		if (url.scheme == 'http' || url.scheme == 'https') {
 			if (!url.host) {
 				return false;
 			}
+			
 			/* hostname labels may contain only alphanumeric characters, dots and hypens. */
 			if (!(new RegExp("^([a-zA-Z0-9][a-zA-Z0-9\\-\\.]*)$", "i")).test(url.host) || url.host.charAt(-1) == '.') {
 				return false;
 			}
 		}
+		
 		/* some schemas allow the host to be empty */
 		if (!url.scheme || !url.host && url.scheme != 'mailto' && url.scheme != 'news' && url.scheme != 'file') {
 			return false;
 		}
+		
 		return true;
 	};
 
 	// ignore anything with a recognized scheme
-	if (url.indexOf('http:') === 0 || url.indexOf('https:') === 0 || url.indexOf('javascript:') === 0 || url.indexOf('mailto:') === 0 ) {
+	if (url.indexOf('http:') === 0 || url.indexOf('https:') === 0 || url.indexOf('javascript:') === 0 || url.indexOf('mailto:') === 0) {
 		return url;
 	} else if (validate(url)) {
 		// all normal URLs including mailto:
@@ -90,6 +93,7 @@ elgg.normalize_url = function(url) {
  *
  * @param {String} msg         The deprecation message to display
  * @param {String} dep_version The version the function was deprecated for
+ *
  * @since 1.9
  */
 elgg.deprecated_notice = function(msg, dep_version) {
@@ -127,7 +131,7 @@ elgg.forward = function(url) {
  * Parse a URL into its parts. Mimicks http://php.net/parse_url
  *
  * @param {String}  url       The URL to parse
- * @param {Number}  component A component to return
+ * @param {String}  component A component to return
  * @param {Boolean} expand    Expand the query into an object? Else it's a string.
  *
  * @return {Object} The parsed URL
@@ -139,19 +143,13 @@ elgg.parse_url = function(url, component, expand) {
 	expand = expand || false;
 	component = component || false;
 	
-	var re_str =
-		// scheme (and user@ testing)
-		'^(?:(?![^:@]+:[^:@/]*@)([^:/?#.]+):)?(?://)?'
-		// possibly a user[:password]@
-		+ '((?:(([^:@]*)(?::([^:@]*))?)?@)?'
-		// host and port
-		+ '([^:/?#]*)(?::(\\d*))?)'
-		// path
-		+ '(((/(?:[^?#](?![^?#/]*\\.[^?#/.]+(?:[?#]|$)))*/?)?([^?#/]*))'
-		// query string
-		+ '(?:\\?([^#]*))?'
-		// fragment
-		+ '(?:#(.*))?)';
+	var re_str = '^(?:(?![^:@]+:[^:@/]*@)([^:/?#.]+):)?(?://)?'; // scheme (and user@ testing)
+	re_str += '((?:(([^:@]*)(?::([^:@]*))?)?@)?'; // possibly a user[:password]@
+	re_str += '([^:/?#]*)(?::(\\d*))?)'; // host and port
+	re_str += '(((/(?:[^?#](?![^?#/]*\\.[^?#/.]+(?:[?#]|$)))*/?)?([^?#/]*))'; // path
+	re_str += '(?:\\?([^#]*))?'; // query string
+	re_str += '(?:#(.*))?)'; // fragment
+	
 	var keys = {
 		1: "scheme",
 		4: "user",
@@ -196,6 +194,7 @@ elgg.parse_url = function(url, component, expand) {
 			return false;
 		}
 	}
+	
 	return results;
 };
 
@@ -203,6 +202,7 @@ elgg.parse_url = function(url, component, expand) {
  * Returns an object with key/values of the parsed query string.
  *
  * @param  {String} string The string to parse
+ *
  * @return {Object} The parsed object string
  */
 elgg.parse_str = function(string) {
@@ -223,6 +223,7 @@ elgg.parse_str = function(string) {
 			if (!params[key]) {
 				params[key] = [];
 			}
+			
 			params[key].push(value);
 		} else {
 			params[key] = value;
@@ -242,6 +243,7 @@ elgg.parse_str = function(string) {
  *	http://elgg.org/download.php#a.class-name return a.class-name
  *
  * @param {String} url The URL
+ *
  * @return {String} The selector
  */
 elgg.getSelectorFromUrlFragment = function(url) {
@@ -256,6 +258,7 @@ elgg.getSelectorFromUrlFragment = function(url) {
 			return '#' + fragment;
 		}
 	}
+	
 	return '';
 };
 
@@ -300,6 +303,7 @@ elgg.get_site_url = function() {
  *
  * @param {String} view    The full view name
  * @param {String} subview If the first arg is "css" or "js", the rest of the view name
+ *
  * @return {String} The site URL.
  */
 elgg.get_simplecache_url = function(view, subview) {
@@ -319,8 +323,9 @@ elgg.get_simplecache_url = function(view, subview) {
 		elgg.assertTypeOf('string', subview);
 		
 		if ((view === 'js' || view === 'css') && 0 === subview.indexOf(view + '/')) {
-			subview = subview.substr(view.length + 1);
+			subview = subview.substring(view.length + 1);
 		}
+		
 		path = '/cache/' + lastcache + '/' + elgg.config.viewtype + '/' + view + '/' + subview;
 	}
 

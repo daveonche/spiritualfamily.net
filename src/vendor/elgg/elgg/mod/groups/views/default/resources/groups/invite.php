@@ -2,10 +2,7 @@
 
 $group = elgg_get_page_owner_entity();
 
-elgg_entity_gatekeeper($group->guid, 'group');
-
-elgg_push_breadcrumb(elgg_echo('groups'), elgg_generate_url('collection:group:group:all'));
-elgg_push_breadcrumb($group->getDisplayName(), $group->getURL());
+elgg_push_entity_breadcrumbs($group);
 
 $content = elgg_view_form('groups/invite', [
 	'id' => 'invite_to_group',

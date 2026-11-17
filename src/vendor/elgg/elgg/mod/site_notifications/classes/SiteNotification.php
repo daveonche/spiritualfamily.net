@@ -11,7 +11,7 @@ use Elgg\Notifications\NotificationEvent;
  * @property bool   $read               Has this notification been read yet
  * @property int    $linked_entity_guid Entity linked to this notification
  */
-class SiteNotification extends ElggObject {
+class SiteNotification extends \ElggObject {
 
 	const HAS_ACTOR = 'hasActor';
 
@@ -30,7 +30,7 @@ class SiteNotification extends ElggObject {
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getDisplayName() {
+	public function getDisplayName(): string {
 		if (!isset($this->title)) {
 			return (string) $this->description; // pre Elgg 4.0 contains summary/subject in description;
 		}
@@ -41,13 +41,13 @@ class SiteNotification extends ElggObject {
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getURL() {
+	public function getURL(): string {
 		if (isset($this->url)) {
 			return (string) $this->url;
 		}
 		
 		$linked_entity = $this->getLinkedEntity();
-		if ($linked_entity instanceof ElggEntity) {
+		if ($linked_entity instanceof \ElggEntity) {
 			return $linked_entity->getURL();
 		}
 		
@@ -57,25 +57,31 @@ class SiteNotification extends ElggObject {
 	/**
 	 * Get the actor involved in the notification
 	 *
-	 * @return ElggEntity|null
+	 * @return \ElggEntity|null
 	 */
-	public function getActor() {
-		$actor = $this->getEntitiesFromRelationship(['relationship' => self::HAS_ACTOR]);
-		if ($actor) {
-			$actor = $actor[0];
+	public function getActor(): ?\ElggEntity {
+		$actor = $this->getEntitiesFromRelationship([
+			'relationship' => self::HAS_ACTOR,
+			'limit' => 1,
+		]);
+		if (empty($actor)) {
+			return null;
 		}
 		
-		return $actor;
+		return $actor[0];
 	}
 	
 	/**
 	 * Set the actor involved in the notification
 	 *
-	 * @param ElggEntity $entity Actor
+	 * @param \ElggEntity $entity Actor
 	 *
 	 * @return void
 	 */
-	public function setActor(\ElggEntity $entity) {
+	public function setActor(\ElggEntity $entity): void {
+		// there can only be one actor
+		$this->removeAllRelationships(self::HAS_ACTOR);
+		
 		$this->addRelationship($entity->guid, self::HAS_ACTOR);
 	}
 	
@@ -86,7 +92,7 @@ class SiteNotification extends ElggObject {
 	 *
 	 * @return void
 	 */
-	public function setURL(string $url) {
+	public function setURL(string $url): void {
 		if ($url) {
 			$this->url = $url;
 		}
@@ -99,7 +105,7 @@ class SiteNotification extends ElggObject {
 	 *
 	 * @return void
 	 */
-	public function setRead(bool $read) {
+	public function setRead(bool $read): void {
 		$this->read = $read;
 	}
 	
@@ -108,7 +114,7 @@ class SiteNotification extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function isRead() {
+	public function isRead(): bool {
 		return (bool) $this->read;
 	}
 	
@@ -119,17 +125,17 @@ class SiteNotification extends ElggObject {
 	 *
 	 * @return void
 	 */
-	public function setLinkedEntity(\ElggEntity $entity) {
+	public function setLinkedEntity(\ElggEntity $entity): void {
 		$this->linked_entity_guid = $entity->guid;
 	}
 	
 	/**
 	 * Get the linked entity for this notification
 	 *
-	 * @return \ElggEntity|false
+	 * @return \ElggEntity|null
 	 */
-	public function getLinkedEntity() {
-		return get_entity($this->linked_entity_guid);
+	public function getLinkedEntity(): ?\ElggEntity {
+		return $this->linked_entity_guid ? get_entity($this->linked_entity_guid) : null;
 	}
 	
 	/**

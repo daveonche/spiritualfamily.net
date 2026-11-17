@@ -19,6 +19,7 @@ return array(
 	'collection:object:page:group' => "Pages du groupe",
 	'add:object:page' => "Ajouter une page",
 	'edit:object:page' => "Modifier cette page",
+	'menu:pages_nav:header' => "Sous-pages",
 	'notification:object:page:create' => "Envoyer une notification quand une page est créée",
 	'notifications:mute:object:page' => "à propos de la page '%s'",
 
@@ -35,15 +36,17 @@ return array(
 
 	'pages:notify:summary' => 'Nouvelle page intitulée %s',
 	'pages:notify:subject' => "Une nouvelle page : %s",
-	'pages:notify:body' => '%s a créé une page : %s
+	'pages:notify:body' => '%s a créé une nouvelle page : %s
 
 %s
 
 Voir et commenter la page :
 %s',
+	
+	'notification:mentions:object:page:subject' => '%s vous a mentionné dans une page',
 
 	'pages:more' => 'Plus de pages',
-	'pages:none' => 'Aucune page créé pour l\'instant',
+	'pages:none' => 'Aucune page créée pour l\'instant',
 
 	/**
 	* River
@@ -68,7 +71,6 @@ Voir et commenter la page :
 	'pages:cantedit' => 'Vous ne pouvez pas modifier cette page',
 	'pages:saved' => 'Page enregistrée',
 	'pages:notsaved' => 'La page n\'a pas pu être enregistrée',
-	'pages:error:no_title' => 'Vous devez donner un titre à cette page.',
 	'entity:delete:object:page:success' => 'La page a bien été supprimée.',
 
 	/**

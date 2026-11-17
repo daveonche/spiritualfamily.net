@@ -37,8 +37,8 @@ class WidgetsService {
 	 *
 	 * @see elgg_get_widgets()
 	 */
-	public function getWidgets($owner_guid, $context) {
-		$widget_cache_key = "$context-$owner_guid";
+	public function getWidgets(int $owner_guid, string $context): array {
+		$widget_cache_key = "{$context}-{$owner_guid}";
 
 		if (isset($this->widgetCache[$widget_cache_key])) {
 			return $this->widgetCache[$widget_cache_key];
@@ -48,10 +48,9 @@ class WidgetsService {
 			'type' => 'object',
 			'subtype' => 'widget',
 			'owner_guid' => $owner_guid,
-			'private_setting_name' => 'context',
-			'private_setting_value' => $context,
+			'metadata_name' => 'context',
+			'metadata_value' => $context,
 			'limit' => false,
-			'preload_private_settings' => true,
 		]);
 		
 		if (!$widgets) {
@@ -104,7 +103,7 @@ class WidgetsService {
 	 *
 	 * @see elgg_create_widget()
 	 */
-	public function createWidget($owner_guid, $handler, $context, $access_id = null) {
+	public function createWidget(int $owner_guid, string $handler, string $context, int $access_id = null) {
 		if (empty($owner_guid) || empty($handler)) {
 			return false;
 		}
@@ -113,6 +112,7 @@ class WidgetsService {
 		if (!$owner) {
 			return false;
 		}
+		
 		if (!$this->validateType($handler, $context, $owner)) {
 			return false;
 		}
@@ -126,7 +126,6 @@ class WidgetsService {
 			return false;
 		}
 
-		// private settings cannot be set until \ElggWidget saved
 		$widget->handler = $handler;
 		$widget->context = $context;
 
@@ -143,7 +142,7 @@ class WidgetsService {
 	 *
 	 * @see elgg_can_edit_widget_layout()
 	 */
-	public function canEditLayout($context, $user_guid = 0) {
+	public function canEditLayout(string $context, int $user_guid = 0): bool {
 		try {
 			$user = _elgg_services()->entityTable->getUserForPermissionsCheck($user_guid);
 		} catch (UserFetchFailureException $e) {
@@ -164,7 +163,7 @@ class WidgetsService {
 			'context' => $context,
 			'page_owner' => $page_owner,
 		];
-		return _elgg_services()->hooks->trigger('permissions_check', 'widget_layout', $params, $default);
+		return _elgg_services()->events->triggerResults('permissions_check', 'widget_layout', $params, $default);
 	}
 
 	/**
@@ -172,19 +171,12 @@ class WidgetsService {
 	 *
 	 * @param WidgetDefinition $definition Definition of the widget
 	 *
-	 * @return bool
+	 * @return void
 	 *
 	 * @see elgg_register_widget_type()
 	 */
-	public function registerType(WidgetDefinition $definition) {
-		$id = $definition->id;
-		if (empty($id)) {
-			return false;
-		}
-		
-		$this->widgets[$id] = $definition;
-
-		return true;
+	public function registerType(WidgetDefinition $definition): void {
+		$this->widgets[$definition->id] = $definition;
 	}
 
 	/**
@@ -192,17 +184,12 @@ class WidgetsService {
 	 *
 	 * @param string $id The identifier for the widget
 	 *
-	 * @return bool
+	 * @return void
 	 *
 	 * @see elgg_unregister_widget_type()
 	 */
-	public function unregisterType($id) {
-		if (!isset($this->widgets[$id])) {
-			return false;
-		}
-		
+	public function unregisterType(string $id): void {
 		unset($this->widgets[$id]);
-		return true;
 	}
 
 	/**
@@ -216,7 +203,7 @@ class WidgetsService {
 	 *
 	 * @see elgg_is_widget_type()
 	 */
-	public function validateType($id, $context = null, \ElggEntity $container = null) {
+	public function validateType(string $id, string $context = null, \ElggEntity $container = null): bool {
 		$types = $this->getTypes([
 			'context' => $context,
 			'container' => $container,
@@ -236,7 +223,7 @@ class WidgetsService {
 	 *
 	 * @return \Elgg\WidgetDefinition[]
 	 */
-	public function getAllTypes() {
+	public function getAllTypes(): array {
 		return $this->widgets;
 	}
 	
@@ -247,11 +234,11 @@ class WidgetsService {
 	 * @param string      $context   Context to check
 	 * @param \ElggEntity $container Optional limit widget definitions to a container
 	 *
-	 * @return string|boolean
+	 * @return string|null
 	 *
 	 * @since 2.2.0
 	 */
-	public function getNameById($id, $context = '', \ElggEntity $container = null) {
+	public function getNameById(string $id, string $context = '', \ElggEntity $container = null): ?string {
 		$types = $this->getTypes([
 			'context' => $context,
 			'container' => $container,
@@ -259,7 +246,8 @@ class WidgetsService {
 		if (isset($types[$id])) {
 			return $types[$id]->name;
 		}
-		return false;
+		
+		return null;
 	}
 
 	/**
@@ -275,14 +263,14 @@ class WidgetsService {
 	 *
 	 * @return \Elgg\WidgetDefinition[]
 	 */
-	public function getTypes(array $params = []) {
+	public function getTypes(array $params = []): array {
 		$context = elgg_extract('context', $params, '');
 		if (!$context) {
 			$context = elgg_get_context();
 			$params['context'] = $context;
 		}
 		
-		$available_widgets = _elgg_services()->hooks->trigger('handlers', 'widgets', $params, $this->widgets);
+		$available_widgets = _elgg_services()->events->triggerResults('handlers', 'widgets', $params, $this->widgets);
 		if (!is_array($available_widgets)) {
 			return [];
 		}

@@ -1,19 +1,13 @@
 <?php
 
-/**
- * @group ElggEntity
- * @group ElggObject
- * @group UnitTests
- * @group ElggData
- */
 class ElggObjectUnitTest extends \Elgg\UnitTestCase {
 
 	public function up() {
-		_elgg_services()->hooks->backup();
+		_elgg_services()->events->backup();
 	}
 
 	public function down() {
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 	}
 
 	public function testCanConstructWithoutArguments() {
@@ -45,15 +39,12 @@ class ElggObjectUnitTest extends \Elgg\UnitTestCase {
 		$this->assertEquals(['access_id' => ACCESS_PUBLIC], $object->getOriginalAttributes());
 	}
 
-	/**
-	 * @group current
-	 */
 	public function testCanSaveNewObject() {
 
 		$subtype = 'test_subtype';
 
 		$user = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 		
 		$object = new \ElggObject();
 		$object->setSubtype($subtype);
@@ -88,7 +79,7 @@ class ElggObjectUnitTest extends \Elgg\UnitTestCase {
 	public function testCanUpdateObject() {
 
 		$user = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$object = $this->createObject([
 			'owner_guid' => $user->guid,
@@ -182,13 +173,13 @@ class ElggObjectUnitTest extends \Elgg\UnitTestCase {
 	public function testCanCommentWhenLoggedIn() {
 		
 		$user = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$object = $this->createObject();
 		$this->assertFalse($object->canComment());
 		
-		// canComment relies on container permissions hook
-		_elgg_services()->hooks->registerHandler('container_permissions_check', 'object', \Elgg\Comments\ContainerPermissionsHandler::class);
+		// canComment relies on container permissions event
+		_elgg_services()->events->registerHandler('container_permissions_check', 'object', \Elgg\Comments\ContainerPermissionsHandler::class);
 		
 		$this->assertTrue($object->canComment());
 	}
@@ -232,6 +223,9 @@ class ElggObjectUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testIsLoggable() {
+		$unsaved = new \ElggObject();
+		$this->assertEmpty($unsaved->getSystemLogID());
+		
 		$object = $this->createObject();
 
 		$this->assertEquals($object->guid, $object->getSystemLogID());

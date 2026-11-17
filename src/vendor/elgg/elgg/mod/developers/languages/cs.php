@@ -34,8 +34,6 @@ return array(
 	'developers:label:show_modules' => "Ukazovat AMD moduly načtené v konzoli",
 	'developers:help:show_modules' => "Posílá načtené moduly a hodnoty do vaší JavaScript konzole.",
 	'developers:label:wrap_views' => "Zabalit pohledy",
-	'developers:label:log_events' => "Vypisovat události a zapojení doplňků",
-	'developers:help:log_events' => "Do logu zapíše události a zapojení doplňků. Varování: na stránku je jich opravdu hodně.",
 	'developers:label:show_gear' => "Použít %s mimo správcovský prostor",
 	'developers:help:show_gear' => "Ikonka vpravo dole v zobrazené části, která poskytuje správci přístup k vývojářským nastavením a odkazům.",
 
@@ -54,7 +52,6 @@ return array(
 	'developers:entity_explorer:info:attributes' => 'Vlastnosti',
 	'developers:entity_explorer:info:metadata' => 'Metadata',
 	'developers:entity_explorer:info:relationships' => 'Relace',
-	'developers:entity_explorer:info:private_settings' => 'Neveřejná nastavení',
 	'developers:entity_explorer:delete_entity' => 'Odebrat tuto entitu',
 	
 	// inspection
@@ -62,13 +59,10 @@ return array(
 	'developers:inspect:actions' => 'Akce',
 	'developers:inspect:events' => 'Události',
 	'developers:inspect:menus' => 'Nabídky',
-	'developers:inspect:pluginhooks' => 'Zapojení doplňků',
 	'developers:inspect:priority' => 'Priorita',
 	'developers:inspect:simplecache' => 'Simple cache',
 	'developers:inspect:views' => 'Pohledy',
 	'developers:inspect:views:all_filtered' => "<b>Poznámka!</b> Veškerý vstup a výstup pohledu je filtrován přes tato zapojení doplňků:",
-	'developers:inspect:views:input_filtered' => "(vstup filtrován zapojením doplňku: %s)",
-	'developers:inspect:views:filtered' => "(filtrován zapojením doplňku: %s)",
 	'developers:inspect:widgets' => 'Udělátka',
 	'developers:inspect:widgets:context' => 'K dispozici',
 	'developers:inspect:functions' => 'Funkce',

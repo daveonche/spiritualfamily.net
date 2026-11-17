@@ -14,14 +14,12 @@ button {
 	transition: background-color 0.5s, color 0.5s;
 	border: none;
 	white-space: nowrap;
-}
-
-.elgg-button:hover,
-.elgg-button:focus,
-button:hover,
-button:focus {
-	background-color: $(background-color-mild);
-	text-decoration: none;
+	
+	&:hover,
+	&:focus {
+		background-color: $(background-color-mild);
+		text-decoration: none;
+	}
 }
 
 .elgg-button + .elgg-button {
@@ -49,7 +47,6 @@ button:focus {
 		color: $(button-cancel-font-color-hover);
 	}
 }
-	
 
 .elgg-button-action {
 	background: $(button-action-background-color);

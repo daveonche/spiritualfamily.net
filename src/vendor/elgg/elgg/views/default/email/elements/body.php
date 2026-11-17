@@ -29,10 +29,10 @@ if ($add_mute_link && $object instanceof \ElggEntity && $recipient instanceof \E
 	$site_link .= ' | ' . elgg_view_url(elgg_http_get_signed_url(elgg_generate_url('notifications:mute', [
 		'entity_guid' => $object->guid,
 		'recipient_guid' => $recipient->guid,
-	])), elgg_echo('notifications:mute:email:footer'));
+	])), elgg_echo('notifications:mute:email:footer', [], $recipient->getLanguage()));
 }
 
-echo <<<__BODY
+?>
 <table class="body-wrapper">
 	<tr>
 		<td>
@@ -45,21 +45,21 @@ echo <<<__BODY
 									<table class="header">
 										<tr>
 											<td>
-												<h1>{$body_title}</h1>
+												<h1><?= $body_title; ?></h1>
 											</td>
 										</tr>
 									</table>
 									<table class="content">
 										<tr>
 											<td>
-												{$body}
+												<?= $body; ?>
 											</td>
 										</tr>
 									</table>
 									<table class="footer">
 										<tr>
 											<td>
-												{$site_link}
+												<?= $site_link; ?>
 											</td>
 										</tr>
 									</table>
@@ -72,4 +72,3 @@ echo <<<__BODY
 		</td>
 	</tr>
 </table>
-__BODY;

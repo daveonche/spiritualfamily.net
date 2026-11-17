@@ -2,7 +2,7 @@
 /**
  * Edit profile form
  *
- * @tip Use 'fields', 'user:user' hook to modify profile fields configuration.
+ * @tip Use 'fields', 'user:user' event to modify profile fields configuration.
  *
  * @uses vars['entity']
  */
@@ -32,6 +32,7 @@ foreach ($profile_fields as $field) {
 			if (!empty($value)) {
 				$value .= ', ';
 			}
+			
 			$value .= $annotation->value;
 			$access_id = $annotation->access_id;
 		}
@@ -41,6 +42,7 @@ foreach ($profile_fields as $field) {
 	if (isset($sticky_values[$shortname])) {
 		$value = $sticky_values[$shortname];
 	}
+	
 	if (isset($sticky_values['accesslevel'][$shortname])) {
 		$access_id = $sticky_values['accesslevel'][$shortname];
 	}
@@ -58,8 +60,8 @@ foreach ($profile_fields as $field) {
 	
 	echo elgg_view('elements/forms/field', [
 		'input' => elgg_format_element('div', [
-				'class' => 'elgg-field-input',
-			], $input . $access_input),
+			'class' => 'elgg-field-input',
+		], $input . $access_input),
 		'label' => elgg_view('elements/forms/label', [
 			'label' => $field['#label'],
 			'id' => $id,
@@ -73,7 +75,6 @@ echo elgg_view('input/hidden', ['name' => 'guid', 'value' => $entity->guid]);
 
 $footer = elgg_view_field([
 	'#type' => 'submit',
-	'value' => elgg_echo('save'),
-	'#class' => 'elgg-foot',
+	'text' => elgg_echo('save'),
 ]);
 elgg_set_form_footer($footer);

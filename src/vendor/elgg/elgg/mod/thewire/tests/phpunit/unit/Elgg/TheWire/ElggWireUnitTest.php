@@ -2,14 +2,7 @@
 
 namespace Elgg\TheWire;
 
-use Elgg\Plugins\PluginTesting;
-
-/**
- * @group Plugins
- */
 class ElggWireUnitTest extends \Elgg\UnitTestCase {
-	
-	use PluginTesting;
 	
 	public function testCantComment() {
 		$this->startPlugin();
@@ -22,7 +15,7 @@ class ElggWireUnitTest extends \Elgg\UnitTestCase {
 		$this->assertFalse($wire->canComment());
 		
 		$user = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 		
 		$this->assertFalse($wire->canComment());
 	}

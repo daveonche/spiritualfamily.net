@@ -4,24 +4,6 @@
  */
 
 /**
- * Get the latest wire guid - used for ajax update
- *
- * @return int
- */
-function thewire_latest_guid() {
-	$post = elgg_get_entities([
-		'type' => 'object',
-		'subtype' => 'thewire',
-		'limit' => 1,
-	]);
-	if ($post) {
-		return $post[0]->guid;
-	}
-	
-	return 0;
-}
-
-/**
  * Create a new wire post.
  *
  * @param string $text        The post text
@@ -32,22 +14,29 @@ function thewire_latest_guid() {
  *
  * @return false|int
  */
-function thewire_save_post($text, $userid, $access_id, $parent_guid = 0, $method = "site") {
+function thewire_save_post(string $text, int $userid, int $access_id, int $parent_guid = 0, string $method = 'site'): int|false {
 	
-	$post = new ElggWire();
+	$post = new \ElggWire();
 	$post->owner_guid = $userid;
 	$post->access_id = $access_id;
-
+	
+	$text = $text ?? '';
+	$text = trim(str_replace('&nbsp;', ' ', $text));
+	
 	// Character limit is now from config
 	$limit = elgg_get_plugin_setting('limit', 'thewire');
 	if ($limit > 0) {
-		$text = elgg_substr($text, 0, $limit);
+		$text_for_size = elgg_strip_tags($text);
+		if (elgg_strlen($text_for_size) > $limit) {
+			return false;
+		}
 	}
 	
-	$text = $text ?? '';
-
+	// no html tags allowed so we strip (except links (a) for mention support)
+	$text = elgg_strip_tags($text, '<a>');
+	
 	// no html tags allowed so we escape
-	$post->description = htmlspecialchars($text, ENT_NOQUOTES | ENT_SUBSTITUTE, 'UTF-8');
+	$post->description = $text;
 
 	$post->method = $method; //method: site, email, api, ...
 
@@ -84,16 +73,6 @@ function thewire_save_post($text, $userid, $access_id, $parent_guid = 0, $method
 		'object_guid' => $post->guid,
 	]);
 
-	// let other plugins know we are setting a user status
-	$params = [
-		'entity' => $post,
-		'user' => $post->getOwnerEntity(),
-		'message' => $post->description,
-		'url' => $post->getURL(),
-		'origin' => 'thewire',
-	];
-	elgg_trigger_deprecated_plugin_hook('status', 'user', $params, null, "The 'status', 'user' hook has been deprecated. Use 'create', 'object' event.", '4.3');
-	
 	return $post->guid;
 }
 
@@ -104,13 +83,13 @@ function thewire_save_post($text, $userid, $access_id, $parent_guid = 0, $method
  *
  * @return array
  */
-function thewire_get_hashtags($text) {
+function thewire_get_hashtags(string $text): array {
 	// beginning of text or white space followed by hashtag
-	// hashtag must begin with # and contain at least one character not digit, space, or punctuation
+	// the hashtag must begin with # and contain at least one character not digit, space, or punctuation
 	$matches = [];
-	preg_match_all('/(^|[^\w])#(\w*[^\s\d!-\/:-@]+\w*)/', $text, $matches);
+	preg_match_all('/(^|[^\w])#(\w+[^\s\d[:punct:]\x{2018}-\x{201F}]+\w*)/u', $text, $matches);
 	
-	return $matches[2];
+	return $matches[2] ?? [];
 }
 
 /**
@@ -120,7 +99,7 @@ function thewire_get_hashtags($text) {
  *
  * @return string
  */
-function thewire_filter($text) {
+function thewire_filter(string $text): string {
 	$text = ' ' . $text;
 
 	// email addresses
@@ -130,16 +109,21 @@ function thewire_filter($text) {
 	$text = elgg_parse_urls($text);
 
 	// usernames
-	$text = preg_replace(
-				'/(^|[^\w])@([\p{L}\p{Nd}._]+)/u',
-				'$1<a href="' . elgg_get_site_url() . 'thewire/owner/$2">@$2</a>',
-				$text);
+	$text = elgg_parse_mentions($text);
 
 	// hashtags
-	$text = preg_replace(
-				'/(^|[^\w])#(\w*[^\s\d!-\/:-@]+\w*)/',
-				'$1<a href="' . elgg_get_site_url() . 'thewire/tag/$2">#$2</a>',
-				$text);
+	$text = preg_replace_callback(
+		'/(^|[^\w])#(\w+[^\s\d[:punct:]\x{2018}-\x{201F}]+\w*)/u',
+		function ($matches) {
+			$tag = elgg_extract(2, $matches);
+			$url = elgg_generate_url('collection:object:thewire:tag', [
+				'tag' => $tag,
+			]);
+			$link = elgg_view_url($url, "#{$tag}");
+			
+			return elgg_extract(1, $matches) . $link;
+		},
+		$text) ?? $text;
 
 	return trim($text);
 }

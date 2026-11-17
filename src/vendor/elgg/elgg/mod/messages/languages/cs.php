@@ -18,14 +18,11 @@ return array(
 	'messages:message' => "Zpráva",
 	'messages:title' => "Předmět",
 	'messages:to:help' => "Sem zadejte uživatelské jméno příjemce.",
-	'messages:inbox' => "Doručené",
 	'messages:sendmessage' => "Odeslat zprávu",
 	'messages:add' => "Vytvořit zprávu",
 	'messages:sentmessages' => "Odeslané zprávy",
 	'messages:toggle' => 'Přepnout vše',
 	'messages:markread' => 'Označit jako přečteno',
-
-	'notification:method:site' => 'Stránky',
 
 	'messages:error' => 'Vyskytl se problém s ukládáním vaší zprávy. Zkuste to prosím znovu.',
 

@@ -21,12 +21,14 @@ if ($container_guid && !is_array($container_guid)) {
 	elgg_set_page_owner_guid($container_guid);
 }
 
-$query = elgg_extract('query', $params);
+$query = (string) elgg_extract('query', $params, '');
 
 $form = elgg_view_form('search', [
 	'action' => elgg_generate_url('default:search'),
 	'method' => 'get',
 	'disable_security' => true,
+	'role' => 'search',
+	'aria-label' => elgg_echo('search:aria:label:site_search'),
 ], $params);
 
 if (!preg_match('/[\pL\pN]+/', $query)) {
@@ -50,17 +52,15 @@ $use_type = function ($search_type, $type = null, $subtype = null) use ($params)
 	}
 
 	switch ($params['search_type']) {
-		case 'entities' :
+		case 'entities':
 			if ($params['type'] && $params['type'] != $type) {
 				return false;
-			} else if ($params['subtype'] && $params['subtype'] !== $subtype) {
+			} elseif ($params['subtype'] && $params['subtype'] !== $subtype) {
 				return false;
 			}
-
 			return true;
-
-		// custom search type
-		default :
+		default:
+			// custom search type
 			return $params['search_type'] == $search_type;
 	}
 };

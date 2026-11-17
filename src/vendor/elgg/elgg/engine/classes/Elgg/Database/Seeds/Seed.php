@@ -9,7 +9,7 @@ use Elgg\Traits\Seeding;
  * Abstract seed
  *
  * Plugins should extend this class to create their own seeders,
- * add use 'seeds','database' plugin hook to add their seed to the sequence.
+ * add use 'seeds','database' event to add their seed to the sequence.
  */
 abstract class Seed implements Seedable {
 
@@ -21,17 +21,17 @@ abstract class Seed implements Seedable {
 	/**
 	 * @var int Max number of items to be created by the seed
 	 */
-	protected $limit = 20;
+	protected int $limit;
 
 	/**
 	 * @var bool Create new entities
 	 */
-	protected $create = false;
+	protected bool $create = false;
 	
 	/**
 	 * @var int Number of seeded entities
 	 */
-	protected $seeded_counter = 0;
+	protected int $seeded_counter = 0;
 	
 	/**
 	 * Seed constructor.
@@ -46,6 +46,8 @@ abstract class Seed implements Seedable {
 		$limit = (int) elgg_extract('limit', $options);
 		if ($limit > 0) {
 			$this->limit = $limit;
+		} else {
+			$this->limit = static::getDefaultLimit();
 		}
 		
 		$this->create = (bool) elgg_extract('create', $options, $this->create);
@@ -56,12 +58,12 @@ abstract class Seed implements Seedable {
 	/**
 	 * Register this class for seeding
 	 *
-	 * @param \Elgg\Hook $hook 'seeds', 'database'
+	 * @param \Elgg\Event $event 'seeds', 'database'
 	 *
 	 * @return array
 	 */
-	final public static function register(\Elgg\Hook $hook) {
-		$seeds = $hook->getValue();
+	final public static function register(\Elgg\Event $event) {
+		$seeds = $event->getValue();
 		
 		$seeds[] = static::class;
 		
@@ -73,7 +75,7 @@ abstract class Seed implements Seedable {
 	 *
 	 * @return int
 	 */
-	final public function getCount() : int {
+	final public function getCount(): int {
 		if ($this->create) {
 			return $this->seeded_counter;
 		}
@@ -93,10 +95,19 @@ abstract class Seed implements Seedable {
 	 *
 	 * @return void
 	 */
-	public function advance(int $step = 1) {
+	public function advance(int $step = 1): void {
 		$this->seeded_counter += $step;
 		
 		$this->progressAdvance($step);
+	}
+	
+	/**
+	 * Get the default number of content to seed
+	 *
+	 * @return int
+	 */
+	public static function getDefaultLimit(): int {
+		return max(elgg_get_config('default_limit'), 20);
 	}
 
 	/**
@@ -118,7 +129,7 @@ abstract class Seed implements Seedable {
 	 *
 	 * @return string
 	 */
-	abstract public static function getType() : string;
+	abstract public static function getType(): string;
 	
 	/**
 	 * Get options for elgg_count_entities()
@@ -126,5 +137,5 @@ abstract class Seed implements Seedable {
 	 * @return array
 	 * @see self::getCount()
 	 */
-	abstract protected function getCountOptions() : array;
+	abstract protected function getCountOptions(): array;
 }

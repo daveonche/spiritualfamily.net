@@ -24,13 +24,13 @@ Besides magic constants like ``__DIR__``, its return value should not change. Th
  * ``views`` - allows plugins to alias vendor assets to a path within the Elgg's view system
  * ``widgets`` - eliminates the need for calling ``elgg_register_widget_type()``
  * ``events`` - eliminates the need for calling ``elgg_register_event_handler()``
- * ``hooks`` - eliminates the need for calling ``elgg_register_plugin_hook_handler()``
  * ``cli_commands`` - an array of ``Elgg/Cli/Command`` classes to extend the feature of ``elgg-cli``
  * ``view_extensions`` - eliminates the need for calling ``elgg_extend_view()`` or ``elgg_unextend_view()``
  * ``theme`` - an array of theme variables
  * ``group_tools`` - an array of available group tool options
  * ``view_options`` - an array of views with extra options
  * ``notifications`` - an array of notification events
+ * ``web_services`` - an array of exposed web service (used by the Web Services plugin)
 
 
 .. code-block:: php
@@ -131,21 +131,6 @@ Besides magic constants like ``__DIR__``, its return value should not change. Th
 			],
 		],
 		
-		'hooks' => [
-			'register' => [
-				'menu:owner_block' => [
-					'blog_owner_block_menu' => [
-						'priority' => 700,
-					],
-				],
-			],
-			'usersettings:save' => [
-				'user' => [
-					'_elgg_save_notification_user_settings' => ['unregister' => true],
-				],
-			],
-		],
-		
 		'events' => [
 			'delete' => [
 				'object' => [
@@ -162,6 +147,18 @@ Besides magic constants like ``__DIR__``, its return value should not change. Th
 			'log' => [
 				'systemlog' => [
 					'Elgg\SystemLog\Logger::log' => ['unregister' => true],
+				],
+			],
+			'register' => [
+				'menu:owner_block' => [
+					'blog_owner_block_menu' => [
+						'priority' => 700,
+					],
+				],
+			],
+			'usersettings:save' => [
+				'user' => [
+					'_elgg_save_notification_user_settings' => ['unregister' => true],
 				],
 			],
 		],
@@ -225,6 +222,24 @@ Besides magic constants like ``__DIR__``, its return value should not change. Th
 				],
 			],
 		],
+		'web_services' => [
+			'test.echo' => [
+				'GET' => [ // the HTTP call method (GET|POST)
+					'callback' => 'my_echo', // required
+					'description' => 'A testing method which echos back a string', // optional, the description of the API method, a magic translation key is tried if not provided 'web_services:api_methods:<method>:<http call method>:description'
+					'params' => [ // optional, input parameters for the API method
+						'string' => [
+							'type' => 'string', // type of the parameter (int|integer|bool|string|float|array)
+							'default' => 'some value', // default value if not provided in the request
+							'required' => true|false, // required in the request
+						],
+					],
+					'require_api_auth' => false, // optional, requires API authentication (default: false)
+					'require_user_auth' => false, // optional, requires User authentication (default: false)
+					'associative' => false, // optional, provide the input params as an array to the callback function (default: false)
+				],
+			],
+		],
 	];
 
 Bootstrap class
@@ -259,7 +274,7 @@ Plugins can then use PHP-DI API to autowire and call the service:
 
    $service = elgg()->get(PluginService::class);
 
-See `PHP-DI documentation <http://php-di.org>`_ for a comprehensive list of definition and invokation possibilities.
+See `PHP-DI documentation <http://php-di.org>`_ for a comprehensive list of definition and invocation possibilities.
 
 composer.json
 =============
@@ -279,13 +294,12 @@ Important parts in the ``composer.json`` file are:
 
 - ``name``: the name of your plugin, keep this inline with the name of your plugin folder to ensure correct installation
 - ``type``: this will tell Composer where to install your plugin, ALWAYS keep this as ``elgg-plugin``
-- ``require``: the ``composer/installers`` requirement is to make sure Composer knows where to install your plugin
 
-As a suggestion, include a ``conflict`` rule with any Elgg version below your mininal required version, this will help prevent the accidental 
-installation of your plugin on an incompatible Elgg version.
+As a suggestion, include a ``conflict`` rule with any Elgg version below your minimal required version, this will help
+prevent the accidental installation of your plugin on an incompatible Elgg version.
 
-After adding a ``composer.json`` file to your plugin project, you need to register your project on `Packagist`_ in order for other people to be able to 
-install your plugin.
+After adding a ``composer.json`` file to your plugin project, you need to register your project on `Packagist`_ in
+order for other people to be able to install your plugin.
 
 Tests
 =====
@@ -293,24 +307,15 @@ Tests
 It's encouraged to create PHPUnit test for your plugin. All tests should be located in ``tests/phpunit/unit`` for unit tests and 
 ``tests/phpunit/integration`` for integration tests.
 
-An easy example of adding test is the ``ViewStackTest``, this will test that the views in your plugin are registered correctly and have no 
-syntax errors. To add this test create a file ``ViewStackTest.php`` in the folder ``tests/phpunit/unit/<YourNameSpace>/<YourPluginName>/``
-with the content:
+Unit tests should extend the ``Elgg\UnitTestCase`` class. Integration tests should extend the ``Elgg\Plugins\IntegrationTestCase``.
 
-.. code-block:: php
-	
-	namespace <YourNameSpace>\<YourPluginName>;
-	
-	/**
-	 * @group ViewsService
-	 */
-	class ViewStackTest extends \Elgg\Plugins\ViewStackTest {
-	
-	}
+There are a set of global plugin integration tests that run on all active plugins. These tests are:
 
-.. note::
-	
-	If you wish to see a better example, look in any of the Elgg core plugins.
+- ``Elgg\Plugins\ActionRegistrationIntegrationTest`` will test all registered actions of the plugin without supplying data
+- ``Elgg\Plugins\ComposerIntegrationTest`` will test if the ``composer.json`` is considered valid
+- ``Elgg\Plugins\StaticConfigIntegrationTest`` will test the sections of the ``elgg-plugin.php`` and check for the correct format
+- ``Elgg\Plugins\TranslationsIntegrationTest`` will test all language files for the correct format and encoding
+- ``Elgg\Plugins\ViewStackIntegrationTest`` will test all views of the plugin if there are any PHP parsing errors
 
 .. seealso::
 	

@@ -4,14 +4,7 @@ namespace Elgg\Integration;
 
 use Elgg\EntityDirLocator;
 use Elgg\IntegrationTestCase;
-use Elgg\Project\Paths;
-use ElggFile;
 
-/**
- * Elgg Test Skeleton
- *
- * @group IntegrationTests
- */
 class ElggCoreFilestoreTest extends IntegrationTestCase {
 
 	/**
@@ -21,7 +14,7 @@ class ElggCoreFilestoreTest extends IntegrationTestCase {
 	
 	public function up() {
 		$this->owner = $this->createUser();
-		elgg()->session->setLoggedInUser($this->owner);
+		elgg()->session_manager->setLoggedInUser($this->owner);
 	}
 
 	public function testFilenameOnFilestore() {
@@ -31,7 +24,7 @@ class ElggCoreFilestoreTest extends IntegrationTestCase {
 		$dir = new EntityDirLocator($user->guid);
 
 		// setup a test file
-		$file = new ElggFile();
+		$file = new \ElggFile();
 		$file->owner_guid = $user->guid;
 		$file->setFilename('testing/filestore.txt');
 		$file->open('write');
@@ -52,15 +45,17 @@ class ElggCoreFilestoreTest extends IntegrationTestCase {
 
 	function testElggFileDelete() {
 		$user = $this->owner;
-		$dir = new EntityDirLocator($user->guid);
-
-		$file = new ElggFile();
+		
+		$file = new \ElggFile();
 		$file->owner_guid = $user->guid;
+		$file->save();
+		
 		$file->setFilename('testing/ElggFileDelete');
 		$this->assertTrue(is_resource($file->open('write')));
 		$this->assertIsInt($file->write('Test'));
 		$this->assertTrue($file->close());
-		$file->save();
+		
+		$dir = new EntityDirLocator($file->guid);
 
 		$filename = $file->getFilenameOnFilestore();
 		$filepath = _elgg_services()->config->dataroot . $dir . "testing/ElggFileDelete";
@@ -69,9 +64,5 @@ class ElggCoreFilestoreTest extends IntegrationTestCase {
 
 		$this->assertTrue($file->delete());
 		$this->assertFileDoesNotExist($filepath);
-	}
-	
-	function testGetDirSize() {
-		$this->assertNotEmpty(get_dir_size(Paths::elgg() . "/engine/tests/test_files/actions/", 0, false));
 	}
 }

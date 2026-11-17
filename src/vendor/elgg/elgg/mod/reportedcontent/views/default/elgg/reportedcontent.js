@@ -1,12 +1,11 @@
 define(['jquery', 'elgg/Ajax', 'elgg/lightbox'], function ($, Ajax, lightbox) {
 
-	var submitReportedContent = function (event) {
+	function submitReportedContent(event) {
 		event.preventDefault();
-		
-		var $form = $(this);
+
 		var ajax = new Ajax();
 
-		ajax.action($form.attr('action'), {
+		ajax.action($(this).attr('action'), {
 			data: ajax.objectify(this),
 			success: function () {
 				lightbox.close();
@@ -14,7 +13,7 @@ define(['jquery', 'elgg/Ajax', 'elgg/lightbox'], function ($, Ajax, lightbox) {
 		});
 	};
 	
-	var cancelReportedContent = function () {
+	function cancelReportedContent() {
 		lightbox.close();
 		
 		return false;
@@ -22,8 +21,8 @@ define(['jquery', 'elgg/Ajax', 'elgg/lightbox'], function ($, Ajax, lightbox) {
 	
 	$('.elgg-menu-item-report-this a, .elgg-menu-item-reportuser a').each(function () {
 		if (!/address=/.test(this.href)) {
-			this.href += '?address=' + encodeURIComponent(location.href) +
-						'&title=' + encodeURIComponent(document.title);
+			this.href += '?address=' + encodeURIComponent(location.href);
+			this.href += '&title=' + encodeURIComponent(document.title);
 		}
 	});
 

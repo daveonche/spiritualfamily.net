@@ -41,6 +41,9 @@ class StickyForms {
 		$default_ignored_field_names = [
 			'__elgg_ts', // never store CSRF tokens
 			'__elgg_token', // never store CSRF tokens
+			'_elgg_sticky_form_name', // from sticky form support
+			'_elgg_sticky_ignored_fields', // from sticky form support
+			'_route', // added by router
 		];
 		$ignored_field_names = array_merge($default_ignored_field_names, $ignored_field_names);
 		
@@ -52,6 +55,7 @@ class StickyForms {
 		foreach ($ignored_field_names as $key) {
 			unset($vars[$key]);
 		}
+		
 		$data[$form_name] = $vars;
 	
 		$this->session->set('sticky_forms', $data);
@@ -135,21 +139,5 @@ class StickyForms {
 		}
 		
 		return $values;
-	}
-	
-	/**
-	 * Remove one value of form submission data from the session
-	 *
-	 * @param string $form_name The name of the form
-	 * @param string $variable  The name of the variable to clear
-	 *
-	 * @return void
-	 * @deprecated 4.3
-	 */
-	public function clearStickyValue(string $form_name, string $variable): void {
-		$data = $this->session->get('sticky_forms', []);
-		unset($data[$form_name][$variable]);
-		
-		$this->session->set('sticky_forms', $data);
 	}
 }

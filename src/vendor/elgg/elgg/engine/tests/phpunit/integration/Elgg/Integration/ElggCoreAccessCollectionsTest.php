@@ -2,17 +2,8 @@
 
 namespace Elgg\Integration;
 
-use Elgg\Database\AccessCollections;
-use Elgg\Database\Select;
 use Elgg\IntegrationTestCase;
 
-/**
- * Access Collections tests
- *
- * @group IntegrationTests
- * @group AccessCollections
- * @group Cache
- */
 class ElggCoreAccessCollectionsTest extends IntegrationTestCase {
 	
 	/**
@@ -22,62 +13,19 @@ class ElggCoreAccessCollectionsTest extends IntegrationTestCase {
 
 	public function up() {
 		$this->user = $this->createUser();
-		elgg()->session->setLoggedInUser($this->user);
-	}
-
-	public function testUpdateACL() {
-		// another fake user to test with
-		$user = $this->createUser();
-
-		$acl = elgg_create_access_collection('test acl');
-		$this->assertInstanceOf(\ElggAccessCollection::class, $acl);
-
-		$member_lists = [
-			// adding
-			[
-				$this->user->guid,
-				$user->guid
-			],
-			// removing one, keeping one.
-			[
-				$user->guid
-			],
-			// removing one, adding one
-			[
-				$this->user->guid,
-			],
-			// removing all.
-			[]
-		];
-
-		foreach ($member_lists as $members) {
-			$result = _elgg_services()->accessCollections->update($acl->id, $members);
-			$this->assertTrue($result);
-
-			$select = Select::fromTable(AccessCollections::MEMBERSHIP_TABLE_NAME);
-			$select->select('*')
-				->where($select->compare('access_collection_id', '=', $acl->id, ELGG_VALUE_ID));
-
-			$data = elgg()->db->getData($select);
-
-			$this->assertCount(count($members), $data);
-
-			foreach ($data as $row) {
-				$this->assertTrue(in_array($row->user_guid, $members));
-			}
-		}
+		elgg()->session_manager->setLoggedInUser($this->user);
 	}
 
 	public function testAccessCaching() {
 		$access_cache = _elgg_services()->accessCache;
 		
-		_elgg_services()->hooks->backup();
+		_elgg_services()->events->backup();
 		_elgg_services()->events->backup();
 		
-		// need to have no hooks and no events for this test
+		// need to have no events for this test
 		$user = $this->createUser();
 		
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 		_elgg_services()->events->restore();
 
 		$hash = $user->guid . 'get_access_array';
@@ -112,8 +60,8 @@ class ElggCoreAccessCollectionsTest extends IntegrationTestCase {
 	}
 
 	public function testCanGetGuestReadAcccessArray() {
-		$logged_in_user = _elgg_services()->session->getLoggedInUser();
-		_elgg_services()->session->removeLoggedInUser();
+		$logged_in_user = _elgg_services()->session_manager->getLoggedInUser();
+		_elgg_services()->session_manager->removeLoggedInUser();
 
 		$actual = elgg_get_access_array();
 
@@ -122,7 +70,7 @@ class ElggCoreAccessCollectionsTest extends IntegrationTestCase {
 		$this->assertFalse(in_array(ACCESS_PRIVATE, $actual)); // Private access needs to be prohibited
 
 		if ($logged_in_user instanceof \ElggUser){
-			_elgg_services()->session->setLoggedInUser($logged_in_user);
+			_elgg_services()->session_manager->setLoggedInUser($logged_in_user);
 		}
 	}
 

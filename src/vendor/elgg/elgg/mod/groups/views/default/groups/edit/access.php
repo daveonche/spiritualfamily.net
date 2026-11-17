@@ -6,6 +6,8 @@
  * eg: how can people join this group, who can see the group, etc
  */
 
+elgg_require_js('groups/edit/access');
+
 $entity = elgg_extract('entity', $vars, false);
 $membership = elgg_extract('membership', $vars);
 $visibility = elgg_extract('vis', $vars);
@@ -109,7 +111,7 @@ if ($show_group_owner_transfer && $entity && ($owner_guid == elgg_get_logged_in_
 		'#type' => 'userpicker',
 		'#label' => elgg_echo('groups:owner'),
 		'name' => 'owner_guid',
-		'value' =>  $owner_guid,
+		'value' => $owner_guid,
 		'limit' => 1,
 		'match_on' => 'group_members',
 		'show_friends' => false,

@@ -129,7 +129,7 @@ class ElggRelationship extends \ElggData {
 	/**
 	 * {@inheritDoc}
 	 */
-	public function save() : bool {
+	public function save(): bool {
 		if (empty($this->orig_attributes)) {
 			// nothing has changed
 			return true;
@@ -160,20 +160,20 @@ class ElggRelationship extends \ElggData {
 	 *
 	 * @return bool
 	 */
-	public function delete() {
+	public function delete(): bool {
 		return _elgg_services()->relationshipsTable->delete($this->id);
 	}
 
 	/**
 	 * Get a URL for this relationship.
 	 *
-	 * Plugins can register for the 'relationship:url', 'relationship' plugin hook to
+	 * Plugins can register for the 'relationship:url', 'relationship' event to
 	 * customize the url for a relationship.
 	 *
 	 * @return string
 	 */
-	public function getURL() {
-		$url = _elgg_services()->hooks->trigger('relationship:url', $this->getType(), ['relationship' => $this], '');
+	public function getURL(): string {
+		$url = _elgg_services()->events->triggerResults('relationship:url', $this->getType(), ['relationship' => $this], '');
 
 		return elgg_normalize_url($url);
 	}
@@ -191,19 +191,16 @@ class ElggRelationship extends \ElggData {
 
 		$params['relationship'] = $this;
 
-		return _elgg_services()->hooks->trigger('to:object', 'relationship', $params, $object);
+		return _elgg_services()->events->triggerResults('to:object', 'relationship', $params, $object);
 	}
 
 	// SYSTEM LOG INTERFACE ////////////////////////////////////////////////////////////
 
 	/**
-	 * Return an identification for the object for storage in the system log.
-	 * This id must be an integer.
-	 *
-	 * @return int
+	 * {@inheritdoc}
 	 */
-	public function getSystemLogID() {
-		return $this->id;
+	public function getSystemLogID(): int {
+		return (int) $this->id;
 	}
 
 	/**
@@ -215,7 +212,7 @@ class ElggRelationship extends \ElggData {
 	 *
 	 * @return \ElggRelationship|false
 	 */
-	public function getObjectFromID($id) {
+	public function getObjectFromID(int $id) {
 		return _elgg_services()->relationshipsTable->get($id);
 	}
 
@@ -224,7 +221,7 @@ class ElggRelationship extends \ElggData {
 	 *
 	 * @return string 'relationship'
 	 */
-	public function getType() {
+	public function getType(): string {
 		return 'relationship';
 	}
 
@@ -234,7 +231,7 @@ class ElggRelationship extends \ElggData {
 	 *
 	 * @return string
 	 */
-	public function getSubtype() {
+	public function getSubtype(): string {
 		return $this->relationship;
 	}
 	
@@ -243,7 +240,7 @@ class ElggRelationship extends \ElggData {
 	 *
 	 * @return array
 	 */
-	public function getOriginalAttributes() {
+	public function getOriginalAttributes(): array {
 		return $this->orig_attributes;
 	}
 }

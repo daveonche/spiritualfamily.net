@@ -3,7 +3,7 @@
 namespace Elgg\SiteNotifications;
 
 /**
- * User related hook / event handling
+ * User related event handling
  *
  * @since 4.0
  * @internal
@@ -13,7 +13,7 @@ class Users {
 	/**
 	 * Enable site notifications when a user is created
 	 *
-	 * @param \Elgg\Event $event 'create', 'user'
+	 * @param \Elgg\Event $event 'create:after', 'user'
 	 *
 	 * @return void
 	 */

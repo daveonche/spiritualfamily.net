@@ -1,9 +1,8 @@
 <?php
 
+use Elgg\Bookmarks\Forms\PrepareFields;
 use Elgg\Bookmarks\GroupToolContainerLogicCheck;
 use Elgg\Bookmarks\Notifications\CreateBookmarksEventHandler;
-
-require_once(__DIR__ . '/lib/functions.php');
 
 return [
 	'plugin' => [
@@ -37,12 +36,18 @@ return [
 		'collection:object:bookmarks:owner' => [
 			'path' => '/bookmarks/owner/{username}',
 			'resource' => 'bookmarks/owner',
+			'middleware' => [
+				\Elgg\Router\Middleware\UserPageOwnerGatekeeper::class,
+			],
 		],
 		'collection:object:bookmarks:friends' => [
 			'path' => '/bookmarks/friends/{username}',
 			'resource' => 'bookmarks/friends',
 			'required_plugins' => [
 				'friends',
+			],
+			'middleware' => [
+				\Elgg\Router\Middleware\UserPageOwnerGatekeeper::class,
 			],
 		],
 		'collection:object:bookmarks:group' => [
@@ -54,12 +59,16 @@ return [
 			'required_plugins' => [
 				'groups',
 			],
+			'middleware' => [
+				\Elgg\Router\Middleware\GroupPageOwnerGatekeeper::class,
+			],
 		],
 		'add:object:bookmarks' => [
 			'path' => '/bookmarks/add/{guid}',
 			'resource' => 'bookmarks/add',
 			'middleware' => [
 				\Elgg\Router\Middleware\Gatekeeper::class,
+				\Elgg\Router\Middleware\PageOwnerGatekeeper::class,
 			],
 		],
 		'view:object:bookmarks' => [
@@ -81,7 +90,7 @@ return [
 			],
 		],
 	],
-	'hooks' => [
+	'events' => [
 		'container_logic_check' => [
 			'object' => [
 				GroupToolContainerLogicCheck::class => [],
@@ -90,6 +99,11 @@ return [
 		'entity:url' => [
 			'object' => [
 				'Elgg\Bookmarks\Widgets::widgetURL' => [],
+			],
+		],
+		'form:prepare:fields' => [
+			'bookmarks/save' => [
+				PrepareFields::class => [],
 			],
 		],
 		'register' => [
@@ -133,6 +147,7 @@ return [
 		'object' => [
 			'bookmarks' => [
 				'create' => CreateBookmarksEventHandler::class,
+				'mentions' => \Elgg\Notifications\MentionsEventHandler::class,
 			],
 		],
 	],

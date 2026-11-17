@@ -144,6 +144,7 @@ class Composer {
 			if ($this->checkConstraints(elgg_get_release(), $conflicts['elgg'])) {
 				throw new ConflictException('Elgg version: ' . elgg_get_release() . ' conflicts with constraint '. $conflicts['elgg']);
 			}
+			
 			unset($conflicts['elgg']);
 		}
 		
@@ -192,7 +193,14 @@ class Composer {
 	 * @return boolean
 	 */
 	public function checkConstraints($version, $constraints) {
-		return Semver::satisfies($version, $constraints);
+		try {
+			return Semver::satisfies($version, $constraints);
+		} catch (\UnexpectedValueException $e) {
+			// something is wrong with the version number
+			elgg_log($e, 'ERROR');
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -222,7 +230,7 @@ class Composer {
 	public function assertRequiredPhpExtensions() {
 		$requirements = $this->configuration->dependencies();
 		foreach ($requirements as $name => $constraint) {
-			if (strpos($name, 'ext-') !== 0) {
+			if (!str_starts_with($name, 'ext-')) {
 				continue;
 			}
 			

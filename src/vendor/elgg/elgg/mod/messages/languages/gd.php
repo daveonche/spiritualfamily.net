@@ -18,14 +18,11 @@ return array(
 	'messages:message' => "Teachdaireachd",
 	'messages:title' => "Cuspair",
 	'messages:to:help' => "Cuir a-steach ainm-cleachdaiche an neach-fhaighinn an seo.",
-	'messages:inbox' => "Bogsa a-steach",
 	'messages:sendmessage' => "Cuir teachdaireachd",
 	'messages:add' => "Sgrìobh teachdaireachd",
 	'messages:sentmessages' => "Teachdaireachdan cuirte",
 	'messages:toggle' => 'Toglaich na h-uile',
 	'messages:markread' => 'Comharraich gun deach a leughadh',
-
-	'notification:method:site' => 'Làrach',
 
 	'messages:error' => 'Bha duilgheadas ann agus cha deach an teachdaireachd agad a shàbhaladh. Feuch ris a-rithist.',
 

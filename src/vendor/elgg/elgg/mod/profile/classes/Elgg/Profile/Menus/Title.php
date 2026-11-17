@@ -3,7 +3,7 @@
 namespace Elgg\Profile\Menus;
 
 /**
- * Hook callbacks for menus
+ * Event callbacks for menus
  *
  * @since 4.0
  * @internal
@@ -13,18 +13,20 @@ class Title {
 	/**
 	 * Register menu items for the title menu
 	 *
-	 * @param \Elgg\Hook $hook 'register' 'menu:title'
+	 * @param \Elgg\Event $event 'register' 'menu:title'
 	 *
 	 * @return void|\Elgg\Menu\MenuItems
 	 */
-	public static function register(\Elgg\Hook $hook) {
+	public static function register(\Elgg\Event $event) {
 	
-		$user = $hook->getEntityParam();
-		if (!($user instanceof \ElggUser) || !$user->canEdit()) {
+		$user = $event->getEntityParam();
+		if (!$user instanceof \ElggUser || !$user->canEdit() || !elgg_in_context('profile')) {
 			return;
 		}
 		
-		$return = $hook->getValue();
+		$return = $event->getValue();
+		
+		$return->remove('avatar:edit');
 		
 		$return[] = \ElggMenuItem::factory([
 			'name' => 'edit_profile',
@@ -32,7 +34,6 @@ class Title {
 			'text' => elgg_echo('profile:edit'),
 			'icon' => 'address-card',
 			'class' => ['elgg-button', 'elgg-button-action'],
-			'contexts' => ['profile', 'profile_edit'],
 		]);
 		
 		return $return;

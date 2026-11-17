@@ -22,6 +22,7 @@ return array(
 	'groups:add' => "Создать группу",
 	'groups:edit' => "Редактировать группу",
 	'groups:edit:profile' => "Профиль",
+	'groups:edit:images' => "Изображения",
 	'groups:edit:access' => "Доступ",
 	'groups:edit:tools' => "Инструменты",
 	'groups:edit:settings' => "Настройки",
@@ -34,12 +35,10 @@ return array(
 	'relationship:invited' => '%2$s был приглашен вступить в группу %1$s',
 	'relationship:membership_request' => '%s запросил вступить в группу %s',
 
-	'groups:icon' => 'Аватар группы (оставьте пустым, чтобы не менять)',
 	'groups:name' => 'Название группы',
 	'groups:description' => 'Описание',
 	'groups:briefdescription' => 'Краткое описание',
 	'groups:interests' => 'Теги',
-	'groups:website' => 'Сайт',
 	'groups:members' => 'Участники',
 
 	'groups:members_count' => '%s участников',
@@ -51,21 +50,17 @@ return array(
 	'groups:content_access_mode:warning' => "Внимание: Изменение этой настройки не поменяет права доступа на существующий контент группы.",
 	'groups:content_access_mode:unrestricted' => "Не ограничено - Доступ зависит от настроек доступа контента",
 	'groups:content_access_mode:membersonly' => "Только участникам - Не участники группы не смогут получить доступ к контенту группы",
-	'groups:access' => "Ограничения доступа",
 	'groups:owner' => "Основатель",
 	'groups:owner:warning' => "Внимание: если вы измените это значение, вы больше не будете основателем группы.",
 	'groups:widget:num_display' => 'Число отображаемых групп',
 	'widgets:a_users_groups:name' => 'Членство',
 	'widgets:a_users_groups:description' => 'Число отображаемых групп',
 
-	'groups:noaccess' => 'Нет доступа к группе',
 	'groups:cantcreate' => 'Вы не можете создать группу. Только админы могут.',
 	'groups:cantedit' => 'Вы не можете редактировать эту группу',
 	'groups:saved' => 'Сохранено',
 	'groups:save_error' => 'Группа не может быть сохранена',
 	'groups:featured' => 'Избранные группы',
-	'groups:makeunfeatured' => 'Убрать из избранного',
-	'groups:makefeatured' => 'Добавить в избранные',
 	'groups:featuredon' => '%s теперь рекомендуемая группа.',
 	'groups:unfeatured' => '%s удалена из рекомендуемых групп.',
 	'groups:featured_error' => 'Ошибка с группой.',
@@ -96,7 +91,6 @@ return array(
 
 	'groups:open' => "открытая группа",
 	'groups:closed' => "закрытая группа",
-	'groups:member' => "участников",
 	'groups:search' => "Поиск групп",
 
 	'groups:more' => 'Больше групп',
@@ -184,4 +178,8 @@ return array(
 	
 	'groups:usersettings:notifications:title' => 'Уведомления группы',
 	'groups:usersettings:notifications:description' => 'Чтобы получать уведомления, когда новый контент добавляется в группу, членом которой вы являетесь, найдите его ниже и выберите способ(ы) уведомления, который вы хотите использовать.',
+	
+	// accessibility
+	'groups:aria:label:group_search' => "Поиск групп",
+	'groups:aria:label:search_in_group' => "Поиск в группе",
 );

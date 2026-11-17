@@ -4,6 +4,7 @@ namespace Elgg;
 
 use Elgg\Exceptions\InvalidArgumentException;
 use Elgg\Exceptions\LogicException;
+use Elgg\Exceptions\RangeException;
 use Elgg\Filesystem\MimeTypeService;
 use Elgg\Traits\Loggable;
 use Imagine\Filter\Basic\Autorotate;
@@ -53,6 +54,8 @@ class ImageService {
 					$this->imagine = new \Imagine\Imagick\Imagine();
 					break;
 				}
+				
+				// fallback to GD if Imagick is not loaded
 			default:
 				// default use GD
 				$this->imagine = new \Imagine\Gd\Imagine();
@@ -91,11 +94,9 @@ class ImageService {
 	 *                            will be upscaled to fit the bounding box.
 	 * @return bool
 	 */
-	public function resize($source, $destination = null, array $params = []) {
+	public function resize(string $source, string $destination = null, array $params = []): bool {
 
-		if (!isset($destination)) {
-			$destination = $source;
-		}
+		$destination = $destination ?? $source;
 
 		try {
 			$resize_params = $this->normalizeResizeParameters($source, $params);
@@ -117,7 +118,12 @@ class ImageService {
 			}
 
 			$target_size = new Box($max_width, $max_height);
-			$thumbnail = $image->resize($target_size);
+			$image->resize($target_size);
+			
+			// create new canvas with a background (default: white)
+			$background_color = elgg_extract('background_color', $params, 'ffffff');
+			$thumbnail = $this->imagine->create($image->getSize(), $image->palette()->color($background_color));
+			$thumbnail->paste($image, new Point(0, 0));
 
 			if (pathinfo($destination, PATHINFO_EXTENSION) === 'webp') {
 				$options = [
@@ -184,9 +190,10 @@ class ImageService {
 	 *                       - 'x1', 'y1', 'x2', 'y2' cropping coordinates
 	 *
 	 * @return array
-	 * @throws LogicException
+	 * @throws InvalidArgumentException
+	 * @throws RangeException
 	 */
-	public function normalizeResizeParameters(string $source, array $params = []) {
+	public function normalizeResizeParameters(string $source, array $params = []): array {
 
 		$image = $this->imagine->open($source);
 
@@ -196,7 +203,7 @@ class ImageService {
 		$max_width = (int) elgg_extract('w', $params, 100, false);
 		$max_height = (int) elgg_extract('h', $params, 100, false);
 		if (!$max_height || !$max_width) {
-			throw new LogicException("Resize width and height parameters are required");
+			throw new InvalidArgumentException('Resize width and height parameters are required');
 		}
 
 		$square = elgg_extract('square', $params, false);
@@ -213,7 +220,7 @@ class ImageService {
 			$crop_width = $x2 - $x1;
 			$crop_height = $y2 - $y1;
 			if ($crop_width <= 0 || $crop_height <= 0 || $crop_width > $width || $crop_height > $height) {
-				throw new LogicException("Coordinates [$x1, $y1], [$x2, $y2] are invalid for image cropping");
+				throw new RangeException("Coordinates [$x1, $y1], [$x2, $y2] are invalid for image cropping");
 			}
 		} else {
 			// everything selected if no crop parameters
@@ -226,11 +233,13 @@ class ImageService {
 			// asking for a square image back
 			
 			// size of the new square image
-			$max_width = $max_height = min($max_width, $max_height);
-
+			$max_width = min($max_width, $max_height);
+			$max_height = $max_width;
+			
 			// find largest square that fits within the selected region
-			$crop_width = $crop_height = min($crop_width, $crop_height);
-
+			$crop_width = min($crop_width, $crop_height);
+			$crop_height = $crop_width;
+			
 			if (!$cropping_mode) {
 				// place square region in the center
 				$x1 = floor(($width - $crop_width) / 2);

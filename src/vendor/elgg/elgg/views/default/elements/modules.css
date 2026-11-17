@@ -61,7 +61,7 @@
 	background-color: #ffffff;
 	margin-bottom: 0;
 	padding: 0.5rem;
-	box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 	border-top: 1px solid $(border-color-soft);
 	
 	> .elgg-head {
@@ -114,18 +114,16 @@
 .elgg-page-menu {
 	border: none;
 	margin: 0;
+	
+	> .elgg-head {
+		padding: 1.5rem;
+	}
+	
+	> .elgg-body {
+		padding: 0;
+	}
 }
 
 .elgg-owner-block-empty {
 	margin-bottom: 2rem;
-}
-
-.elgg-owner-block > .elgg-head,
-.elgg-page-menu > .elgg-body {
-	padding: 1.5rem;
-}
-
-.elgg-owner-block > .elgg-body,
-.elgg-page-menu > .elgg-body {
-	padding: 0;
 }

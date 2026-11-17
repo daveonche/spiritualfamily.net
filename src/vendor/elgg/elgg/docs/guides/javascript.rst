@@ -74,10 +74,10 @@ the greeting:
 Passing settings to modules
 ---------------------------
 
-The ``elgg.data`` plugin hooks
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``elgg.data`` events
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``elgg`` module provides an object ``elgg.data`` which is populated from two server side hooks:
+The ``elgg`` module provides an object ``elgg.data`` which is populated from two server side events:
 
 - **elgg.data, site**: This filters an associative array of site-specific data passed to the client and cached.
 - **elgg.data, page**: This filters an associative array of uncached, page-specific data passed to the client.
@@ -88,8 +88,8 @@ Let's pass some data to a module:
 
     <?php
 
-    function myplugin_config_site(\Elgg\Hook $hook) {
-        $value = $hook->getValue();
+    function myplugin_config_site(\Elgg\Event $event) {
+        $value = $event->getValue();
     	
         // this will be cached client-side
         $value['myplugin']['api'] = elgg_get_site_url() . 'myplugin-api';
@@ -98,21 +98,21 @@ Let's pass some data to a module:
         return $value;
     }
 
-    function myplugin_config_page(\Elgg\Hook $hook) {
+    function myplugin_config_page(\Elgg\Event $event) {
         $user = elgg_get_logged_in_user_entity();
         if (!$user) {
         	return;
         }
         
-        $value = $hook->getValue();
+        $value = $event->getValue();
         
         $value['myplugin']['key'] = $user->myplugin_api_key;
         
         return $value;
     }
 
-    elgg_register_plugin_hook_handler('elgg.data', 'site', 'myplugin_config_site');
-    elgg_register_plugin_hook_handler('elgg.data', 'page', 'myplugin_config_page');
+    elgg_register_event_handler('elgg.data', 'site', 'myplugin_config_site');
+    elgg_register_event_handler('elgg.data', 'page', 'myplugin_config_page');
 
 .. code-block:: js
 
@@ -223,8 +223,6 @@ When this is requested client-side:
 Some things to note
 ^^^^^^^^^^^^^^^^^^^
 
-#. Do not use ``elgg.provide()`` anymore nor other means to attach code to ``elgg`` or other
-   global objects. Use modules.
 #. Return the value of the module instead of adding to a global variable.
 #. Static (.js,.css,etc.) files are automatically minified and cached by Elgg's simplecache system.
 #. The configuration is also cached in simplecache, and should not rely on user-specific values
@@ -271,29 +269,6 @@ Parse a URL into its component parts:
    elgg.parse_url('http://community.elgg.org/file.php?arg=val#fragment');
 
 
-``elgg.get_page_owner_guid()``
-
-Get the GUID of the current page's owner.
-
-
-``elgg.register_hook_handler()``
-
-Register a hook handler with the event system.
-
-``elgg.trigger_hook()``
-
-Emit a hook event in the event system.
-
-.. code-block:: js
-
-    value = elgg.trigger_hook('my_plugin:filter', 'value', {}, value);
-
-
-``elgg.get_logged_in_user_entity()``
-
-Returns the logged in user as an JS ElggUser object.
-
-
 ``elgg.get_logged_in_user_guid()``
 
 Returns the logged in user's guid.
@@ -309,11 +284,6 @@ True if the user is logged in.
 True if the user is logged in and is an admin.
 
 
-``elgg.config.get_language()``
-
-Get the current page's language.
-
-
 There are a number of configuration values set in the elgg object:
 
 .. code-block:: js
@@ -322,10 +292,6 @@ There are a number of configuration values set in the elgg object:
     elgg.config.wwwroot;
     // The default site language.
     elgg.config.language;
-    // The current page's viewtype
-    elgg.config.viewtype;
-    // The Elgg version (YYYYMMDDXX).
-    elgg.config.version;
     // The Elgg release (X.Y.Z).
     elgg.config.release;
 
@@ -333,6 +299,20 @@ Module ``elgg/Ajax``
 --------------------
 
 See the :doc:`ajax` page for details.
+
+Module ``elgg/hooks``
+-------------------------------
+
+The ``elgg/hooks`` module can be used to have plugins interact with eachother. 
+
+Translate interface text
+
+.. code-block:: js
+
+   define(['elgg/hooks'], function (hooks) {
+       hooks.register('my_plugin:filter', 'value', handler, priority);
+       
+       var result = hooks.trigger('my_plugin:filter', 'value', {}, 'default');
 
 Module ``elgg/i18n``
 -------------------------------
@@ -636,21 +616,27 @@ Traditional scripts
 ===================
 
 Although we highly recommend using AMD modules, and there is no Elgg API for loading the scripts, 
-you can register scripts in a hook handler to add elements to the head links;
+you can register scripts in a event handler to add elements to the head links;
 
 .. code-block:: php
 
-	elgg_register_plugin_hook_handler('head', 'page', $callback);
+	elgg_register_event_handler('head', 'page', $callback);
 
 Hooks
 =====
 
-The JS engine has a hooks system similar to the PHP engine's plugin hooks: hooks are triggered and plugins can register functions to react or alter information. There is no concept of Elgg events in the JS engine; everything in the JS engine is implemented as a hook.
+The JS engine has a hooks system similar to the PHP engine's events: hooks are triggered and plugins can register functions to react or alter information.
 
 Registering hook handlers
 -------------------------
 
-Handler functions are registered using ``elgg.register_hook_handler()``. Multiple handlers can be registered for the same hook.
+Handler functions are registered using ``hooks.register()``. Multiple handlers can be registered for the same hook.
+
+.. code-block:: js
+
+    define(['elgg/hooks'], function(hooks) {
+        hooks.register('name', 'type', {handler}, {priority});
+    });
 
 The handler function
 --------------------
@@ -671,8 +657,8 @@ Plugins can trigger their own hooks:
 
 .. code-block:: js
 
-    define(['elgg'], function(elgg) {
-        elgg.trigger_hook('name', 'type', {params}, "value");
+    define(['elgg/hooks'], function(hooks) {
+        hooks.trigger('name', 'type', {params}, "value");
     });
 
 Available hooks
@@ -699,9 +685,6 @@ Available hooks
 
 **ajax_response_data, \***
     This filters the response data returned to users of the ``elgg/Ajax`` module. See :doc:`ajax` for details.
-
-**insert, editor**
-    This hook is triggered by the embed plugin and can be used to filter content before it is inserted into the textarea. This hook can also be used by WYSIWYG editors to insert content using their own API (in this case the handler should return ``false``). See ckeditor plugin for an example.
 
 Third-party assets
 ==================

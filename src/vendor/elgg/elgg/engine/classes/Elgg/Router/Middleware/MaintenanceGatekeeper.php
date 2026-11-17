@@ -17,7 +17,7 @@ class MaintenanceGatekeeper {
 	 * @return \Elgg\Http\OkResponse|\Elgg\Http\ErrorResponse|void
 	 */
 	public function __invoke(Request $request) {
-		if ($request->elgg()->session->isAdminLoggedIn()) {
+		if ($request->elgg()->session_manager->isAdminLoggedIn()) {
 			return;
 		}
 		
@@ -25,12 +25,12 @@ class MaintenanceGatekeeper {
 			return;
 		}
 		
-		// check hook
+		// check event
 		if (self::allowCurrentUrl($request)) {
 			return;
 		}
 		
-		if (strpos($request->getRoute(), 'action:') === 0) {
+		if (str_starts_with($request->getRoute(), 'action:')) {
 			if ($this->isAllowedAction($request)) {
 				return;
 			}
@@ -57,18 +57,8 @@ class MaintenanceGatekeeper {
 		if ($route !== 'action:login') {
 			return false;
 		}
-		
-		$username = $request->getParam('username');
 
-		$user = get_user_by_username($username);
-
-		if (!$user) {
-			$users = get_user_by_email($username);
-			if (!empty($users)) {
-				$user = $users[0];
-			}
-		}
-
+		$user = elgg_get_user_by_username((string) $request->getParam('username'), true);
 		if ($user instanceof \ElggUser && $user->isAdmin()) {
 			return true;
 		}
@@ -87,7 +77,7 @@ class MaintenanceGatekeeper {
 		$current_url = $request->getURL();
 		$site_path = preg_replace('/^https?/', '', elgg_get_site_url());
 		$current_path = preg_replace('/^https?/', '', $current_url);
-		if (0 === elgg_strpos($current_path, $site_path)) {
+		if (elgg_strpos($current_path, $site_path) === 0) {
 			$current_path = ($current_path === $site_path) ? '' : elgg_substr($current_path, elgg_strlen($site_path));
 		} else {
 			$current_path = false;
@@ -100,6 +90,6 @@ class MaintenanceGatekeeper {
 			'current_url' => $current_url,
 		];
 		
-		return (bool) elgg_trigger_plugin_hook('maintenance:allow', 'url', $params, false);
+		return (bool) elgg_trigger_event_results('maintenance:allow', 'url', $params, false);
 	}
 }

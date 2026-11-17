@@ -54,7 +54,7 @@ class ElggUpgrade extends ElggObject {
 	 *
 	 * @return void
 	 */
-	public function setCompleted() {
+	public function setCompleted(): void {
 		$this->setStartTime(); // to make sure a start time is present
 		$this->setCompletedTime();
 		$this->is_completed = true;
@@ -67,7 +67,7 @@ class ElggUpgrade extends ElggObject {
 	 *
 	 * @return bool
 	 */
-	public function isCompleted() {
+	public function isCompleted(): bool {
 		return (bool) $this->is_completed;
 	}
 
@@ -77,7 +77,7 @@ class ElggUpgrade extends ElggObject {
 	 * @param string $id Upgrade id in format <plugin_name>:<yyymmddhh>
 	 * @return void
 	 */
-	public function setID($id) {
+	public function setID(string $id): void {
 		$this->id = $id;
 	}
 
@@ -87,7 +87,7 @@ class ElggUpgrade extends ElggObject {
 	 * @param string $class Fully qualified class name
 	 * @return void
 	 */
-	public function setClass($class) {
+	public function setClass(string $class): void {
 		$this->class = $class;
 	}
 
@@ -95,7 +95,7 @@ class ElggUpgrade extends ElggObject {
 	 * Check if the upgrade should be run asynchronously
 	 * @return bool
 	 */
-	public function isAsynchronous() {
+	public function isAsynchronous(): bool {
 		return !is_subclass_of($this->class, \Elgg\Upgrade\SystemUpgrade::class);
 	}
 
@@ -104,9 +104,9 @@ class ElggUpgrade extends ElggObject {
 	 *
 	 * @return Batch|false
 	 */
-	public function getBatch() {
+	public function getBatch(): Batch|false {
 		try {
-			$batch = _elgg_services()->upgradeLocator->getBatch($this->class);
+			$batch = _elgg_services()->upgradeLocator->getBatch($this->class, $this);
 		} catch (ElggInvalidArgumentException $ex) {
 			// only report error if the upgrade still needs to run
 			$loglevel = $this->isCompleted() ? 'INFO' : 'ERROR';
@@ -119,8 +119,8 @@ class ElggUpgrade extends ElggObject {
 		$version = $batch->getVersion();
 
 		// Version must be in format yyyymmddnn
-		if (preg_match("/^[0-9]{10}$/", $version) == 0) {
-			elgg_log("Upgrade $this->class returned an invalid version: $version");
+		if (preg_match('/^[0-9]{10}$/', $version) === 0) {
+			elgg_log("Upgrade {$this->class} returned an invalid version: {$version}");
 			return false;
 		}
 
@@ -132,23 +132,19 @@ class ElggUpgrade extends ElggObject {
 	 *
 	 * @param int $time Timestamp when upgrade finished. Defaults to now
 	 *
-	 * @return int
+	 * @return void
 	 */
-	public function setCompletedTime($time = null) {
-		if (!is_int($time)) {
-			$time = $this->getCurrentTime()->getTimestamp();
-		}
-
-		return $this->completed_time = $time;
+	public function setCompletedTime(int $time = null): void {
+		$this->completed_time = $time ?? $this->getCurrentTime()->getTimestamp();
 	}
 
 	/**
 	 * Gets the time when the upgrade completed.
 	 *
-	 * @return string
+	 * @return int
 	 */
-	public function getCompletedTime() {
-		return $this->completed_time;
+	public function getCompletedTime(): int {
+		return (int) $this->completed_time;
 	}
 	
 	/**
@@ -156,7 +152,7 @@ class ElggUpgrade extends ElggObject {
 	 *
 	 * @return void
 	 */
-	public function reset() {
+	public function reset(): void {
 		unset($this->is_completed);
 		unset($this->completed_time);
 		unset($this->processed);
@@ -170,18 +166,14 @@ class ElggUpgrade extends ElggObject {
 	 *
 	 * @param int $time Timestamp when upgrade started. Defaults to now
 	 *
-	 * @return int
+	 * @return void
 	 */
-	public function setStartTime($time = null) {
-		if (!is_int($time)) {
-			$time = $this->getCurrentTime()->getTimestamp();
-		}
-		
+	public function setStartTime(int $time = null): void {
 		if (isset($this->start_time)) {
-			return $this->start_time;
+			return;
 		}
 		
-		return $this->start_time = $time;
+		$this->start_time = $time ?? $this->getCurrentTime()->getTimestamp();
 	}
 	
 	/**
@@ -197,7 +189,7 @@ class ElggUpgrade extends ElggObject {
 	 * {@inheritDoc}
 	 * @throws \Elgg\Exceptions\UnexpectedValueException
 	 */
-	public function save() : bool {
+	public function save(): bool {
 		if (!isset($this->is_completed)) {
 			$this->is_completed = false;
 		}
@@ -212,54 +204,9 @@ class ElggUpgrade extends ElggObject {
 	}
 
 	/**
-	 * Set a value as private setting or attribute.
-	 *
-	 * Attributes include title and description.
-	 *
-	 * @param string $name  Name of the attribute or private_setting
-	 * @param mixed  $value Value to be set
-	 * @return void
-	 */
-	public function __set($name, $value) {
-		if (array_key_exists($name, $this->attributes)) {
-			parent::__set($name, $value);
-		} else {
-			$this->setPrivateSetting($name, $value);
-		}
-	}
-
-	/**
-	 * Get an attribute or private setting value
-	 *
-	 * @param string $name Name of the attribute or private setting
-	 * @return mixed
-	 */
-	public function __get($name) {
-		// See if its in our base attribute
-		if (array_key_exists($name, $this->attributes)) {
-			return parent::__get($name);
-		}
-
-		return $this->getPrivateSetting($name);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * @see ElggData::__isset()
-	 */
-	public function __isset($name) {
-		if (array_key_exists($name, $this->attributes)) {
-			return parent::__isset($name);
-		}
-		
-		$private_setting = $this->getPrivateSetting($name);
-		return !is_null($private_setting);
-	}
-
-	/**
 	 * {@inheritdoc}
 	 */
-	public function getDisplayName() {
+	public function getDisplayName(): string {
 		return elgg_echo($this->title);
 	}
 }

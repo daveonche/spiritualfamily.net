@@ -7,7 +7,7 @@ use Elgg\IntegrationTestCase;
 class CountPreloaderIntegrationTest extends IntegrationTestCase {
 
 	public function testPersistentInstance() {
-		$object = $this->createObject();
+		$object = $this->createObject(['subtype' => 'commentable']);
 		
 		$service = \Elgg\Comments\DataService::instance();
 		$service->setCommentsCount($object->guid, 5678);
@@ -20,11 +20,11 @@ class CountPreloaderIntegrationTest extends IntegrationTestCase {
 	
 	public function testListEntitiesPreloadsData() {
 		$guids = [
-			$this->createObject()->guid,
-			$this->createObject()->guid,
-			$this->createObject()->guid,
-			$this->createObject()->guid,
-			$this->createObject()->guid,
+			$this->createObject(['subtype' => 'commentable'])->guid,
+			$this->createObject(['subtype' => 'commentable'])->guid,
+			$this->createObject(['subtype' => 'commentable'])->guid,
+			$this->createObject(['subtype' => 'commentable'])->guid,
+			$this->createObject(['subtype' => 'commentable'])->guid,
 		];
 
 		// comments
@@ -38,11 +38,7 @@ class CountPreloaderIntegrationTest extends IntegrationTestCase {
 		
 		$service = \Elgg\Comments\DataService::instance();
 		
-		$reflector = new \ReflectionClass($service);
-		$property = $reflector->getProperty('counts');
-		$property->setAccessible(true);
-		
-		$counts = $property->getValue($service);
+		$counts = $this->getInaccessableProperty($service, 'counts');
 		
 		$this->assertEquals(0, $counts[$guids[0]]);
 		$this->assertEquals(2, $counts[$guids[1]]);

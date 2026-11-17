@@ -3,7 +3,7 @@
 namespace Elgg\Database;
 
 use Elgg\Database;
-use Elgg\Exceptions\InvalidArgumentException;
+use Elgg\Exceptions\RangeException;
 use Elgg\Traits\TimeUsing;
 
 /**
@@ -17,19 +17,16 @@ class HMACCacheTable {
 	use TimeUsing;
 	
 	/**
-	 * @var Database
+	 * @var string name of the hmac cache database table
 	 */
-	protected $database;
+	const TABLE_NAME = 'hmac_cache';
+	
+	protected Database $database;
 	
 	/**
 	 * @var int HMAC lifetime is 25 hours (this should be related to the time drift allowed in header validation)
 	 */
-	protected $ttl = 90000;
-	
-	/**
-	 * @var string Table being managed, DON'T CHANGE
-	 */
-	protected $table = 'hmac_cache';
+	protected int $ttl = 90000;
 	
 	/**
 	 * Create a new table handler
@@ -54,7 +51,7 @@ class HMACCacheTable {
 		
 		$expires = $this->getCurrentTime("-{$this->getTTL()} seconds");
 		
-		$delete = Delete::fromTable($this->table);
+		$delete = Delete::fromTable(self::TABLE_NAME);
 		$delete->where($delete->compare('ts', '<', $expires->getTimestamp(), ELGG_VALUE_TIMESTAMP));
 		
 		$this->database->deleteData($delete);
@@ -66,11 +63,11 @@ class HMACCacheTable {
 	 * @param int $ttl the max TTL of the HMAC keys in seconds (-1 is endless)
 	 *
 	 * @return void
-	 * @throws InvalidArgumentException
+	 * @throws RangeException
 	 */
-	public function setTTL(int $ttl = 0) {
+	public function setTTL(int $ttl = 0): void {
 		if ($ttl < -1) {
-			throw new InvalidArgumentException(__METHOD__ . ': TTL needs to be greater than or equal to -1');
+			throw new RangeException(__METHOD__ . ': TTL needs to be greater than or equal to -1');
 		}
 		
 		$this->ttl = $ttl;
@@ -81,7 +78,7 @@ class HMACCacheTable {
 	 *
 	 * @return int
 	 */
-	public function getTTL() : int {
+	public function getTTL(): int {
 		return $this->ttl;
 	}
 	
@@ -93,7 +90,7 @@ class HMACCacheTable {
 	 * @return int|false
 	 */
 	public function storeHMAC(string $hmac) {
-		$insert = Insert::intoTable($this->table);
+		$insert = Insert::intoTable(self::TABLE_NAME);
 		$insert->values([
 			'hmac' => $insert->param($hmac, ELGG_VALUE_STRING),
 			'ts' => $insert->param($this->getCurrentTime()->getTimestamp(), ELGG_VALUE_TIMESTAMP),
@@ -109,8 +106,8 @@ class HMACCacheTable {
 	 *
 	 * @return string|null
 	 */
-	public function loadHMAC(string $hmac) : ?string {
-		$select = Select::fromTable($this->table);
+	public function loadHMAC(string $hmac): ?string {
+		$select = Select::fromTable(self::TABLE_NAME);
 		$select->select('*');
 		$select->where($select->compare('hmac', '=', $hmac, ELGG_VALUE_STRING));
 		
@@ -130,7 +127,7 @@ class HMACCacheTable {
 	 * @return int
 	 */
 	public function deleteHMAC(string $hmac) : int {
-		$delete = Delete::fromTable($this->table);
+		$delete = Delete::fromTable(self::TABLE_NAME);
 		$delete->where($delete->compare('hmac', '=', $hmac, ELGG_VALUE_STRING));
 		
 		return $this->database->deleteData($delete);

@@ -28,12 +28,10 @@ return array(
 	'groups:invitations' => 'Ryhmäkutsut',
 	'groups:invitations:pending' => 'Ryhmäkutsut (%s)',
 
-	'groups:icon' => 'Ryhmän kuvake (jätä tyhjäksi, jos et halua vaihtaa)',
 	'groups:name' => 'Ryhmän nimi',
 	'groups:description' => 'Kuvaus',
 	'groups:briefdescription' => 'Lyhyt kuvaus',
 	'groups:interests' => 'Tagit',
-	'groups:website' => 'Nettisivu',
 	'groups:members' => 'Ryhmän jäsenet',
 
 	'groups:members:title' => 'Jäsenet ryhmässä: %s',
@@ -43,21 +41,17 @@ return array(
 	'groups:content_access_mode:warning' => "Varoitus: Asetuksen muuttaminen vaikuttaa vain uusiin sisältöihin.",
 	'groups:content_access_mode:unrestricted' => "Rajoittamaton - Näkyvyys riippuu kunkin sisällön omasta näkyvyystasosta",
 	'groups:content_access_mode:membersonly' => "Vain jäsenet - Ryhmän ulkopuoliset eivät pääse ollenkaan käsiksi sisältöihin",
-	'groups:access' => "Pääsyoikeudet",
 	'groups:owner' => "Omistaja",
 	'groups:owner:warning' => "Varoitus: Jos muutat tätä, luovut ryhmän omistajuudesta.",
 	'groups:widget:num_display' => 'Näytettävien ryhmien määrä',
 	'widgets:a_users_groups:name' => 'Ryhmien jäsenyys',
 	'widgets:a_users_groups:description' => 'Näytä profiilissasi ryhmät, joiden jäsenenä olet',
 
-	'groups:noaccess' => 'Sinulla ei ole oikeuksia tämän ryhmän näkemiseen',
 	'groups:cantcreate' => 'Vain sivuston ylläpitäjät voivat luoda uusia ryhmiä.',
 	'groups:cantedit' => 'Voit nyt muokata ryhmää',
 	'groups:saved' => 'Ryhmä tallennettu',
 	'groups:save_error' => 'Ryhmän tallentaminen epäonnistui',
 	'groups:featured' => 'Valikoidut ryhmät',
-	'groups:makeunfeatured' => 'Poista mainos',
-	'groups:makefeatured' => 'Mainosta ryhmää',
 	'groups:featuredon' => '%s on nyt mainostettu ryhmä.',
 	'groups:unfeatured' => '%s on poistettu mainostettavista ryhmistä.',
 	'groups:featured_error' => 'Virheellinen ryhmä.',
@@ -84,7 +78,6 @@ return array(
 
 	'groups:open' => "avoin ryhmä",
 	'groups:closed' => "suljettu ryhmä",
-	'groups:member' => "jäsentä",
 
 	'groups:more' => 'Lisää ryhmiä',
 	'groups:none' => 'Ei ryhmiä',
@@ -144,4 +137,6 @@ return array(
 	'groups:add:alreadymember' => "%s on jo tämän ryhmän jäsen",
 	
 	// Notification settings
+	
+	// accessibility
 );

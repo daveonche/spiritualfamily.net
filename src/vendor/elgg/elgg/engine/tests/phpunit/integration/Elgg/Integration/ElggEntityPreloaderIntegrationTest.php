@@ -5,9 +5,6 @@ namespace Elgg\Integration;
 use Elgg\EntityPreloader;
 use Elgg\Helpers\MockEntityPreloader20140623;
 
-/**
- * @group IntegrationTests
- */
 class ElggEntityPreloaderIntegrationTest extends \Elgg\IntegrationTestCase {
 
 	/**
@@ -27,7 +24,7 @@ class ElggEntityPreloaderIntegrationTest extends \Elgg\IntegrationTestCase {
 
 	public function up() {
 		$this->user = $this->createUser();
-		elgg()->session->setLoggedInUser($this->user);
+		elgg()->session_manager->setLoggedInUser($this->user);
 		
 		$this->realPreloader = _elgg_services()->entityPreloader;
 		$this->mockPreloader = new MockEntityPreloader20140623(_elgg_services()->entityTable);

@@ -1,10 +1,13 @@
 <?php
 
-elgg_push_breadcrumb(elgg_echo('groups'), elgg_generate_url('collection:group:group:all'));
+use Elgg\Exceptions\Http\EntityPermissionsException;
 
-elgg_require_js('elgg/groups/edit');
+$container = elgg_get_page_owner_entity();
+if (!$container->canWriteToContainer(0, 'group', 'group')) {
+	throw new EntityPermissionsException();
+}
 
-elgg_set_page_owner_guid(elgg_get_logged_in_user_guid());
+elgg_push_collection_breadcrumbs('group', 'group');
 
 echo elgg_view_page(elgg_echo('groups:add'), [
 	'content' => elgg_view('groups/edit'),

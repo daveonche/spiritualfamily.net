@@ -1,17 +1,13 @@
 <?php
 
-$guid = elgg_extract('guid', $vars);
-
 elgg_register_rss_link();
 
-elgg_entity_gatekeeper($guid, 'group');
-
-$group = get_entity($guid);
 /* @var $group ElggGroup */
+$group = elgg_get_page_owner_entity();
 
 elgg_push_context('group_profile');
 
-elgg_push_breadcrumb(elgg_echo('groups'), elgg_generate_url('collection:group:group:all'));
+elgg_push_entity_breadcrumbs($group);
 
 $sidebar = '';
 if ($group->canAccessContent()) {

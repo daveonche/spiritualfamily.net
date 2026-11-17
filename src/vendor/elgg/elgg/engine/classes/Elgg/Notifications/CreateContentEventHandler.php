@@ -13,7 +13,7 @@ class CreateContentEventHandler {
 	/**
 	 * Subscribe to content you just created in order to receive notifications
 	 *
-	 * @param \Elgg\Event $event 'create', 'object'|'group'
+	 * @param \Elgg\Event $event 'create:after', 'object'|'group'
 	 *
 	 * @return void
 	 */
@@ -26,6 +26,16 @@ class CreateContentEventHandler {
 		$owner = $entity->getOwnerEntity();
 		if (!$owner instanceof \ElggUser) {
 			return;
+		}
+		
+		if ($entity instanceof \ElggObject) {
+			$notification_events = _elgg_services()->notifications->getEvents();
+			if (!isset($notification_events[$entity->getType()]) || !isset($notification_events[$entity->getType()][$entity->getSubtype()])) {
+				// no notification events registered for this entity type/subtype
+				// so there is no need to subscribe
+				// this also prevents the database from flooding with relationships that are never used (e.g. subscriptions to site notifications)
+				return;
+			}
 		}
 		
 		$content_preferences = $owner->getNotificationSettings('content_create');

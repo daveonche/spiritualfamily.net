@@ -23,7 +23,7 @@ use Elgg\Project\Paths;
  * @return string
  * @since 1.8.0
  */
-function elgg_get_site_url() {
+function elgg_get_site_url(): string {
 	return _elgg_services()->config->wwwroot;
 }
 
@@ -33,7 +33,7 @@ function elgg_get_site_url() {
  * @return string
  * @since 1.8.0
  */
-function elgg_get_plugins_path() {
+function elgg_get_plugins_path(): string {
 	return _elgg_services()->plugins->getPath();
 }
 
@@ -43,7 +43,7 @@ function elgg_get_plugins_path() {
  * @return string
  * @since 1.8.0
  */
-function elgg_get_data_path() {
+function elgg_get_data_path(): string {
 	return _elgg_services()->config->dataroot;
 }
 
@@ -54,8 +54,8 @@ function elgg_get_data_path() {
  *
  * @return string
  */
-function elgg_get_cache_path() {
-	$path = _elgg_services()->config->cacheroot ? : elgg_get_data_path() . 'caches/';
+function elgg_get_cache_path(): string {
+	$path = _elgg_services()->config->cacheroot ?: elgg_get_data_path() . 'caches/';
 	return Paths::sanitize($path);
 }
 
@@ -66,8 +66,8 @@ function elgg_get_cache_path() {
  *
  * @return string
  */
-function elgg_get_asset_path() {
-	$path = _elgg_services()->config->assetroot ? : elgg_get_cache_path() . 'views_simplecache/';
+function elgg_get_asset_path(): string {
+	$path = _elgg_services()->config->assetroot ?: elgg_get_cache_path() . 'views_simplecache/';
 	return Paths::sanitize($path);
 }
 
@@ -81,7 +81,7 @@ function elgg_get_asset_path() {
  * @return string
  * @since 1.8.0
  */
-function elgg_get_root_path() {
+function elgg_get_root_path(): string {
 	return Paths::project();
 }
 
@@ -111,18 +111,19 @@ function elgg_get_release(): string {
 	if (!isset($release)) {
 		$composerJson = file_get_contents(\Elgg\Project\Paths::elgg() . 'composer.json');
 		if ($composerJson === false) {
-			throw new ElggException("Unable to read composer.json file!");
+			throw new ElggException('Unable to read composer.json file!');
 		}
 		
 		$composer = json_decode($composerJson);
 		if ($composer === null) {
-			throw new ElggException("JSON parse error while reading composer.json!");
+			throw new ElggException('JSON parse error while reading composer.json!');
 		}
 		
 		// Human-friendly version name
 		if (!isset($composer->version)) {
-			throw new ElggException("Version field must be set in composer.json!");
+			throw new ElggException('Version field must be set in composer.json!');
 		}
+		
 		$release = $composer->version;
 	}
 	
@@ -138,7 +139,7 @@ function elgg_get_release(): string {
  * @return mixed Configuration value or the default value if it does not exist
  * @since 1.8.0
  */
-function elgg_get_config($name, $default = null) {
+function elgg_get_config(string $name, $default = null) {
 	if (!_elgg_services()->config->hasValue($name)) {
 		elgg_log("Config value for '$name' is not set'", 'INFO');
 		return $default;
@@ -158,7 +159,7 @@ function elgg_get_config($name, $default = null) {
  * @return void
  * @since 1.8.0
  */
-function elgg_set_config($name, $value) {
+function elgg_set_config(string $name, $value): void {
 	_elgg_services()->config->$name = $value;
 }
 
@@ -171,7 +172,7 @@ function elgg_set_config($name, $value) {
  * @return bool
  * @since 1.8.0
  */
-function elgg_save_config($name, $value) {
+function elgg_save_config(string $name, $value): bool {
 	return _elgg_services()->config->save($name, $value);
 }
 
@@ -182,7 +183,7 @@ function elgg_save_config($name, $value) {
  *
  * @return bool Success or failure
  */
-function elgg_remove_config($name) {
+function elgg_remove_config(string $name): bool {
 	return _elgg_services()->config->remove($name);
 }
 
@@ -194,7 +195,7 @@ function elgg_remove_config($name) {
  * @param string $type           The name of the icon. e.g., 'icon', 'cover_photo'
  * @return array
  */
-function elgg_get_icon_sizes($entity_type = null, $entity_subtype = null, $type = 'icon') {
+function elgg_get_icon_sizes(string $entity_type = null, string $entity_subtype = null, $type = 'icon'): array {
 	return _elgg_services()->iconService->getSizes($entity_type, $entity_subtype, $type);
 }
 
@@ -205,11 +206,11 @@ function elgg_get_icon_sizes($entity_type = null, $entity_subtype = null, $type 
  * @return bool False means oldest first.
  * @since 3.0
  */
-function elgg_comments_are_latest_first(ElggEntity $container = null) {
+function elgg_comments_are_latest_first(\ElggEntity $container = null): bool {
 	$params = [
 		'entity' => $container,
 	];
-	return (bool) elgg_trigger_plugin_hook('config', 'comments_latest_first', $params, (bool) _elgg_services()->config->comments_latest_first);
+	return (bool) elgg_trigger_event_results('config', 'comments_latest_first', $params, (bool) _elgg_services()->config->comments_latest_first);
 }
 
 /**
@@ -219,9 +220,9 @@ function elgg_comments_are_latest_first(ElggEntity $container = null) {
  * @return int
  * @since 3.0
  */
-function elgg_comments_per_page(ElggEntity $container = null) {
+function elgg_comments_per_page(\ElggEntity $container = null): int {
 	$params = [
 		'entity' => $container,
 	];
-	return (int) elgg_trigger_plugin_hook('config', 'comments_per_page', $params, _elgg_services()->config->comments_per_page);
+	return (int) elgg_trigger_event_results('config', 'comments_per_page', $params, _elgg_services()->config->comments_per_page);
 }

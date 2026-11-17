@@ -22,9 +22,7 @@ use Elgg\Traits\Loggable;
  * @property int           $authentication_failures_limit           Number of allowed authentication failures
  * @property bool          $auto_disable_plugins					Are unbootable plugins automatically disabled
  * @property int           $batch_run_time_in_secs					Max time for a single upgrade loop
- * @property int           $bootdata_plugin_settings_limit			Max amount of plugin settings to determine if plugin will be cached
  * @property int           $boot_cache_ttl                          Time to live for boot cache in seconds
- * @property array         $breadcrumbs
  * @property string        $cacheroot            					Path of cache storage with trailing "/"
  * @property bool          $can_change_username						Is user allowed to change the username
  * @property bool          $class_loader_verify_file_existence		Determines if the class loader checks for file existence when loading files from the class map
@@ -52,7 +50,6 @@ use Elgg\Traits\Loggable;
  * @property int           $default_limit							The default "limit" used in listings and queries
  * @property bool          $disable_rss 							Is RSS disabled
  * @property bool          $elgg_maintenance_mode                   Flag if maintenance mode is enabled
- * @property-read string   $elgg_settings_file                      Location of the settings file used to initialize the config
  * @property bool          $email_html_part                         Determines if email has a html part
  * @property string        $email_html_part_images                  How to deal with images in html part of email
  * @property int           $email_subject_limit                     The length limit for email subjects, defaults to 998 as described in http://www.faqs.org/rfcs/rfc2822.html
@@ -61,7 +58,6 @@ use Elgg\Traits\Loggable;
  * @property string        $emailer_transport                       This is an override for Elgg's default email handling transport (default sendmail)
  * @property array         $emailer_sendmail_settings               This configures SendMail if $emailer_transport is set to "sendmail" or default
  * @property array         $emailer_smtp_settings                   This configures SMTP if $emailer_transport is set to "smtp"
- * @property mixed         $embed_tab
  * @property string        $exception_include						This is an optional script used to override Elgg's default handling of uncaught exceptions.
  * @property int           $friendly_time_number_of_days            Number of days after which timestamps will no longer be presented in a friendly format (x hours ago) but in a full date
  * @property string[]      $http_request_trusted_proxy_ips			When Elgg is behind a loadbalancer/proxy this can contain IP adresses to allow access to better client information
@@ -78,7 +74,7 @@ use Elgg\Traits\Loggable;
  * @property bool          $memcache
  * @property string        $memcache_namespace_prefix
  * @property array         $memcache_servers
- * @property array         $menus
+ * @property string        $mentions_display_format                 How should a mention be displayed
  * @property int           $min_password_length                     The minimal length of a password
  * @property int           $min_password_lower                      The minimal number of lower case characters in a password
  * @property int           $min_password_upper                      The minimal number of upper case characters in a password
@@ -99,6 +95,15 @@ use Elgg\Traits\Loggable;
  * @property bool          $remove_branding 						Is Elgg branding disabled
  * @property int           $remove_unvalidated_users_days			The number of days after which unvalidated users will be removed
  * @property bool          $require_admin_validation
+ * @property string        $security_txt_acknowledgments			Security.txt link to acknowledgments
+ * @property string        $security_txt_canonical					Security.txt canonical url
+ * @property string        $security_txt_contact					Security.txt contact information (mailto or https)
+ * @property string        $security_txt_csaf						Security.txt link to CSAF provider
+ * @property string        $security_txt_encryption					Security.txt link to encryption key for communication
+ * @property int           $security_txt_expires					Security.txt expiration date
+ * @property string        $security_txt_hiring						Security.txt link to hiring page
+ * @property string        $security_txt_language					Security.txt preferred communication language
+ * @property string        $security_txt_policy						Security.txt link to security reporting policy
  * @property bool          $security_disable_password_autocomplete
  * @property bool          $security_email_require_password
  * @property bool          $security_notify_admins
@@ -119,6 +124,7 @@ use Elgg\Traits\Loggable;
  * @property bool          $system_cache_loaded
  * @property bool          $testing_mode  							Is the current application running (PHPUnit) tests
  * @property string        $time_format  							Preferred PHP time format
+ * @property bool          $user_joined_river						Do we need to create a river event when a user joins the site
  * @property string        $view         							Default viewtype (usually not set)
  * @property bool          $walled_garden							Is current site in walled garden mode?
  * @property string        $who_can_change_language					Who can change the language of a user
@@ -162,27 +168,17 @@ class Config {
 		'assetroot',
 		'cacheroot',
 		'dataroot',
-		'elgg_settings_file',
 		'installed',
-		'path',
 		'plugins_path',
-		'pluginspath',
-		'site_guid',
-		'url',
 		'wwwroot',
 	];
 
 	/**
+	 * An array of deprecated config options in the format 'option' => '<version number when deprecated>'
+	 *
 	 * @var array
 	 */
 	protected $deprecated = [
-		'elgg_settings_file' => '4.3',
-		'path' => '4.3',
-		'pluginspath' => '4.3',
-		'site_guid' => '4.3',
-		'sitedescription' => '4.3',
-		'sitename' => '4.3',
-		'url' => '4.3',
 	];
 	
 	/**
@@ -197,7 +193,6 @@ class Config {
 		'auto_disable_plugins' => true,
 		'batch_run_time_in_secs' => 4,
 		'boot_cache_ttl' => 3600,
-		'bootdata_plugin_settings_limit' => 40,
 		'can_change_username' => false,
 		'class_loader_verify_file_existence' => true,
 		'comment_box_collapses' => true,
@@ -224,6 +219,7 @@ class Config {
 		'language' => 'en',
 		'language_detect_from_browser' => true,
 		'lastcache' => 0,
+		'mentions_display_format' => 'display_name',
 		'message_delay' => 6,
 		'min_password_length' => 6,
 		'minusername' => 4,
@@ -237,10 +233,10 @@ class Config {
 		'security_protect_upgrade' => true,
 		'session_bound_entity_icons' => false,
 		'simplecache_enabled' => false,
-		'site_guid' => 1, // deprecated
 		'subresource_integrity_enabled' => false,
 		'system_cache_enabled' => false,
 		'testing_mode' => false,
+		'user_joined_river' => false,
 		'webp_enabled' => true,
 		'who_can_change_language' => 'everyone',
 	];
@@ -312,42 +308,30 @@ class Config {
 	 * Build a config from default settings locations
 	 *
 	 * @param string $settings_path Path of settings file
-	 * @param bool   $try_env       If path not given, try $_ENV['ELGG_SETTINGS_FILE']
-	 * @return Config
 	 *
-	 * @throws ConfigurationException
+	 * @return Config
 	 */
-	public static function factory($settings_path = '', $try_env = true) {
-		$reason1 = '';
+	public static function factory(string $settings_path = ''): static {
+		$settings_path = self::resolvePath($settings_path);
 
-		$settings_path = self::resolvePath($settings_path, $try_env);
-
-		$config = self::fromFile($settings_path, $reason1);
-
-		if (!$config) {
-			throw new ConfigurationException(__METHOD__ . ": Reading configs failed: $reason1");
-		}
-
-		return $config;
+		return self::fromFile($settings_path);
 	}
 
 	/**
 	 * Build a config from a file
 	 *
-	 * @param string $path   Path of settings.php
-	 * @param string $reason Returned reason for failure
+	 * @param string $path Path of settings.php
 	 *
-	 * @return bool|Config false on failure
+	 * @return Config
+	 * @throws ConfigurationException
 	 */
-	public static function fromFile($path, &$reason = '') {
+	protected static function fromFile($path): static {
 		if (!is_file($path)) {
-			$reason = "File $path not present.";
-			return false;
+			throw new ConfigurationException(__METHOD__ . ": Reading configs failed: File {$path} not present.");
 		}
 
 		if (!is_readable($path)) {
-			$reason = "File $path not readable.";
-			return false;
+			throw new ConfigurationException(__METHOD__ . ": Reading configs failed: File {$path} not readable.");
 		}
 
 		// legacy loading. If $CONFIG doesn't exist, remove it after the
@@ -363,13 +347,11 @@ class Config {
 		Includer::requireFile($path);
 
 		if (empty($GLOBALS['CONFIG']->dataroot)) {
-			$reason = 'The Elgg settings file is missing $CONFIG->dataroot.';
-			return false;
+			throw new ConfigurationException(__METHOD__ . ': Reading configs failed: The Elgg settings file is missing $CONFIG->dataroot.');
 		}
 
 		if (empty($GLOBALS['CONFIG']->wwwroot)) {
-			$reason = 'The Elgg settings file is missing $CONFIG->wwwroot.';
-			return false;
+			throw new ConfigurationException(__METHOD__ . ': Reading configs failed: The Elgg settings file is missing $CONFIG->wwwroot.');
 		}
 
 		$config = new self(get_object_vars($GLOBALS['CONFIG']));
@@ -385,12 +367,11 @@ class Config {
 			$config->{'x_sendfile_type'} = $config->{'X-Sendfile-Type'};
 			unset($config->{'X-Sendfile-Type'});
 		}
+		
 		if ($config->{'X-Accel-Mapping'}) {
 			$config->{'x_accel_mapping'} = $config->{'X-Accel-Mapping'};
 			unset($config->{'X-Accel-Mapping'});
 		}
-
-		$config->elgg_settings_file = $path;
 
 		return $config;
 	}
@@ -399,33 +380,15 @@ class Config {
 	 * Resolve settings path
 	 *
 	 * @param string $settings_path Path of settings file
-	 * @param bool   $try_env       If path not given, try $_ENV['ELGG_SETTINGS_FILE']
+	 *
 	 * @return string
 	 */
-	public static function resolvePath($settings_path = '', $try_env = true) {
-		if (!$settings_path) {
-			if ($try_env && !empty($_ENV['ELGG_SETTINGS_FILE'])) {
-				$settings_path = $_ENV['ELGG_SETTINGS_FILE'];
-			} else if (!$settings_path) {
-				$settings_path = Paths::settingsFile(Paths::SETTINGS_PHP);
-			}
+	public static function resolvePath(string $settings_path = ''): string {
+		if (empty($settings_path)) {
+			$settings_path = Paths::settingsFile(Paths::SETTINGS_PHP);
 		}
 
 		return \Elgg\Project\Paths::sanitize($settings_path, false);
-	}
-
-	/**
-	 * Set an array of values
-	 *
-	 * @param array $values Values
-	 * @return void
-	 *
-	 * @deprecated 4.3
-	 */
-	public function mergeValues(array $values) {
-		foreach ($values as $name => $value) {
-			$this->__set($name, $value);
-		}
 	}
 
 	/**
@@ -433,7 +396,7 @@ class Config {
 	 *
 	 * @return array
 	 */
-	public function getValues() {
+	public function getValues(): array {
 		return $this->values;
 	}
 
@@ -442,7 +405,7 @@ class Config {
 	 *
 	 * @return array
 	 */
-	public function getCookieConfig() {
+	public function getCookieConfig(): array {
 		if ($this->cookies_configured) {
 			return $this->cookies;
 		}
@@ -456,6 +419,7 @@ class Config {
 		if (!isset($cookies['session'])) {
 			$cookies['session'] = [];
 		}
+		
 		$session_defaults = session_get_cookie_params();
 		$session_defaults['name'] = 'Elgg';
 		$cookies['session'] = array_merge($session_defaults, $cookies['session']);
@@ -464,8 +428,9 @@ class Config {
 		if (!isset($cookies['remember_me'])) {
 			$cookies['remember_me'] = [];
 		}
+		
 		$session_defaults['name'] = 'elggperm';
-		$session_defaults['expire'] = strtotime("+30 days");
+		$session_defaults['expire'] = strtotime('+30 days');
 		$cookies['remember_me'] = array_merge($session_defaults, $cookies['remember_me']);
 
 		$this->cookies = $cookies;
@@ -483,7 +448,7 @@ class Config {
 	 *
 	 * @return mixed null if does not exist
 	 */
-	public function __get($name) {
+	public function __get(string $name) {
 
 		if (array_key_exists($name, $this->deprecated)) {
 			elgg_deprecated_notice("Using '{$name}' from config has been deprecated", $this->deprecated[$name]);
@@ -503,7 +468,7 @@ class Config {
 	 *
 	 * @return bool
 	 */
-	public function hasValue($name) {
+	public function hasValue(string $name): bool {
 		return isset($this->values[$name]);
 	}
 
@@ -513,7 +478,7 @@ class Config {
 	 * @param string $name Name
 	 * @return mixed null = not set
 	 */
-	public function getInitialValue($name) {
+	public function getInitialValue(string $name) {
 		return $this->initial_values[$name] ?? null;
 	}
 
@@ -524,19 +489,8 @@ class Config {
 	 *
 	 * @return bool
 	 */
-	public function hasInitialValue($name) {
+	public function hasInitialValue(string $name): bool {
 		return isset($this->initial_values[$name]);
-	}
-
-	/**
-	 * Make a value read-only
-	 *
-	 * @param string $name Name
-	 * @return void
-	 * @deprecated 4.3
-	 */
-	public function lock($name) {
-		elgg_deprecated_notice(__METHOD__ . 'has been deprecated. It is no longer possible to lock config values.', '4.3');
 	}
 
 	/**
@@ -546,7 +500,7 @@ class Config {
 	 *
 	 * @return bool
 	 */
-	public function isLocked($name) {
+	public function isLocked(string $name): bool {
 		$testing = $this->values['testing_mode'] ?? false;
 		return !$testing && in_array($name, $this->locked_values) && $this->hasValue($name);
 	}
@@ -560,7 +514,7 @@ class Config {
 	 * @param mixed  $value Value
 	 * @return void
 	 */
-	public function __set($name, $value) {
+	public function __set(string $name, $value): void {
 		if ($this->wasWarnedLocked($name)) {
 			return;
 		}
@@ -578,7 +532,7 @@ class Config {
 	 * @param string $name Name
 	 * @return bool
 	 */
-	public function __isset($name) {
+	public function __isset(string $name): bool {
 		return $this->__get($name) !== null;
 	}
 
@@ -588,7 +542,7 @@ class Config {
 	 * @param string $name Name
 	 * @return void
 	 */
-	public function __unset($name) {
+	public function __unset(string $name): void {
 		if ($this->wasWarnedLocked($name)) {
 			return;
 		}
@@ -604,13 +558,13 @@ class Config {
 	 *
 	 * @return bool
 	 */
-	public function save($name, $value) {
+	public function save(string $name, $value): bool {
 		if ($this->wasWarnedLocked($name)) {
 			return false;
 		}
 
 		if (strlen($name) > 255) {
-			$this->getLogger()->error("The name length for configuration variables cannot be greater than 255");
+			$this->getLogger()->error('The name length for configuration variables cannot be greater than 255');
 			return false;
 		}
 
@@ -633,7 +587,7 @@ class Config {
 	 *
 	 * @return bool
 	 */
-	public function remove($name) {
+	public function remove(string $name): bool {
 		if ($this->wasWarnedLocked($name)) {
 			return false;
 		}
@@ -651,7 +605,7 @@ class Config {
 	 * @param string $name Name
 	 * @return bool
 	 */
-	protected function wasWarnedLocked($name): bool {
+	protected function wasWarnedLocked(string $name): bool {
 		if (!$this->isLocked($name)) {
 			return false;
 		}

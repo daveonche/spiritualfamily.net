@@ -189,6 +189,9 @@ class CacheHandler {
 			$this->simplecache->cacheAsset($viewtype, $view, $content);
 		} else {
 			// if wrong timestamp, don't send HTTP cache
+			// also report that the resource has gone away
+			$response->setStatusCode(ELGG_HTTP_GONE);
+			
 			$content = $this->getProcessedView($view, $viewtype);
 		}
 
@@ -204,7 +207,7 @@ class CacheHandler {
 	 */
 	public function parsePath($path) {
 		// no '..'
-		if (false !== strpos($path, '..')) {
+		if (str_contains($path, '..')) {
 			return [];
 		}
 
@@ -267,7 +270,7 @@ class CacheHandler {
 	 * @return void
 	 */
 	protected function setRevalidateHeaders($etag, Response $response) {
-		$response->headers->set('Cache-Control', "public, max-age=0, must-revalidate", true);
+		$response->headers->set('Cache-Control', 'public, max-age=0, must-revalidate', true);
 		$response->headers->set('ETag', $etag);
 	}
 
@@ -284,11 +287,13 @@ class CacheHandler {
 			return false;
 		}
 
-		// strip -gzip and leading /W
+		// strip leading W/
 		$if_none_match = trim($if_none_match);
-		if (0 === strpos($if_none_match, 'W/')) {
+		if (str_starts_with($if_none_match, 'W/')) {
 			$if_none_match = substr($if_none_match, 2);
 		}
+		
+		// strip -gzip
 		$if_none_match = str_replace('-gzip', '', $if_none_match);
 
 		return ($if_none_match === $etag);
@@ -348,14 +353,14 @@ class CacheHandler {
 			return false;
 		}
 
-		$hook_name = $this->simplecache_enabled ? 'simplecache:generate' : 'cache:generate';
-		$hook_type = $this->getViewFileType($view);
-		$hook_params = [
+		$name = $this->simplecache_enabled ? 'simplecache:generate' : 'cache:generate';
+		$type = $this->getViewFileType($view);
+		$params = [
 			'view' => $view,
 			'viewtype' => $viewtype,
 			'view_content' => $content,
 		];
-		return _elgg_services()->hooks->trigger($hook_name, $hook_type, $hook_params, $content);
+		return _elgg_services()->events->triggerResults($name, $type, $params, $content);
 	}
 
 	/**
@@ -370,7 +375,7 @@ class CacheHandler {
 		elgg_set_viewtype($viewtype);
 
 		$matches = [];
-		if ($viewtype === 'default' && preg_match("#^languages/(.*?)\\.js$#", $view, $matches)) {
+		if ($viewtype === 'default' && preg_match('#^languages/(.*?)\\.js$#', $view, $matches)) {
 			$view = 'languages.js';
 			$vars = ['language' => $matches[1]];
 		} else {

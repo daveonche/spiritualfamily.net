@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @group Plugins
- * @group ElggPlugin
- */
 class ElggPluginIntegrationTest extends \Elgg\IntegrationTestCase {
 
 	/**
@@ -80,7 +76,7 @@ class ElggPluginIntegrationTest extends \Elgg\IntegrationTestCase {
 		$plugin = ElggPlugin::fromId('test_plugin');
 
 		$admin = $this->getAdmin();
-		_elgg_services()->session->setLoggedInUser($admin);
+		_elgg_services()->session_manager->setLoggedInUser($admin);
 
 		$plugin->owner_guid = 2;
 		$plugin->container_guid = 2;
@@ -112,7 +108,7 @@ class ElggPluginIntegrationTest extends \Elgg\IntegrationTestCase {
 		
 		$this->assertEquals('test_plugin_edited', $plugin->getMetadata('title'));
 		$this->assertEquals('description', $plugin->getMetadata('description'));
-		$this->assertNull($plugin->getMetadata('foo'));
+		$this->assertEquals('bar', $plugin->getMetadata('foo'));
 
 		$this->assertNull($plugin->getSetting('title'));
 		$this->assertNull($plugin->getSetting('description'));

@@ -17,35 +17,17 @@ class Translator {
 
 	use Loggable;
 	
-	/**
-	 * @var Config
-	 */
-	private $config;
-	
-	/**
-	 * @var LocaleService
-	 */
-	private $locale;
+	protected Config $config;
 
-	/**
-	 * @var array
-	 */
-	private $translations = [];
+	protected LocaleService $locale;
 
-	/**
-	 * @var string
-	 */
-	private $defaultPath = null;
+	protected array $translations = [];
 
-	/**
-	 * @var string
-	 */
-	private $current_language = null;
+	protected string $defaultPath;
 
-	/**
-	 * @var array
-	 */
-	protected $allowed_languages = null;
+	protected ?string $current_language = null;
+
+	protected array $allowed_languages;
 
 	/**
 	 * Paths to scan for autoloading languages.
@@ -61,12 +43,9 @@ class Translator {
 	 *
 	 * @var array (paths are keys)
 	 */
-	private $language_paths = [];
+	protected array $language_paths = [];
 
-	/**
-	 * @var bool
-	 */
-	private $was_reloaded = false;
+	protected bool $was_reloaded = false;
 
 	/**
 	 * Constructor
@@ -78,7 +57,7 @@ class Translator {
 		$this->config = $config;
 		$this->locale = $locale;
 		
-		$this->defaultPath = dirname(dirname(dirname(dirname(__DIR__)))) . "/languages/";
+		$this->defaultPath = dirname(__DIR__, 4) . '/languages/';
 		
 		$this->registerLanguagePath($this->defaultPath);
 	}
@@ -88,7 +67,7 @@ class Translator {
 	 *
 	 * @return array
 	 */
-	public function getLoadedTranslations() {
+	public function getLoadedTranslations(): array {
 		return $this->translations;
 	}
 
@@ -100,20 +79,15 @@ class Translator {
 	 * @param string $language    Optionally, the standard language code
 	 *                            (defaults to site/user default, then English)
 	 *
-	 * @return string Either the translated string, the English string,
-	 * or the original language string.
+	 * @return string Either the translated string, the English string or the original language string.
 	 */
-	public function translate($message_key, array $args = [], $language = "") {
-		if (!is_string($message_key) || strlen($message_key) < 1) {
-			$this->getLogger()->warning('$message_key needs to be a string in ' . __METHOD__ . '(), ' . gettype($message_key) . ' provided');
+	public function translate(string $message_key, array $args = [], string $language = ''): string {
+		if (\Elgg\Values::isEmpty($message_key)) {
 			return '';
 		}
 
-		if (!$language) {
-			// no language provided, get current language
-			// based on detection, user setting or site
-			$language = $this->getCurrentLanguage();
-		}
+		// if no language provided, get current language based on detection, user setting or site
+		$language = $language ?: $this->getCurrentLanguage();
 
 		// build language array for different trys
 		// avoid dupes without overhead of array_unique
@@ -192,11 +166,10 @@ class Translator {
 	 *
 	 * @return bool Depending on success
 	 */
-	public function addTranslation($country_code, $language_array, $ensure_translations_loaded = true) {
-		$country_code = strtolower($country_code);
-		$country_code = trim($country_code);
+	public function addTranslation(string $country_code, array $language_array, bool $ensure_translations_loaded = true): bool {
+		$country_code = trim(strtolower($country_code));
 
-		if (!is_array($language_array) || empty($language_array) || $country_code === "") {
+		if (empty($language_array) || $country_code === '') {
 			return false;
 		}
 
@@ -216,16 +189,16 @@ class Translator {
 	}
 
 	/**
-	 * Get the current system/user language or "en".
+	 * Get the current system/user language or 'en'.
 	 *
-	 * @return string The language code for the site/user or "en" if not set
+	 * @return string
 	 */
-	public function getCurrentLanguage() {
+	public function getCurrentLanguage(): string {
 		if (!isset($this->current_language)) {
 			$this->current_language = $this->detectLanguage();
 		}
 
-		if (!$this->current_language) {
+		if (empty($this->current_language)) {
 			$this->current_language = 'en';
 		}
 
@@ -239,21 +212,21 @@ class Translator {
 	 *
 	 * @return void
 	 */
-	public function setCurrentLanguage($language = null) {
+	public function setCurrentLanguage(string $language = null): void {
 		$this->current_language = $language;
 	}
 
 	/**
 	 * Detect the current system/user language or false.
 	 *
-	 * @return false|string The language code (eg "en") or false if not set
+	 * @return string The language code (eg 'en')
 	 *
 	 * @internal
 	 */
-	public function detectLanguage() {
+	public function detectLanguage(): string {
 		// detect from URL
 		$url_lang = _elgg_services()->request->getParam('hl');
-		$user = _elgg_services()->session->getLoggedInUser();
+		$user = _elgg_services()->session_manager->getLoggedInUser();
 		
 		if (!empty($url_lang)) {
 			// store language for logged out users
@@ -262,6 +235,7 @@ class Translator {
 				$cookie->value = $url_lang;
 				elgg_set_cookie($cookie);
 			}
+			
 			return $url_lang;
 		}
 		
@@ -286,13 +260,8 @@ class Translator {
 			}
 		}
 		
-		// get site setting
-		$site_language = $this->config->language;
-		if (!empty($site_language)) {
-			return $site_language;
-		}
-
-		return false;
+		// get site setting or empty string if not set in config
+		return (string) $this->config->language;
 	}
 
 	/**
@@ -304,7 +273,7 @@ class Translator {
 	 *
 	 * @internal
 	 */
-	public function bootTranslations() {
+	public function bootTranslations(): void {
 		$languages = array_unique(['en', $this->getCurrentLanguage()]);
 		
 		foreach ($languages as $language) {
@@ -325,8 +294,7 @@ class Translator {
 	 *
 	 * @internal
 	 */
-	public function loadTranslations(string $language) {
-		
+	public function loadTranslations(string $language): void {
 		$data = elgg_load_system_cache("{$language}.lang");
 		if (is_array($data)) {
 			$this->addTranslation($language, $data, false);
@@ -353,7 +321,7 @@ class Translator {
 	 *
 	 * @internal
 	 */
-	public function registerTranslations(string $path, bool $load_all = false, string $language = null) {
+	public function registerTranslations(string $path, bool $load_all = false, string $language = null): bool {
 		$path = \Elgg\Project\Paths::sanitize($path);
 		
 		// don't need to register translations as the folder is missing
@@ -368,7 +336,7 @@ class Translator {
 		$this->getLogger()->info("Translations loaded from: {$path}");
 
 		if ($language) {
-			$load_language_files = ["$language.php"];
+			$load_language_files = ["{$language}.php"];
 			$load_all = false;
 		} else {
 			// Get the current language based on site defaults and user preference
@@ -376,29 +344,31 @@ class Translator {
 
 			$load_language_files = [
 				'en.php',
-				"$current_language.php"
+				"{$current_language}.php"
 			];
 
 			$load_language_files = array_unique($load_language_files);
 		}
 
-		$return = true;
-		if ($handle = opendir($path)) {
-			while (false !== ($language_file = readdir($handle))) {
-				// ignore bad files
-				if (substr($language_file, 0, 1) == '.' || substr($language_file, -4) !== '.php') {
-					continue;
-				}
-
-				if (in_array($language_file, $load_language_files) || $load_all) {
-					$return = $return && $this->includeLanguageFile($path . $language_file);
-				}
-			}
-			closedir($handle);
-		} else {
+		$handle = opendir($path);
+		if (empty($handle)) {
 			$this->getLogger()->error("Could not open language path: {$path}");
-			$return = false;
+			return false;
 		}
+		
+		$return = true;
+		while (($language_file = readdir($handle)) !== false) {
+			// ignore bad files
+			if (str_starts_with($language_file, '.') || !str_ends_with($language_file, '.php')) {
+				continue;
+			}
+
+			if (in_array($language_file, $load_language_files) || $load_all) {
+				$return = $return && $this->includeLanguageFile($path . $language_file);
+			}
+		}
+		
+		closedir($handle);
 
 		return $return;
 	}
@@ -411,7 +381,7 @@ class Translator {
 	 *
 	 * @internal
 	 */
-	protected function includeLanguageFile(string $path) {
+	protected function includeLanguageFile(string $path): bool {
 		$result = Includer::includeFile($path);
 		
 		if (is_array($result)) {
@@ -433,7 +403,7 @@ class Translator {
 	 *
 	 * @internal
 	 */
-	public function reloadAllTranslations() {
+	public function reloadAllTranslations(): void {
 		if ($this->was_reloaded) {
 			return;
 		}
@@ -457,7 +427,7 @@ class Translator {
 	 *
 	 * @return array
 	 */
-	public function getInstalledTranslations(bool $calculate_completeness = false) {
+	public function getInstalledTranslations(bool $calculate_completeness = false): array {
 		if ($calculate_completeness) {
 			// Ensure that all possible translations are loaded
 			$this->reloadAllTranslations();
@@ -475,7 +445,7 @@ class Translator {
 			
 			if (($language !== 'en') && $calculate_completeness) {
 				$completeness = $this->getLanguageCompleteness($language);
-				$value .= " (" . $completeness . "% " . $this->translate('complete') . ")";
+				$value .= ' (' . $completeness . '% ' . $this->translate('complete') . ')';
 			}
 			
 			$result[$language] = $value;
@@ -493,9 +463,8 @@ class Translator {
 	 *
 	 * @return float
 	 */
-	public function getLanguageCompleteness($language) {
-
-		if ($language == 'en') {
+	public function getLanguageCompleteness(string $language): float {
+		if ($language === 'en') {
 			return (float) 100;
 		}
 
@@ -504,12 +473,7 @@ class Translator {
 
 		$en = count($this->translations['en']);
 
-		$missing = $this->getMissingLanguageKeys($language);
-		if ($missing) {
-			$missing = count($missing);
-		} else {
-			$missing = 0;
-		}
+		$missing = count($this->getMissingLanguageKeys($language));
 
 		$lang = $en - $missing;
 
@@ -522,29 +486,23 @@ class Translator {
 	 *
 	 * @param string $language The language
 	 *
-	 * @return mixed
+	 * @return array
 	 *
 	 * @internal
 	 */
-	public function getMissingLanguageKeys(string $language) {
-
+	public function getMissingLanguageKeys(string $language): array {
 		// Ensure that all possible translations are loaded
 		$this->reloadAllTranslations();
 
 		$missing = [];
 
 		foreach ($this->translations['en'] as $k => $v) {
-			if ((!isset($this->translations[$language][$k]))
-				|| ($this->translations[$language][$k] == $this->translations['en'][$k])) {
+			if (!isset($this->translations[$language][$k]) || ($this->translations[$language][$k] === $this->translations['en'][$k])) {
 				$missing[] = $k;
 			}
 		}
 
-		if (count($missing)) {
-			return $missing;
-		}
-
-		return false;
+		return $missing;
 	}
 
 	/**
@@ -556,8 +514,8 @@ class Translator {
 	 * @return bool
 	 * @since 1.11
 	 */
-	public function languageKeyExists($key, $language = 'en') {
-		if (empty($key)) {
+	public function languageKeyExists(string $key, string $language = 'en'): bool {
+		if (\Elgg\Values::isEmpty($key)) {
 			return false;
 		}
 
@@ -571,12 +529,12 @@ class Translator {
 	}
 	
 	/**
-	 * Returns an array of all available language keys. Triggers a hook to allow plugins to add/remove languages
+	 * Returns an array of all available language keys. Triggers an event to allow plugins to add/remove languages
 	 *
 	 * @return array
 	 * @since 3.0
 	 */
-	public function getAvailableLanguages() {
+	public function getAvailableLanguages(): array {
 		$languages = [];
 		
 		$allowed_languages = $this->locale->getLanguageCodes();
@@ -605,10 +563,8 @@ class Translator {
 				$languages[$language] = true;
 			}
 		}
-		
-		$languages = array_keys($languages);
-				
-		return _elgg_services()->hooks->trigger('languages', 'translations', [], $languages);
+						
+		return _elgg_services()->events->triggerResults('languages', 'translations', [], array_keys($languages));
 	}
 	
 	/**
@@ -617,7 +573,7 @@ class Translator {
 	 * @return string[]
 	 * @since 3.3
 	 */
-	public function getAllowedLanguages() {
+	public function getAllowedLanguages(): array {
 		if (isset($this->allowed_languages)) {
 			return $this->allowed_languages;
 		}
@@ -634,6 +590,7 @@ class Translator {
 			// site language is always allowed
 			$allowed_languages[] = $this->config->language;
 		}
+		
 		if (!in_array('en', $allowed_languages)) {
 			// 'en' language is always allowed
 			$allowed_languages[] = 'en';
@@ -653,7 +610,7 @@ class Translator {
 	 *
 	 * @internal
 	 */
-	public function registerLanguagePath(string $path) {
+	public function registerLanguagePath(string $path): void {
 		if (isset($this->language_paths[$path])) {
 			return;
 		}
@@ -672,7 +629,7 @@ class Translator {
 	 *
 	 * @internal
 	 */
-	public function getLanguagePaths() {
+	public function getLanguagePaths(): array {
 		return array_keys($this->language_paths);
 	}
 
@@ -683,7 +640,7 @@ class Translator {
 	 *
 	 * @return void
 	 */
-	protected function ensureTranslationsLoaded(string $language) {
+	protected function ensureTranslationsLoaded(string $language): void {
 		if (isset($this->translations[$language])) {
 			return;
 		}

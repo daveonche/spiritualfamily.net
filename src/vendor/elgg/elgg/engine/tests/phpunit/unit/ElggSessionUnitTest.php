@@ -3,9 +3,6 @@
 /**
  * Many methods for \ElggSession pass through to the storage class so we
  * don't test them here.
- *
- * @group Session
- * @group UnitTests
  */
 class ElggSessionUnitTest extends \Elgg\UnitTestCase {
 
@@ -39,78 +36,5 @@ class ElggSessionUnitTest extends \Elgg\UnitTestCase {
 		$this->assertTrue($session->has('foo'));
 		$this->assertNotEquals($id, $session->getID());
 		$this->assertTrue($session->has('__elgg_session'));
-	}
-
-	public function testCanSetLoggedInUser() {
-
-		$user = $this->createUser();
-
-		$session = \ElggSession::getMock();
-
-		$session->setLoggedInUser($user);
-
-		$this->assertEquals($user, $session->getLoggedInUser());
-		$this->assertEquals($user->guid, $session->getLoggedInUserGuid());
-
-		$session->removeLoggedInUser();
-
-		$this->assertNull($session->getLoggedInUser());
-	}
-	
-	public function testSetLoggedInUserChangesSessionID() {
-		$user = $this->createUser();
-		
-		$session = \ElggSession::getMock();
-		
-		$session->start();
-		$session_id = $session->getID();
-		
-		$session->setLoggedInUser($user, true);
-		
-		$this->assertNotEquals($session_id, $session->getID());
-	}
-	
-	public function testSetLoggedInUserDoesntChangesSessionID() {
-		$user = $this->createUser();
-		
-		$session = \ElggSession::getMock();
-		
-		$session->start();
-		$session_id = $session->getID();
-		
-		$session->setLoggedInUser($user, false);
-		
-		$this->assertEquals($session_id, $session->getID());
-	}
-
-	public function testUserTokenValidation() {
-		$user = $this->createUser();
-		$session = \ElggSession::getMock();
-		
-		$session->setUserToken($user);
-		$session->validateUserToken($user);
-		
-		// change the user password
-		$user->setPassword('some new password');
-		
-		// token isn't valid anymore
-		$this->expectException(\Elgg\Exceptions\SecurityException::class);
-		$session->validateUserToken($user);
-	}
-	
-	public function testUserTokenValidationLoggedIn() {
-		$user = $this->createUser();
-		$session = _elgg_services()->session;
-		
-		$session->setLoggedInUser($user);
-		$session->setUserToken();
-		
-		$session->validateUserToken($user);
-		
-		// change the user password
-		$user->setPassword('some new password');
-		
-		// session should remain valid
-		$session->validateUserToken($user);
 	}
 }

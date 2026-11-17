@@ -2,12 +2,10 @@
 
 namespace Elgg\Cache;
 
-use ElggCache;
 use Elgg\Database\Clauses\GroupByClause;
 use Elgg\Database\Clauses\OrderByClause;
 use Elgg\Exceptions\DataFormatException;
 use Elgg\Values;
-use ElggMetadata;
 
 /**
  * In memory cache of known metadata values stored by entity.
@@ -17,16 +15,16 @@ use ElggMetadata;
 class MetadataCache {
 
 	/**
-	 * @var ElggCache
+	 * @var BaseCache
 	 */
 	protected $cache;
 
 	/**
 	 * Constructor
 	 *
-	 * @param ElggCache $cache Cache
+	 * @param BaseCache $cache Cache
 	 */
-	public function __construct(ElggCache $cache) {
+	public function __construct(BaseCache $cache) {
 		$this->cache = $cache;
 	}
 
@@ -45,10 +43,10 @@ class MetadataCache {
 	public function inject($entity_guid, array $values = []) {
 		$metadata = [];
 		foreach ($values as $key => $value) {
-			if ($value instanceof ElggMetadata) {
+			if ($value instanceof \ElggMetadata) {
 				$md = $value;
 			} else {
-				$md = new ElggMetadata();
+				$md = new \ElggMetadata();
 				$md->name = $key;
 				$md->value = $value;
 				$md->entity_guid = $entity_guid;
@@ -117,7 +115,6 @@ class MetadataCache {
 		}
 
 		return count($values) > 1 ? $values : $values[0];
-
 	}
 
 	/**
@@ -282,7 +279,6 @@ class MetadataCache {
 	 * @return array
 	 */
 	public function filterMetadataHeavyEntities(array $guids, $limit = 1024000) {
-
 		$guids = _elgg_services()->metadataTable->getAll([
 			'guids' => $guids,
 			'limit' => false,
@@ -302,6 +298,6 @@ class MetadataCache {
 			]
 		]);
 
-		return $guids ? : [];
+		return $guids ?: [];
 	}
 }

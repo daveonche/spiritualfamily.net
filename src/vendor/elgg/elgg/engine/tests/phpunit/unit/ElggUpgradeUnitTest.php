@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @group UpgradeService
- * @group UnitTests
- */
 class ElggUpgradeUnitTest extends \Elgg\UnitTestCase {
 
 	/**
@@ -15,19 +11,10 @@ class ElggUpgradeUnitTest extends \Elgg\UnitTestCase {
 		$this->obj = $this->getMockBuilder('\ElggUpgrade')
 			->setMethods(null)
 			->getMock();
-
 	}
 
 	public function mock_egefps_with_entities() {
 		return array(new \stdClass());
-	}
-
-	public function mock_egefps_for_path($options) {
-		if ($options['private_setting_value'] === 'test') {
-			return array(new \stdClass());
-		} else {
-			return array();
-		}
 	}
 
 	public function testDefaultAttrs() {
@@ -108,16 +95,16 @@ class ElggUpgradeUnitTest extends \Elgg\UnitTestCase {
 	public function testSetStarttime() {
 		$upgrade = new ElggUpgrade();
 		
-		$started = $upgrade->setStartTime();
+		$upgrade->setStartTime();
 		
+		$started = $upgrade->getStartTime();
 		$this->assertNotEmpty($started);
-		$this->assertEquals($started, $upgrade->getStartTime());
 		$this->assertEquals($started, $upgrade->start_time);
 		
 		// try to override the start time, this is not allowed
-		$override = $upgrade->setStartTime($started + 3600);
+		$upgrade->setStartTime($started + 3600);
+		$override = $upgrade->getStartTime();
 		$this->assertEquals($started, $override);
-		$this->assertEquals($started, $upgrade->getStartTime());
 		$this->assertEquals($started, $upgrade->start_time);
 	}
 	

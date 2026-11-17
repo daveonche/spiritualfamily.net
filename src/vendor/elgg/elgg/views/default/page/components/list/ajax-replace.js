@@ -20,7 +20,7 @@ define(['jquery', 'elgg/Ajax', 'elgg/system_messages'], function ($, Ajax, syste
 			success: function(result) {
 				var id_selector = '#' + $target.attr('id');
 
-				$new_html = $(result).find(id_selector).addBack(id_selector);
+				var $new_html = $(result).find(id_selector).addBack(id_selector);
 				if ($new_html.length) {
 					// update history
 					window.history.pushState('', '', href);
@@ -32,9 +32,7 @@ define(['jquery', 'elgg/Ajax', 'elgg/system_messages'], function ($, Ajax, syste
 					$target_list.trigger('change');
 					
 					// scroll to top of new content
-					$('html, body').animate({
-						scrollTop: $(id_selector).offset().top
-					}, 500);
+					$(id_selector)[0].scrollIntoView({behavior: 'smooth'});
 				} else {
 					require(['elgg/i18n'], function(i18n) {
 						system_messages.error(i18n.echo('ajax:pagination:no_data'));

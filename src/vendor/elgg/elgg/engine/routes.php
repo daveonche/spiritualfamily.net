@@ -32,18 +32,6 @@ return [
 			\Elgg\Router\Middleware\RegistrationAllowedGatekeeper::class,
 		],
 	],
-	'action:register' => [
-		// this action is registered here because of the additional middleware
-		'path' => '/action/register',
-		'file' => dirname(__DIR__) . '/actions/register.php',
-		'middleware' => [
-			\Elgg\Router\Middleware\CsrfFirewall::class,
-			\Elgg\Router\Middleware\LoggedOutGatekeeper::class,
-			\Elgg\Router\Middleware\ActionMiddleware::class,
-			\Elgg\Router\Middleware\RegistrationAllowedGatekeeper::class,
-		],
-		'walled' => false,
-	],
 	'account:login' => [
 		'path' => '/login',
 		'resource' => 'account/login',
@@ -128,14 +116,6 @@ return [
 			\Elgg\Router\Middleware\AdminGatekeeper::class,
 		],
 	],
-	'admin_plugins_refresh' => [
-		'path' => '/admin_plugins_refresh',
-		'controller' => \Elgg\Controllers\AdminPluginsRefresh::class,
-		'middleware' => [
-			\Elgg\Router\Middleware\AdminGatekeeper::class,
-			\Elgg\Router\Middleware\AjaxGatekeeper::class,
-		],
-	],
 	'admin_plugin_text_file' => [
 		'path' => '/admin_plugin_text_file/{plugin_id}/{filename}',
 		'resource' => 'admin/plugin_text_file',
@@ -169,6 +149,11 @@ return [
 		'requirements' => [
 			'match_on' => '\w+',
 		],
+	],
+	'security.txt' => [
+		'path' => '/security.txt',
+		'controller' => \Elgg\Controllers\SecurityTxt::class,
+		'walled' => false,
 	],
 	'settings:index' => [
 		'path' => '/settings',
@@ -224,7 +209,6 @@ return [
 		'middleware' => [
 			\Elgg\Router\Middleware\Gatekeeper::class,
 		],
-		'legacy_page_owner_detection' => false, // prevents notices about legacy logic, page owner is explicitely set in the resource
 	],
 	'view:object:comment' => [
 		'path' => '/comment/view/{guid}/{container_guid?}',
@@ -236,6 +220,7 @@ return [
 		'middleware' => [
 			\Elgg\Router\Middleware\Gatekeeper::class,
 		],
+		'deprecated' => '5.1',
 	],
 	'view:user' => [
 		'path' => '/user/{guid}',

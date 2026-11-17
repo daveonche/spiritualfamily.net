@@ -1,15 +1,24 @@
 define(['jquery', 'elgg', 'sprintf'], function ($, elgg, sprintf) {
 
+	var translations_data = [];
+	
 	return {
+		/**
+		 * Helper function to reset all registered translations. Mainly used for testing purposes.
+		 */
+		reset: function() {
+			translations_data = [];
+		},
+		
 		/**
 		 * Initializes a language.
 		 *
-		 * @param {String} lang The language key (defaults to the current language)
+		 * @param {String} language The language key (defaults to the current language)
 		 */
-		initLanguage: function(lang) {
-			language = lang || elgg.config.current_language;
+		initLanguage: function(language) {
+			language = language || elgg.config.current_language;
 
-			if (typeof elgg.config.translations[language] !== 'undefined') {
+			if (typeof translations_data[language] !== 'undefined') {
 				// only init a language once
 				return;
 			}
@@ -19,24 +28,24 @@ define(['jquery', 'elgg', 'sprintf'], function ($, elgg, sprintf) {
 				dataType: 'json',
 				async: false,
 				success: function(translations) {
-					elgg.config.translations[language] = translations;
+					translations_data[language] = translations;
 				}
 			});
 		},
 		
 		/**
-		 * Analagous to the php version. Merges translations for a
+		 * Analogous to the php version. Merges translations for a
 		 * given language into the current translations map.
 		 *
 		 * @param {String} lang         The language key
 		 * @param {Array}  translations Array of translations
 		 */
 		addTranslation: function(lang, translations) {
-			if (typeof elgg.config.translations[lang] === 'undefined') {
-				elgg.config.translations[lang] = {};
+			if (typeof translations_data[lang] === 'undefined') {
+				translations_data[lang] = {};
 			}
 				
-			$.extend(elgg.config.translations[lang], translations);
+			$.extend(translations_data[lang], translations);
 		},
 
 		/**
@@ -58,14 +67,12 @@ define(['jquery', 'elgg', 'sprintf'], function ($, elgg, sprintf) {
 			this.initLanguage(language);
 			
 			//echo('str', [...], 'en')
-			var translations = elgg.config.translations,
-				dlang = elgg.config.current_language,
-				map;
+			var dlang = elgg.config.current_language;
 		
 			language = language || dlang;
 			argv = argv || [];
 		
-			map = translations[language] || translations[dlang];
+			var map = translations_data[language] || translations_data[dlang];
 			if (map && (typeof map[key] === 'string')) {
 				return sprintf.vsprintf(map[key], argv);
 			}

@@ -4,23 +4,20 @@ namespace Elgg\Integration;
 
 use Elgg\IntegrationTestCase;
 
-/**
- * @group EntityClasses
- */
 class ElggEntityClassResolutionTest extends IntegrationTestCase {
 
 	/**
 	 * @inheritdoc
 	 */
 	public function up() {
-		_elgg_services()->hooks->backup();
+		_elgg_services()->events->backup();
 	}
 
 	/**
 	 * @inheritdoc
 	 */
 	public function down() {
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 	}
 	
 	/**

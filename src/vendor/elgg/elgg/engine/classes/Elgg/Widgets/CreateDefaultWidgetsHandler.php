@@ -10,7 +10,7 @@ namespace Elgg\Widgets;
 class CreateDefaultWidgetsHandler {
 	
 	/**
-	 * This plugin hook handler is registered for events based on what kinds of
+	 * This event handler is registered for events based on what kinds of
 	 * default widgets have been registered. See elgg_default_widgets_init() for
 	 * information on registering new default widget contexts.
 	 *
@@ -24,6 +24,7 @@ class CreateDefaultWidgetsHandler {
 		if (isset($processed_events["{$event->getName()}.{$event->getType()}"])) {
 			return;
 		}
+		
 		// only create default widgets once per event
 		$processed_events["{$event->getName()}.{$event->getType()}"] = true;
 		
@@ -32,7 +33,7 @@ class CreateDefaultWidgetsHandler {
 			return;
 		}
 		
-		$default_widget_info = elgg_trigger_plugin_hook('get_list', 'default_widgets', null, []);
+		$default_widget_info = elgg_trigger_event_results('get_list', 'default_widgets', [], []);
 		if (empty($default_widget_info)) {
 			return;
 		}
@@ -72,8 +73,8 @@ class CreateDefaultWidgetsHandler {
 					'type' => 'object',
 					'subtype' => 'widget',
 					'owner_guid' => $entity->guid,
-					'private_setting_name' => 'context',
-					'private_setting_value' => $widget_context,
+					'metadata_name' => 'context',
+					'metadata_value' => $widget_context,
 				])) {
 					return;
 				}
@@ -84,8 +85,8 @@ class CreateDefaultWidgetsHandler {
 					'type' => 'object',
 					'subtype' => 'widget',
 					'owner_guid' => elgg_get_site_entity()->guid,
-					'private_setting_name' => 'context',
-					'private_setting_value' => $widget_context,
+					'metadata_name' => 'context',
+					'metadata_value' => $widget_context,
 					'limit' => false,
 					'batch' => true,
 				]);
@@ -96,14 +97,7 @@ class CreateDefaultWidgetsHandler {
 					$new_widget = clone $widget;
 					$new_widget->container_guid = $entity->guid;
 					$new_widget->owner_guid = $entity->guid;
-		
-					// pull in settings
-					$settings = $widget->getAllPrivateSettings();
-		
-					foreach ($settings as $name => $value) {
-						$new_widget->$name = $value;
-					}
-		
+			
 					$new_widget->save();
 				}
 			});

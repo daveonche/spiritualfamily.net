@@ -16,6 +16,7 @@ return array(
 	'edit:object:blog' => 'Edit blog post',
 	'notification:object:blog:publish' => "Send a notification when a blog is published",
 	'notifications:mute:object:blog' => "about the blog '%s'",
+	'menu:blog_archive:header' => "Blog archive",
 
 	'blog:revisions' => 'Revisions',
 	'blog:archives' => 'Archives',
@@ -29,14 +30,11 @@ return array(
 	'blog:save_status' => 'Last saved: ',
 
 	'blog:revision' => 'Revision',
-	'blog:auto_saved_revision' => 'Auto Saved Revision',
-
+	
 	// messages
 	'blog:message:saved' => 'Blog post saved.',
 	'blog:error:cannot_save' => 'Cannot save blog post.',
-	'blog:error:cannot_auto_save' => 'Cannot automatically save blog post.',
 	'blog:error:cannot_write_to_container' => 'Insufficient access to save blog to group.',
-	'blog:messages:warning:draft' => 'There is an unsaved draft of this post!',
 	'blog:edit_revision_notice' => '(Old version)',
 	'blog:none' => 'No blog posts',
 	'blog:error:missing:title' => 'Please enter a blog title!',
@@ -57,6 +55,8 @@ return array(
 
 View and comment on the blog post:
 %s',
+	
+	'notification:mentions:object:blog:subject' => '%s mentioned you in a blog post',
 
 	// widget
 	'widgets:blog:name' => 'Blog posts',

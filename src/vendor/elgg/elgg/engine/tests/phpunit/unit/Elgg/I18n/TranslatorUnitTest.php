@@ -4,10 +4,6 @@ namespace Elgg\I18n;
 
 use Psr\Log\LogLevel;
 
-/**
- * @group Translator
- * @group UnitTests
- */
 class TranslatorUnitTest extends \Elgg\UnitTestCase {
 
 	public $key = '__elgg_php_unit:test_key';
@@ -84,7 +80,7 @@ class TranslatorUnitTest extends \Elgg\UnitTestCase {
 			'language' => 'de',
 		]);
 		
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 		
 		$this->assertEquals('de', $this->translator->detectLanguage());
 		
@@ -144,18 +140,18 @@ class TranslatorUnitTest extends \Elgg\UnitTestCase {
 	}
 
 	public function testCanDetectCurrentLanguageFromUserSettings() {
-
+		_elgg_services()->reset('session_manager');
 		$this->translator->setCurrentLanguage(null);
 
 		$language = 'ab';
 
-		$user = $this->createUser([], [
+		$user = $this->createUser([
 			'language' => $language,
 		]);
 		
 		$this->assertEquals('en', $this->translator->getCurrentLanguage());
 
-		_elgg_services()->session->setLoggedInUser($user);
+		_elgg_services()->session_manager->setLoggedInUser($user);
 
 		$this->assertEquals($language, $this->translator->getCurrentLanguage());
 	}

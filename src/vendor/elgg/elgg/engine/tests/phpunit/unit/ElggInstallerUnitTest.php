@@ -4,54 +4,36 @@ use Elgg\Application;
 use Elgg\Config;
 use Elgg\Mocks\Di\InternalContainer;
 use Elgg\Project\Paths;
-use PHPUnit\Framework\MockObject\MockObject;
 
-/**
- * @group Installer
- */
 class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
-
-	/**
-	 * @var MockObject
-	 */
-	private $mock;
 
 	/**
 	 * @var Application
 	 */
-	private $app;
-
-	private $settings_path_backup;
-
-	public function up() {
-
-		$this->settings_path_backup = null;
-		if (isset($_ENV['ELGG_SETTINGS_FILE'])) {
-			$this->settings_path_backup = $_ENV['ELGG_SETTINGS_FILE'];
-		}
-
-		$_ENV['ELGG_SETTINGS_FILE'] = $this->normalizeTestFilePath('installer/settings.php');
-
-		$this->mock = $this->getMockBuilder(ElggInstaller::class)
-			->onlyMethods([
-				'getApp',
-				'checkRewriteRules',
-			])
-			->getMock();
-
-		$this->mock->method('getApp')
-			->will($this->returnCallback([$this, 'getApp']));
-
-		$this->mock->method('checkRewriteRules')
-			->will($this->returnCallback([$this, 'checkRewriteRules']));
-	}
+	protected $app;
 
 	public function down() {
 		if (is_file($this->normalizeTestFilePath('installer/settings.php'))) {
 			unlink($this->normalizeTestFilePath('installer/settings.php'));
 		}
-
-		$_ENV['ELGG_SETTINGS_FILE'] = $this->settings_path_backup;
+	}
+	
+	protected function getMock(array $methods = []) {
+		$defaults = [
+			'getApp' => [$this, 'getApp'],
+			'checkRewriteRules' => [$this, 'checkRewriteRules'],
+		];
+		$methods = array_merge($defaults, $methods);
+		
+		$mock = $this->getMockBuilder(\ElggInstaller::class)
+			->onlyMethods(array_keys($methods))
+			->getMock();
+		
+		foreach ($methods as $method => $callback) {
+			$mock->method($method)->will($this->returnCallback($callback));
+		}
+		
+		return $mock;
 	}
 
 	public function getApp() {
@@ -68,11 +50,9 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 		$config->system_cache_enabled = false;
 		$config->simplecache_enabled = false;
 		$config->lastcache = time();
-		$config->wwwroot = getenv('ELGG_WWWROOT') ? : 'http://localhost/';
+		$config->wwwroot = getenv('ELGG_WWWROOT') ?: 'http://localhost/';
 
 		$services = InternalContainer::factory(['config' => $config]);
-
-		$services->set('session', \ElggSession::getMock());
 
 		$app = Application::factory([
 			'config' => $config,
@@ -108,18 +88,18 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 		$template = Application::elggDir()->getContents("elgg-config/settings.example.php");
 
 		$params = [
-			'dbprefix' => getenv('ELGG_DB_PREFIX') ? : 'c_i_elgg_',
-			'dbname' => getenv('ELGG_DB_NAME') ? : '',
-			'dbuser' => getenv('ELGG_DB_USER') ? : '',
-			'dbpassword' => getenv('ELGG_DB_PASS') ? : '',
-			'dbhost' => getenv('ELGG_DB_HOST') ? : 'localhost',
-			'dbport' => getenv('ELGG_DB_PORT') ? : 3306,
-			'dbencoding' => getenv('ELGG_DB_ENCODING') ? : 'utf8mb4',
-			'dataroot' => \Elgg\Project\Paths::sanitize(Paths::elgg() . 'engine/tests/test_files/dataroot/'),
-			'wwwroot' => getenv('ELGG_WWWROOT') ? : 'http://localhost/',
+			'dbprefix' => getenv('ELGG_DB_PREFIX') !== false ? getenv('ELGG_DB_PREFIX') : 'c_i_elgg_',
+			'dbname' => getenv('ELGG_DB_NAME') ?: '',
+			'dbuser' => getenv('ELGG_DB_USER') ?: '',
+			'dbpassword' => getenv('ELGG_DB_PASS') ?: '',
+			'dbhost' => getenv('ELGG_DB_HOST') ?: 'localhost',
+			'dbport' => getenv('ELGG_DB_PORT') ?: 3306,
+			'dbencoding' => getenv('ELGG_DB_ENCODING') ?: 'utf8mb4',
+			'dataroot' => Paths::sanitize(Paths::elgg() . 'engine/tests/test_files/dataroot/'),
+			'wwwroot' => getenv('ELGG_WWWROOT') ?: 'http://localhost/',
 			'timezone' => 'UTC',
-			'cacheroot' => \Elgg\Project\Paths::sanitize(Paths::elgg() . 'engine/tests/test_files/cacheroot/'),
-			'assetroot' => \Elgg\Project\Paths::sanitize(Paths::elgg() . 'engine/tests/test_files/assetroot/'),
+			'cacheroot' => Paths::sanitize(Paths::elgg() . 'engine/tests/test_files/cacheroot/'),
+			'assetroot' => Paths::sanitize(Paths::elgg() . 'engine/tests/test_files/assetroot/'),
 		];
 
 		foreach ($params as $k => $v) {
@@ -131,8 +111,8 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 
 	public function testWelcome() {
 
-		$mock = $this->mock;
 		/* @var $mock ElggInstaller */
+		$mock = $this->getMock(['checkDatabaseSettings' => function() { return false;}]);
 
 		$response = $mock->run();
 
@@ -168,8 +148,8 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 
 		$this->getApp()->internal_services->request->setParam('step', 'requirements');
 
-		$mock = $this->mock;
 		/* @var $mock ElggInstaller */
+		$mock = $this->getMock(['checkDatabaseSettings' => function() { return false;}]);
 
 		$response = $mock->run();
 
@@ -229,8 +209,11 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 
 		$this->getApp()->internal_services->request->setParam('step', 'database');
 
-		$mock = $this->mock;
 		/* @var $mock ElggInstaller */
+		$mock = $this->getMock([
+			'checkDatabaseSettings' => function() { return false;},
+			'checkSettingsFile' => function() { return false;},
+		]);
 
 		$response = $mock->run();
 
@@ -321,22 +304,22 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 		mkdir($dataroot);
 
 		$request = $this->prepareHttpRequest('install.php?step=database', 'POST', [
-			'dbprefix' => getenv('ELGG_DB_PREFIX') ? : 'c_i_elgg_',
-			'dbname' => getenv('ELGG_DB_NAME') ? : '',
-			'dbuser' => getenv('ELGG_DB_USER') ? : '',
-			'dbpassword' => getenv('ELGG_DB_PASS') ? : '',
-			'dbhost' => getenv('ELGG_DB_HOST') ? : 'localhost',
-			'dbport' => getenv('ELGG_DB_PORT') ? : 3306,
-			'dbencoding' => getenv('ELGG_DB_ENCODING') ? : 'utf8mb4',
+			'dbprefix' => getenv('ELGG_DB_PREFIX') !== false ? getenv('ELGG_DB_PREFIX') : 'c_i_elgg_',
+			'dbname' => getenv('ELGG_DB_NAME') ?: '',
+			'dbuser' => getenv('ELGG_DB_USER') ?: '',
+			'dbpassword' => getenv('ELGG_DB_PASS') ?: '',
+			'dbhost' => getenv('ELGG_DB_HOST') ?: 'localhost',
+			'dbport' => getenv('ELGG_DB_PORT') ?: 3306,
+			'dbencoding' => getenv('ELGG_DB_ENCODING') ?: 'utf8mb4',
 			'dataroot' => $dataroot,
-			'wwwroot' => getenv('ELGG_WWWROOT') ? : 'http://localhost/',
+			'wwwroot' => getenv('ELGG_WWWROOT') ?: 'http://localhost/',
 			'timezone' => 'UTC',
 		]);
 
 		$this->getApp()->internal_services->set('request', $request);
 
-		$mock = $this->mock;
 		/* @var $mock ElggInstaller */
+		$mock = $this->getMock(['checkDatabaseSettings' => function() { return false;}]);
 
 		$response = $mock->run();
 
@@ -355,21 +338,21 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 
 		$request = $this->prepareHttpRequest('install.php?step=database', 'POST', [
 			'dbprefix' => '',
-			'dbname' => getenv('ELGG_DB_NAME') ? : '',
-			'dbuser' => getenv('ELGG_DB_USER') ? : '',
-			'dbpassword' => getenv('ELGG_DB_PASS') ? : '',
-			'dbhost' => getenv('ELGG_DB_HOST') ? : 'localhost',
-			'dbport' => getenv('ELGG_DB_PORT') ? : 3306,
-			'dbencoding' => getenv('ELGG_DB_ENCODING') ? : 'utf8mb4',
+			'dbname' => getenv('ELGG_DB_NAME') ?: '',
+			'dbuser' => getenv('ELGG_DB_USER') ?: '',
+			'dbpassword' => getenv('ELGG_DB_PASS') ?: '',
+			'dbhost' => getenv('ELGG_DB_HOST') ?: 'localhost',
+			'dbport' => getenv('ELGG_DB_PORT') ?: 3306,
+			'dbencoding' => getenv('ELGG_DB_ENCODING') ?: 'utf8mb4',
 			'dataroot' => $dataroot,
-			'wwwroot' => getenv('ELGG_WWWROOT') ? : 'http://localhost/',
+			'wwwroot' => getenv('ELGG_WWWROOT') ?: 'http://localhost/',
 			'timezone' => 'UTC',
 		]);
 
 		$this->getApp()->internal_services->set('request', $request);
 
-		$mock = $this->mock;
 		/* @var $mock ElggInstaller */
+		$mock = $this->getMock(['checkDatabaseSettings' => function() { return false;}]);
 
 		$response = $mock->run();
 
@@ -395,8 +378,8 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 
 		$this->getApp()->internal_services->request->setParam('step', 'settings');
 
-		$mock = $this->mock;
 		/* @var $mock ElggInstaller */
+		$mock = $this->getMock();
 
 		$response = $mock->run();
 
@@ -470,8 +453,8 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 
 		$this->getApp()->internal_services->set('request', $request);
 
-		$mock = $this->mock;
 		/* @var $mock ElggInstaller */
+		$mock = $this->getMock();
 
 		$response = $mock->run();
 
@@ -497,8 +480,8 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 
 		$this->getApp()->internal_services->request->setParam('step', 'admin');
 
-		$mock = $this->mock;
 		/* @var $mock ElggInstaller */
+		$mock = $this->getMock();
 
 		$response = $mock->run();
 
@@ -587,8 +570,8 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 
 		$this->getApp()->internal_services->set('request', $request);
 
-		$mock = $this->mock;
 		/* @var $mock ElggInstaller */
+		$mock = $this->getMock();
 
 		$response = $mock->run();
 
@@ -610,21 +593,21 @@ class ElggInstallerUnitTest extends \Elgg\UnitTestCase {
 			],
 		]);
 
-		$this->mock->batchInstall([
+		$this->getMock()->batchInstall([
 			// database settings
-			'dbuser' => getenv('ELGG_DB_USER') ? : 'c_i_elgg_dbuser',
-			'dbpassword' => getenv('ELGG_DB_PASS') ? : 'c_i_elgg_dbpwd',
-			'dbname' => getenv('ELGG_DB_NAME') ? : 'c_i_elgg_dbname',
-			'dbprefix' => getenv('ELGG_DB_PREFIX') ? : 'c_i_elgg_',
-			'dbencoding' => getenv('ELGG_DB_ENCODING') ? : 'utf8mb4',
-			'dbhost' => getenv('ELGG_DB_HOST') ? : 'localhost',
-			'dbport' => getenv('ELGG_DB_PORT') ? : '3306',
+			'dbuser' => getenv('ELGG_DB_USER') ?: 'c_i_elgg_dbuser',
+			'dbpassword' => getenv('ELGG_DB_PASS') ?: 'c_i_elgg_dbpwd',
+			'dbname' => getenv('ELGG_DB_NAME') ?: 'c_i_elgg_dbname',
+			'dbprefix' => getenv('ELGG_DB_PREFIX') !== false ? getenv('ELGG_DB_PREFIX') : 'c_i_elgg_',
+			'dbencoding' => getenv('ELGG_DB_ENCODING') ?: 'utf8mb4',
+			'dbhost' => getenv('ELGG_DB_HOST') ?: 'localhost',
+			'dbport' => getenv('ELGG_DB_PORT') ?: '3306',
 
 			// site settings
 			'sitename' => 'Elgg CI Site',
 			'siteemail' => 'no_reply@ci.elgg.org',
-			'wwwroot' => getenv('ELGG_WWWROOT') ? : 'http://localhost/',
-			'dataroot' => getenv('HOME') . '/engine/tests/test_files/dataroot/',
+			'wwwroot' => getenv('ELGG_WWWROOT') ?: 'http://localhost/',
+			'dataroot' => Paths::elgg() . '/engine/tests/test_files/dataroot/',
 
 			// admin account
 			'displayname' => 'Administrator',

@@ -23,9 +23,9 @@ class Cli {
 	protected $console;
 
 	/**
-	 * @var PluginHooksService
+	 * @var EventsService
 	 */
-	protected $hooks;
+	protected $events;
 
 	/**
 	 * @var InputInterface
@@ -40,12 +40,12 @@ class Cli {
 	/**
 	 * Constructor
 	 *
-	 * @param PluginHooksService $hooks  Hooks registration service
-	 * @param InputInterface     $input  Console input
-	 * @param OutputInterface    $output Console output
+	 * @param EventsService   $events Events service
+	 * @param InputInterface  $input  Console input
+	 * @param OutputInterface $output Console output
 	 */
 	public function __construct(
-		PluginHooksService $hooks,
+		EventsService $events,
 		InputInterface $input,
 		OutputInterface $output
 	) {
@@ -54,18 +54,19 @@ class Cli {
 		$console->setup($input, $output);
 
 		$this->console = $console;
-		$this->hooks = $hooks;
+		$this->events = $events;
 		$this->input = $input;
 		$this->output = $output;
 	}
 
 	/**
 	 * Add CLI tools to the console application
+	 *
 	 * @return void
 	 */
 	protected function bootstrap() {
 		$commands = array_merge($this->getCoreCommands(), $this->getPluginCommands());
-		$commands = $this->hooks->trigger('commands', 'cli', null, $commands);
+		$commands = $this->events->triggerResults('commands', 'cli', [], $commands);
 
 		foreach ($commands as $command) {
 			$this->add($command);
@@ -74,6 +75,7 @@ class Cli {
 
 	/**
 	 * Returns the core cli commands
+	 *
 	 * @return array
 	 */
 	protected function getCoreCommands() {
@@ -83,6 +85,7 @@ class Cli {
 
 	/**
 	 * Returns the cli commands registered in plugins
+	 *
 	 * @return array
 	 */
 	protected function getPluginCommands() {
@@ -119,8 +122,7 @@ class Cli {
 		}
 
 		$command = new $command();
-		/* @var $command BaseCommand */
-
+		
 		$command->setLogger($this->getLogger());
 		
 		if (!is_subclass_of($command, Command::class)) {
@@ -152,11 +154,13 @@ class Cli {
 		if ($bootstrap) {
 			$this->bootstrap();
 		}
+		
 		$this->console->run($this->input, $this->output);
 	}
 
 	/**
 	 * Returns console input
+	 *
 	 * @return InputInterface
 	 */
 	public function getInput() {
@@ -165,6 +169,7 @@ class Cli {
 
 	/**
 	 * Returns console output
+	 *
 	 * @return OutputInterface
 	 */
 	public function getOutput() {

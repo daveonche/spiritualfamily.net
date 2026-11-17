@@ -6,10 +6,6 @@ use Elgg\ActionResponseTestCase;
 use Elgg\Http\ErrorResponse;
 use Elgg\Http\OkResponse;
 
-/**
- * @group ActionsService
- * @group WidgetActions
- */
 class WidgetsIntegrationTest extends ActionResponseTestCase {
 	/**
 	 * @var \ElggWidget
@@ -26,18 +22,17 @@ class WidgetsIntegrationTest extends ActionResponseTestCase {
 		
 		$this->user = $this->createUser();
 		
-		_elgg_services()->session->setLoggedInUser($this->user);
+		_elgg_services()->session_manager->setLoggedInUser($this->user);
 		$this->widget = $this->createObject([
 			'subtype' => 'widget',
-		], [
 			'tags' => 'tag',
 		]);
 		
-		_elgg_services()->hooks->backup();
+		_elgg_services()->events->backup();
 	}
 
 	public function down() {
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 		
 		parent::down();
 	}
@@ -60,7 +55,7 @@ class WidgetsIntegrationTest extends ActionResponseTestCase {
 	}
 	
 	public function testWidgetAddFailsCantCreate() {
-		elgg_register_plugin_hook_handler('permissions_check', 'widget_layout', '\Elgg\Values::getTrue');
+		elgg_register_event_handler('permissions_check', 'widget_layout', '\Elgg\Values::getTrue');
 		
 		$response = $this->executeAction('widgets/add', [
 			'page_owner_guid' => $this->user->guid,
@@ -72,7 +67,7 @@ class WidgetsIntegrationTest extends ActionResponseTestCase {
 	}
 	
 	public function testWidgetAddSuccess() {
-		elgg_register_plugin_hook_handler('permissions_check', 'widget_layout', '\Elgg\Values::getTrue');
+		elgg_register_event_handler('permissions_check', 'widget_layout', '\Elgg\Values::getTrue');
 		
 		$other_user = $this->createUser();
 		
@@ -108,7 +103,7 @@ class WidgetsIntegrationTest extends ActionResponseTestCase {
 	}
 
 	public function testWidgetDeleteFailsIfCantEditContext() {
-		elgg_register_plugin_hook_handler('permissions_check', 'widget_layout', '\Elgg\Values::getFalse');
+		elgg_register_event_handler('permissions_check', 'widget_layout', '\Elgg\Values::getFalse');
 		$response = $this->executeAction('widgets/delete', [
 			'widget_guid' => $this->widget->guid,
 		]);
@@ -118,16 +113,15 @@ class WidgetsIntegrationTest extends ActionResponseTestCase {
 	}
 
 	public function testWidgetDeleteFailsCantDelete() {
-		elgg_register_plugin_hook_handler('permissions_check', 'widget_layout', '\Elgg\Values::getTrue');
+		elgg_register_event_handler('permissions_check', 'widget_layout', '\Elgg\Values::getTrue');
 		
 		$other_user = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($other_user);
+		_elgg_services()->session_manager->setLoggedInUser($other_user);
 		$widget = $this->createObject([
 			'subtype' => 'widget',
-		], [
 			'tags' => 'tag',
 		]);
-		_elgg_services()->session->setLoggedInUser($this->user);
+		_elgg_services()->session_manager->setLoggedInUser($this->user);
 		
 		$response = $this->executeAction('widgets/delete', [
 			'widget_guid' => $widget->guid,
@@ -138,11 +132,10 @@ class WidgetsIntegrationTest extends ActionResponseTestCase {
 	}
 
 	public function testWidgetDeleteSuccess() {
-		elgg_register_plugin_hook_handler('permissions_check', 'widget_layout', '\Elgg\Values::getTrue');
+		elgg_register_event_handler('permissions_check', 'widget_layout', '\Elgg\Values::getTrue');
 		
 		$widget = $this->createObject([
 			'subtype' => 'widget',
-		], [
 			'tags' => 'tag',
 		]);
 		
@@ -169,7 +162,7 @@ class WidgetsIntegrationTest extends ActionResponseTestCase {
 	}
 
 	public function testWidgetMoveFailsIfCantEditContext() {
-		elgg_register_plugin_hook_handler('permissions_check', 'widget_layout', '\Elgg\Values::getFalse');
+		elgg_register_event_handler('permissions_check', 'widget_layout', '\Elgg\Values::getFalse');
 		
 		$response = $this->executeAction('widgets/move', [
 			'widget_guid' => $this->widget->guid,
@@ -194,32 +187,31 @@ class WidgetsIntegrationTest extends ActionResponseTestCase {
 		$response = $this->executeAction('widgets/save');
 
 		$this->assertInstanceOf(ErrorResponse::class, $response);
-		$this->assertEquals(elgg_echo('widgets:save:failure'), $response->getContent());
+		$this->assertEquals(elgg_echo('error:missing_data'), $response->getContent());
 
 		$response = $this->executeAction('widgets/save', [
 			'guid' => $this->user->guid,
 		]);
 
 		$this->assertInstanceOf(ErrorResponse::class, $response);
-		$this->assertEquals(elgg_echo('widgets:save:failure'), $response->getContent());
+		$this->assertEquals(elgg_echo('error:missing_data'), $response->getContent());
 	}
 	
 	public function testWidgetSaveFailsIfCantEdit() {
 		$other_user = $this->createUser();
-		_elgg_services()->session->setLoggedInUser($other_user);
+		_elgg_services()->session_manager->setLoggedInUser($other_user);
 		$widget = $this->createObject([
 			'subtype' => 'widget',
-		], [
 			'tags' => 'tag',
 		]);
-		_elgg_services()->session->setLoggedInUser($this->user);
+		_elgg_services()->session_manager->setLoggedInUser($this->user);
 		
 		$response = $this->executeAction('widgets/save', [
 			'guid' => $widget->guid,
 		]);
 
 		$this->assertInstanceOf(ErrorResponse::class, $response);
-		$this->assertEquals(elgg_echo('widgets:save:failure'), $response->getContent());
+		$this->assertEquals(elgg_echo('actionunauthorized'), $response->getContent());
 	}
 	
 	public function testWidgetSaveSuccess() {

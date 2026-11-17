@@ -18,14 +18,11 @@ return array(
 	'messages:message' => "Mesaj",
 	'messages:title' => "Subiect",
 	'messages:to:help' => "Scrie numele de utilizator al destinatarului aici",
-	'messages:inbox' => "Primite",
 	'messages:sendmessage' => "Trimite un mesaj",
 	'messages:add' => "Compune un mesaj",
 	'messages:sentmessages' => "Mesaje trimise",
 	'messages:toggle' => 'Comută toate',
 	'messages:markread' => 'Marchează ca citit',
-
-	'notification:method:site' => 'Site',
 
 	'messages:error' => 'A fost o problemă la salvarea mesajului tău. Te rugăm să încerci din nou.',
 

@@ -18,7 +18,6 @@ abstract class BaseTestCase extends TestCase implements Seedable, Testable {
 
 	use Testing;
 	use PluginTesting;
-	use HookTesting;
 	use EventTesting;
 	use MessageTesting;
 
@@ -50,20 +49,14 @@ abstract class BaseTestCase extends TestCase implements Seedable, Testable {
 	 * @return Config
 	 */
 	public static function getTestingConfig() {
-		if (!empty($_ENV['ELGG_SETTINGS_FILE'])) {
-			$settings_path = $_ENV['ELGG_SETTINGS_FILE'];
-
-			return Config::factory($settings_path);
-		}
-
 		return new Config([
-			'dbprefix' => getenv('ELGG_DB_PREFIX') ? : 'c_i_elgg_',
-			'dbname' => getenv('ELGG_DB_NAME') ? : '',
-			'dbuser' => getenv('ELGG_DB_USER') ? : '',
-			'dbpass' => getenv('ELGG_DB_PASS') ? : '',
-			'dbhost' => getenv('ELGG_DB_HOST') ? : 'localhost',
-			'dbport' => getenv('ELGG_DB_PORT') ? : 3306,
-			'dbencoding' => getenv('ELGG_DB_ENCODING') ? : 'utf8mb4',
+			'dbprefix' => getenv('ELGG_DB_PREFIX') !== false ? getenv('ELGG_DB_PREFIX') : 'c_i_elgg_',
+			'dbname' => getenv('ELGG_DB_NAME') ?: '',
+			'dbuser' => getenv('ELGG_DB_USER') ?: '',
+			'dbpass' => getenv('ELGG_DB_PASS') ?: '',
+			'dbhost' => getenv('ELGG_DB_HOST') ?: 'localhost',
+			'dbport' => getenv('ELGG_DB_PORT') ?: 3306,
+			'dbencoding' => getenv('ELGG_DB_ENCODING') ?: 'utf8mb4',
 
 			'memcache' => (bool) getenv('ELGG_MEMCACHE'),
 			'memcache_servers' => [
@@ -72,7 +65,7 @@ abstract class BaseTestCase extends TestCase implements Seedable, Testable {
 					'port' => (int) getenv('ELGG_MEMCACHE_SERVER1_PORT'),
 				],
 			],
-			'memcache_namespace_prefix' => getenv('ELGG_MEMCACHE_NAMESPACE_PREFIX') ? : 'elgg_mc_prefix_',
+			'memcache_namespace_prefix' => getenv('ELGG_MEMCACHE_NAMESPACE_PREFIX') ?: 'elgg_mc_prefix_',
 
 			'redis' => (bool) getenv('ELGG_REDIS'),
 			'redis_servers' => [
@@ -83,11 +76,11 @@ abstract class BaseTestCase extends TestCase implements Seedable, Testable {
 			],
 
 			// These are fixed, because tests rely on specific location of the dataroot for source files
-			'wwwroot' => getenv('ELGG_WWWROOT') ? : 'http://localhost/',
+			'wwwroot' => getenv('ELGG_WWWROOT') ?: 'http://localhost/',
 			'dataroot' => Paths::elgg() . 'engine/tests/test_files/dataroot/',
 			'cacheroot' => Paths::elgg() . 'engine/tests/test_files/cacheroot/',
 			'assetroot' => Paths::elgg() . 'engine/tests/test_files/assetroot/',
-			'seeder_local_image_folder' => getenv('ELGG_SEEDER_LOCAL_IMAGE_FOLDER') ? : Paths::elgg() . '.scripts/seeder/images/',
+			'seeder_local_image_folder' => getenv('ELGG_SEEDER_LOCAL_IMAGE_FOLDER') ?: Paths::elgg() . '.scripts/seeder/images/',
 			
 			'system_cache_enabled' => false,
 			'simplecache_enabled' => false,
@@ -155,9 +148,9 @@ abstract class BaseTestCase extends TestCase implements Seedable, Testable {
 			$this->markTestSkipped();
 		}
 
-		$app->internal_services->session->removeLoggedInUser();
-		$app->internal_services->session->setIgnoreAccess(false);
-		$app->internal_services->session->setDisabledEntityVisibility(false);
+		$app->internal_services->session_manager->removeLoggedInUser();
+		$app->internal_services->session_manager->setIgnoreAccess(false);
+		$app->internal_services->session_manager->setDisabledEntityVisibility(false);
 		
 		// make sure the logger is enabled before each test, in case a previous test disabled it but forgot to re-enable it
 		$app->internal_services->logger->enable();
@@ -173,16 +166,16 @@ abstract class BaseTestCase extends TestCase implements Seedable, Testable {
 	protected function tearDown(): void {
 
 		// We do not want overflowing ignored access
-		$this->assertFalse((bool) _elgg_services()->session->getIgnoreAccess(), __METHOD__ . ': ignored access not reset');
+		$this->assertFalse((bool) _elgg_services()->session_manager->getIgnoreAccess(), __METHOD__ . ': ignored access not reset');
 
 		// We do not want overflowing show hidden status
-		$this->assertFalse((bool) _elgg_services()->session->getDisabledEntityVisibility(), __METHOD__ . ': hidden entities not reset');
+		$this->assertFalse((bool) _elgg_services()->session_manager->getDisabledEntityVisibility(), __METHOD__ . ': hidden entities not reset');
 
 		// Tests should run without a logged in user
-		if (_elgg_services()->session->isLoggedIn()) {
-			_elgg_services()->session->removeLoggedInUser();
+		if (_elgg_services()->session_manager->isLoggedIn()) {
+			_elgg_services()->session_manager->removeLoggedInUser();
 		}
-		$this->assertFalse((bool) _elgg_services()->session->isLoggedIn(), __METHOD__ . ': there should be no logged in user');
+		$this->assertFalse((bool) _elgg_services()->session_manager->isLoggedIn(), __METHOD__ . ': there should be no logged in user');
 		
 		// cleanup admin user
 		$admin = $this->_testing_admin;
@@ -338,5 +331,38 @@ abstract class BaseTestCase extends TestCase implements Seedable, Testable {
 
 		parent::assertEquals($expected, $actual, $message, $delta, $maxDepth, $canonicalize, $ignoreCase);
 	}
-
+	
+	/**
+	 * Invokes an inaccessable method
+	 *
+	 * @param mixed  $argument object or class to invoke on
+	 * @param string $method   method to invoke
+	 * @param mixed  ...$args  zero or more arguments to pass to the method
+	 *
+	 * @return mixed
+	 */
+	protected function invokeInaccessableMethod($argument, string $method, ...$args) {
+		$reflector = new \ReflectionClass($argument);
+		
+		$inaccessable_method = $reflector->getMethod($method);
+		$inaccessable_method->setAccessible(true);
+		
+		return $inaccessable_method->invoke($argument, ...$args);
+	}
+	
+	/**
+	 * Retrieves an inaccessable property
+	 *
+	 * @param mixed  $argument object or class to get the property from
+	 * @param string $property name of the property
+	 *
+	 * @return mixed
+	 */
+	protected function getInaccessableProperty($argument, string $property) {
+		$reflector = new \ReflectionClass($argument);
+		$property = $reflector->getProperty($property);
+		$property->setAccessible(true);
+		
+		return $property->getValue($argument);
+	}
 }

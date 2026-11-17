@@ -23,7 +23,6 @@ return array(
 	'login:continue' => "Log in to continue",
 	'login:empty' => "Username/email and password are required.",
 	'login:baduser' => "Unable to load your user account.",
-	'auth:nopams' => "Internal error. No user authentication method installed.",
 
 	'logout' => "Log out",
 	'logoutok' => "You have been logged out.",
@@ -60,7 +59,6 @@ return array(
 
 	'PluginException:CannotStart' => '%s (guid: %s) cannot start and has been deactivated.  Reason: %s',
 	'PluginException:InvalidID' => "%s is an invalid plugin ID.",
-	'PluginException:InvalidPath' => "%s is an invalid plugin path.",
 	'PluginException:PluginMustBeActive' => "Requires plugin '%s' to be active.",
 	'PluginException:PluginMustBeAfter' => "Requires to be positioned after plugin '%s'.",
 	'PluginException:PluginMustBeBefore' => "Requires to be positioned before plugin '%s'.",
@@ -104,6 +102,7 @@ return array(
 	'RegistrationAllowedGatekeeperException:invalid_invitecode' => "The provided invite code is not valid",
 	'BadRequestException' => 'Bad request',
 	'BadRequestException:invalid_host_header' => 'The request contains an invalid HOST header',
+	'BadRequestException:livesearch:no_query' => 'Livesearch requires a query',
 	'ValidationException' => 'Submitted data did not meet the requirements, please check your input.',
 	'LogicException:InterfaceNotImplemented' => '%s must implement %s',
 	
@@ -122,10 +121,14 @@ return array(
 	'error:default:content' => 'Oops... something went wrong.',
 	'error:400:title' => 'Bad request',
 	'error:400:content' => 'Sorry. The request is invalid or incomplete.',
+	'error:401:title' => 'Unauthorized',
 	'error:403:title' => 'Forbidden',
 	'error:403:content' => 'Sorry. You are not allowed to access the requested page.',
 	'error:404:title' => 'Page not found',
 	'error:404:content' => 'Sorry. We could not find the page that you requested.',
+	'error:407:title' => 'Proxy authentication required',
+	'error:500:title' => 'Internal server error',
+	'error:503:title' => 'Service unavailable',
 
 	'upload:error:ini_size' => 'The file you tried to upload is too large.',
 	'upload:error:form_size' => 'The file you tried to upload is too large.',
@@ -214,12 +217,8 @@ return array(
 	'widget:delete' => 'Remove %s',
 	'widget:edit' => 'Customize this widget',
 
-	'widgets' => "Widgets",
-	'widget' => "Widget",
 	'item:object:widget' => "Widget",
 	'collection:object:widget' => 'Widgets',
-	'widgets:save:success' => "The widget was successfully saved.",
-	'widgets:save:failure' => "We could not save your widget.",
 	'widgets:add:success' => "The widget was successfully added.",
 	'widgets:add:failure' => "We could not add your widget.",
 	'widgets:move:failure' => "We could not store the new widget position.",
@@ -254,22 +253,18 @@ return array(
 	'collection:friends' => 'Friends\' %s',
 
 	'avatar' => 'Avatar',
-	'avatar:noaccess' => "You're not allowed to edit this user's avatar",
-	'avatar:create' => 'Create your avatar',
 	'avatar:edit' => 'Edit avatar',
-	'avatar:upload' => 'Upload a new avatar',
-	'avatar:current' => 'Current avatar',
-	'avatar:remove' => 'Remove your avatar and set the default icon',
-	'avatar:crop:title' => 'Avatar cropping tool',
 	'avatar:upload:instructions' => "Your avatar is displayed throughout the site. You can change it as often as you'd like. (File formats accepted: GIF, JPG or PNG)",
-	'avatar:create:instructions' => 'Click and drag a square below to match how you want your avatar cropped. A preview will appear in the box on the right. When you are happy with the preview, click \'Create your avatar\'. This cropped version will be used throughout the site as your avatar.',
 	'avatar:upload:success' => 'Avatar successfully uploaded',
 	'avatar:upload:fail' => 'Avatar upload failed',
 	'avatar:resize:fail' => 'Resize of the avatar failed',
-	'avatar:crop:success' => 'Cropping the avatar succeeded',
-	'avatar:crop:fail' => 'Avatar cropping failed',
 	'avatar:remove:success' => 'Removing the avatar succeeded',
 	'avatar:remove:fail' => 'Avatar remove failed',
+	
+	'header:remove:success' => 'Removing the header succeeded',
+	'header:remove:fail' => 'Header remove failed',
+	'header:upload:success' => 'Uploading the header succeeded',
+	'header:upload:fail' => 'Header upload failed',
 	
 	'action:user:validate:already' => "%s was already validated",
 	'action:user:validate:success' => "%s has been validated",
@@ -302,11 +297,9 @@ return array(
  */
 	'river' => "River",
 	'river:user:friend' => "%s is now a friend with %s",
+	'river:site:site:join' => "%s joined the site",
 	'river:update:user:avatar' => '%s has a new avatar',
-	'river:noaccess' => 'You do not have permission to view this item.',
 	'river:posted:generic' => '%s posted',
-	'riveritem:single:user' => 'a user',
-	'riveritem:plural:user' => 'some users',
 	'river:ingroup' => 'in the group %s',
 	'river:none' => 'No activity',
 	'river:update' => 'Update for %s',
@@ -340,6 +333,7 @@ return array(
 	'usersettings:notifications:default:description' => 'Default notification settings for events from the system',
 	'usersettings:notifications:content_create:description' => 'Default notification settings for new content you created, this can cause notifications when others take action on you content like leaving a comment',
 	'usersettings:notifications:create_comment:description' => "Default notification setting when you comment on content in order to follow the rest of the conversation",
+	'usersettings:notifications:mentions:description' => "Receive a notification when you get @mentioned",
 
 	'usersettings:notifications:timed_muting' => "Temporarily disable notifications",
 	'usersettings:notifications:timed_muting:help' => "If you don't wish to receive any notifications during a certain period (for example a holiday) you can set a start and end date to temporarily disable all notifications",
@@ -359,6 +353,12 @@ return array(
 %s',
 	'notification:subject' => 'Notification about %s',
 	'notification:body' => 'View the new activity at %s',
+	
+	'notification:mentions:subject' => '%s mentioned you',
+	'notification:mentions:body' => "%s mentioned you in '%s'.
+
+To see the full post, click on the link below:
+%s",
 	
 	'notifications:delayed_email:subject:daily' => "Daily notifications",
 	'notifications:delayed_email:subject:weekly' => "Weekly notifications",
@@ -388,10 +388,6 @@ return array(
  */
 
 	'search' => "Search",
-	'searchtitle' => "Search: %s",
-	'users:searchtitle' => "Searching for users: %s",
-	'groups:searchtitle' => "Searching for groups: %s",
-	'advancedsearchtitle' => "%s with results matching %s",
 	'notfound' => "No results found.",
 
 	'viewtype:change' => "Change list type",
@@ -427,10 +423,8 @@ return array(
 	'registration:passwordnotvalid' => 'Sorry, the password you entered is invalid on this system',
 	'registration:usernamenotvalid' => 'Sorry, the username you entered is invalid on this system',
 
-	'adduser' => "Add User",
 	'adduser:ok' => "You have successfully added a new user.",
-	'adduser:bad' => "The new user could not be created.",
-
+	
 	'user:set:name' => "Account name settings",
 	'user:name:label' => "Display name",
 	'user:name:success' => "Successfully changed display name on the system.",
@@ -443,10 +437,6 @@ return array(
 	'user:password:label' => "New password",
 	'user:password2:label' => "New password again",
 	'user:password:success' => "Password changed",
-	'user:password:fail' => "Could not change your password on the system.",
-	'user:password:fail:notsame' => "The two passwords are not the same!",
-	'user:password:fail:tooshort' => "Password is too short!",
-	'user:password:fail:incorrect_current_password' => 'The current password entered is incorrect.',
 	'user:changepassword:unknown_user' => 'Invalid user.',
 	'user:changepassword:change_password_confirm' => 'This will change your password.',
 
@@ -457,7 +447,6 @@ return array(
 	'user:set:language' => "Language settings",
 	'user:language:label' => "Language",
 	'user:language:success' => "Language settings have been updated.",
-	'user:language:fail' => "Language settings could not be saved.",
 
 	'user:username:notfound' => 'Username %s not found.',
 	'user:username:help' => 'Please be aware that changing a username will change all dynamic user related links',
@@ -465,7 +454,6 @@ return array(
 	'user:password:lost' => 'Lost password',
 	'user:password:hash_missing' => 'Regretfully, we must ask you to reset your password. We have improved the security of passwords on the site, but were unable to migrate all accounts in the process.',
 	'user:password:changereq:success' => 'Successfully requested a new password, email sent',
-	'user:password:changereq:fail' => 'Could not request a new password.',
 
 	'user:password:text' => 'To request a new password, enter your username or email address below and click the Request button.',
 
@@ -491,9 +479,11 @@ return array(
  */
 	'menu:page:header:administer' => 'Administer',
 	'menu:page:header:configure' => 'Configure',
+	'menu:page:header:utilities' => 'Utilities',
 	'menu:page:header:develop' => 'Develop',
 	'menu:page:header:information' => 'Information',
 	'menu:page:header:default' => 'Other',
+	'menu:page:header:plugin_settings' => 'Plugin Settings',
 
 	'admin:view_site' => 'View site',
 	'admin:loggedin' => 'Logged in as %s',
@@ -605,6 +595,11 @@ Since Elgg has a lot of file access this will negatively impact performance. Als
 	'admin:site_icons:font_awesome:zip:help' => "Here you can upload a Font Awesome download from https://fontawesome.com/download. This webfont will be served locally.",
 	'admin:site_icons:font_awesome:zip:error' => "Uploaded ZIP can not be extracted",
 	'admin:site_icons:font_awesome:remove_zip' => "Remove uploaded font",
+	'admin:theme' => "Theme",
+	'admin:theme:info' => "Various theme variables can be configured on this form. This configuration will override the existing configuration.",
+	'admin:theme:warning' => "Be advised that these changes could potentially break your styling.",
+	'admin:theme:css_variable:name' => "CSS variable",
+	'admin:theme:css_variable:value' => "Value",
 	'admin:site_settings' => "Site Settings",
 	'admin:site:description' => "This admin panel allows you to control global settings for your site. Choose an option below to get started.",
 	'admin:site:opt:linktext' => "Configure site...",
@@ -629,6 +624,9 @@ Since Elgg has a lot of file access this will negatively impact performance. Als
 	'admin:widget:content_stats:help' => 'Keep track of the content created by your users',
 	'admin:widget:cron_status' => 'Cron status',
 	'admin:widget:cron_status:help' => 'Shows the status of the last time cron jobs finished',
+	'admin:widget:elgg_blog' => 'Elgg blog',
+	'admin:widget:elgg_blog:help' => 'Shows the latest posts from the Elgg blog',
+	'admin:widget:elgg_blog:no_results' => 'Unable to fetch the latest Elgg news',
 	'admin:statistics:numentities' => 'Content Statistics',
 	'admin:statistics:numentities:type' => 'Content type',
 	'admin:statistics:numentities:number' => 'Number',
@@ -654,9 +652,10 @@ Since Elgg has a lot of file access this will negatively impact performance. Als
 three sections:
 	<dl>
 		<dt>Administer</dt><dd>Basic tasks like managing users, monitoring reported content and activating plugins.</dd>
-		<dt>Configure</dt><dd>Occasional tasks like setting the site name or configuring settings of a plugin.</dd>
+		<dt>Configure</dt><dd>Occasional tasks like setting the site name or configuring security preferences.</dd>
+		<dt>Utilities</dt><dd>Various tools to support site maintenance.</dd>
 		<dt>Information</dt><dd>Information about your site like statistics.</dd>
-		<dt>Develop</dt><dd>For developers who are building plugins or designing themes. (Requires a developer plugin.)</dd>
+		<dt>Develop</dt><dd>For developers who are building plugins or debugging the site. (Requires a developer plugin.)</dd>
 	</dl>",
 
 	// argh, this is ugly
@@ -793,6 +792,28 @@ Having icons session bound makes icon urls not shareable between sessions. The s
 	
 	'admin:security:settings:min_password_special' => "Minimal number of special characters in a password",
 	'admin:security:settings:min_password_special:help' => "Configure the minimal number of special (!@$%^&*()<>,.?/[]{}-=_+) characters that should be present in a password. 0 for not present at all, empty for no requirements.",
+	
+	'admin:security:security_txt' => "Security.txt",
+	'admin:security:security_txt:description' => "When a security vulnerability is found in your website, where should it be reported? The security.txt is a standard to help structure the information the security researchers need in order to be able to contact the site administrators with the found vulnerability. More information about the standard can be found at %s. The contents of your security.txt can be found at %s.",
+	'admin:security:security_txt:expired' => "The content of your security.txt is expired, please check if all the information is still up-to-date.",
+	'admin:security:security_txt:contact' => "Contact",
+	'admin:security:security_txt:contact:help' => "A link or e-mail address for people to contact you about security issues. Remember to include 'https://' for URLs, and 'mailto:' for e-mails. See %s",
+	'admin:security:security_txt:expires' => "Expires",
+	'admin:security:security_txt:expires:help' => "The date and time when the content of the security.txt file should be considered stale (so security researchers should then not trust it). Make sure you update this value periodically and keep your file under review. See %s",
+	'admin:security:security_txt:encryption' => "Encryption",
+	'admin:security:security_txt:encryption:help' => "A link to a key which security researchers should use to securely talk to you. Remember to include 'https://'. See %s",
+	'admin:security:security_txt:acknowledgments' => "Acknowledgments",
+	'admin:security:security_txt:acknowledgments:help' => "A link to a web page where you say thank you to security researchers who have helped you. Remember to include 'https://'. See %s",
+	'admin:security:security_txt:language' => "Language",
+	'admin:security:security_txt:language:help' => "A comma-separated list of language codes that your security team speaks. You may include more than one language. See %s",
+	'admin:security:security_txt:canonical' => "Canonical",
+	'admin:security:security_txt:canonical:help' => "The URLs for accessing your security.txt file. It is important to include this if you are digitally signing the security.txt file, so that the location of the security.txt file can be digitally signed too. See %s",
+	'admin:security:security_txt:policy' => "Policy",
+	'admin:security:security_txt:policy:help' => "A link to a policy detailing what security researchers should do when searching for or reporting security issues. Remember to include 'https://'. See %s",
+	'admin:security:security_txt:hiring' => "Hiring",
+	'admin:security:security_txt:hiring:help' => "A link to any security-related job openings in your organisation. Remember to include 'https://'. See %s",
+	'admin:security:security_txt:csaf' => "CSAF",
+	'admin:security:security_txt:csaf:help' => "A link to the provider-metadata.json of your CSAF (Common Security Advisory Framework) provider. Remember to include 'https://'. See %s",
 	
 	'admin:site:secret:regenerated' => "Your site secret has been regenerated",
 	'admin:site:secret:prevented' => "The regeneration of the site secret was prevented",
@@ -1033,11 +1054,8 @@ For improved performance, it is recommended that you enable and configure OPcach
  * User settings
  */
 
-	'usersettings:description' => "The user settings panel allows you to control all your personal settings, from user management to how plugins behave. Choose an option below to get started.",
-
 	'usersettings:statistics' => "Your statistics",
 	'usersettings:statistics:user' => "%s's statistics",
-	'usersettings:statistics:opt:description' => "View statistical information about users and objects on your site.",
 	'usersettings:statistics:opt:linktext' => "Account statistics",
 
 	'usersettings:statistics:login_history' => "Login History",
@@ -1045,14 +1063,9 @@ For improved performance, it is recommended that you enable and configure OPcach
 	'usersettings:statistics:login_history:ip' => "IP Address",
 
 	'usersettings:user' => "%s's settings",
-	'usersettings:user:opt:description' => "This allows you to control user settings.",
 	'usersettings:user:opt:linktext' => "Change your settings",
 
-	'usersettings:plugins' => "Tools",
-	'usersettings:plugins:opt:description' => "Configure settings (if any) for your active tools.",
 	'usersettings:plugins:opt:linktext' => "Configure your tools",
-
-	'usersettings:plugins:description' => "This panel allows you to control and configure the personal settings for the tools installed by your system administrator.",
 	
 	'usersettings:statistics:yourdetails' => "Your details",
 	'usersettings:statistics:details:user' => "Details for %s",
@@ -1063,7 +1076,6 @@ For improved performance, it is recommended that you enable and configure OPcach
 	'usersettings:statistics:label:membersince' => "Member since",
 	'usersettings:statistics:label:numentities' => "Your content",
 	
-	'usersettings:delayed_email' => "Delayed email settings",
 	'usersettings:delayed_email:interval' => "Configure the interval at which delayed email notifications will be delivered",
 	'usersettings:delayed_email:interval:help' => "All delayed email notifications will be saved up and delivered in one combined mail at the configured interval",
 
@@ -1076,9 +1088,7 @@ For improved performance, it is recommended that you enable and configure OPcach
 	'river:owner' => 'Activity of %s',
 	'river:friends' => 'Friends Activity',
 	'river:select' => 'Show %s',
-	'river:comments:more' => '+%u more',
 	'river:comments:all' => 'View all %u comments',
-	'river:generic_comment' => 'commented on %s %s',
 
 /**
  * Icons
@@ -1095,9 +1105,14 @@ For improved performance, it is recommended that you enable and configure OPcach
 	'entity:edit:icon:crop_messages:generic' => "The selected image doesn't meet the recommended image dimensions. This could result in low quality icons.",
 	'entity:edit:icon:crop_messages:width' => "It's recommended to use an image with a minimal width of at least %dpx.",
 	'entity:edit:icon:crop_messages:height' => "It's recommended to use an image with a minimal height of at least %dpx.",
+	'entity:edit:icon:crop:img:alt' => "Uploaded image",
 	'entity:edit:icon:file:label' => "Upload a new icon",
 	'entity:edit:icon:file:help' => "Leave blank to keep current icon.",
 	'entity:edit:icon:remove:label' => "Remove icon",
+
+	'entity:edit:header:file:label' => "Upload a new header",
+	'entity:edit:header:file:help' => "Leave blank to keep current header.",
+	'entity:edit:header:remove:label' => "Remove header image",
 
 /**
  * Generic action words
@@ -1107,6 +1122,8 @@ For improved performance, it is recommended that you enable and configure OPcach
 	'save_go' => "Save, and go to %s",
 	'reset' => 'Reset',
 	'publish' => "Publish",
+	'feature' => "Feature",
+	'unfeature' => "Unfeature",
 	'cancel' => "Cancel",
 	'saving' => "Saving ...",
 	'update' => "Update",
@@ -1210,8 +1227,12 @@ For improved performance, it is recommended that you enable and configure OPcach
 	
 	'list:out_of_bounds' => "You have reached a part of the list without any content, however there is content available.",
 	'list:out_of_bounds:link' => "Go back to the first page",
+	'list:error:getter:user' => 'An error occurred while fetching the content',
+	'list:error:getter:admin' => "The getter '%s' returned a(n) '%s', however the viewer '%s' requires an array",
 
 	'link:text' => 'view link',
+	
+	'scroll_to_top' => 'Scroll to top',
 
 /**
  * Generic questions
@@ -1409,10 +1430,6 @@ Once you have logged in, we highly recommend that you change your password.',
 	'installation:sitename' => "The name of your site:",
 	'installation:sitedescription' => "Short description of your site (optional):",
 	'installation:sitedescription:help' => "With bundled plugins this appears only in the description meta tag for search engine results.",
-	'installation:wwwroot' => "The site URL:",
-	'installation:path' => "The full path of the Elgg installation:",
-	'installation:dataroot' => "The full path of the data directory:",
-	'installation:dataroot:warning' => "You must create this directory manually. It should be in a different directory to your Elgg installation.",
 	'installation:sitepermissions' => "The default access permissions:",
 	'installation:language' => "The default language for your site:",
 	'installation:debug' => "Control the amount of information written to the server's log.",
@@ -1433,8 +1450,6 @@ Once you have logged in, we highly recommend that you change your password.',
 	'installation:adminvalidation:notification:direct' => 'Direct',
 	'installation:walled_garden:description' => 'If enabled, logged-out visitors can see only pages marked public (such as login and registration).',
 	'installation:walled_garden:label' => 'Restrict pages to logged-in users',
-
-	'installation:view' => "Enter the view which will be used as the default for your site or leave this blank for the default view (if in doubt, leave as default):",
 
 	'installation:siteemail' => "Site email address (used when sending system emails):",
 	'installation:siteemail:help' => "Warning: Do no use an email address that you may have associated with other third-party services, such as ticketing systems, that perform inbound email parsing, as it may expose you and your users to unintentional leakage of private data and security tokens. Ideally, create a new dedicated email address that will serve only this website.",
@@ -1481,6 +1496,7 @@ Once you have logged in, we highly recommend that you change your password.',
 	'config:users:remove_unvalidated_users_days:help' => "Unvalidated users will automatically be removed after the configured number of days. If left empty the unvalidated users will not be removed automatically.",
 	'config:users:can_change_username' => "Allow users to change their username",
 	'config:users:can_change_username:help' => "If not allowed only admins can change a users username",
+	'config:users:user_joined_river' => "Add a river activity when a user joins the site",
 	'config:remove_branding:label' => "Remove Elgg branding",
 	'config:remove_branding:help' => "Throughout the site there are various links and logo's that show this site is made using Elgg. If you remove the branding consider donating on https://elgg.org/about/supporters",
 	'config:disable_rss:label' => "Disable RSS feeds",
@@ -1502,6 +1518,10 @@ Once you have logged in, we highly recommend that you change your password.',
 	'config:content:pagination_behaviour:ajax-replace' => "Replace the list data without reloading the full page",
 	'config:content:pagination_behaviour:ajax-append' => "Append new list data before or after the list",
 	'config:content:pagination_behaviour:ajax-append-auto' => "Append new list data before or after the list (automatically if scrolled into view)",
+	'config:content:mentions_display_format' => "Mentions display format",
+	'config:content:mentions_display_format:help' => "This decides how a mentioned user will be visible in your content",
+	'config:content:mentions_display_format:username' => "Username",
+	'config:content:mentions_display_format:display_name' => "Display name",
 	'config:email' => "Email",
 	'config:email_html_part:label' => "Enable HTML mail",
 	'config:email_html_part:help' => "Outgoing mail will be wrapped in a HTML template",
@@ -1677,6 +1697,12 @@ To reply or view the original item, click here:
 To reply or view the original item, click here:
 %s",
 
+	'notification:mentions:object:comment:subject' => '%s mentioned you in a comment',
+	'notification:mentions:object:comment:body' => '%1$s mentioned you in a comment.
+	
+To see the full comment, click on the link below:
+%3$s',
+
 /**
  * Entities
  */
@@ -1743,7 +1769,7 @@ Generated %s by %s
 
 ',
 	'diagnostics:report:basic' => '
-Elgg Release %s, version %s
+Elgg Release %s
 
 ------------------------------------------------------------------------',
 	'diagnostics:report:php' => '
@@ -1765,7 +1791,38 @@ Global variables:
  * Miscellaneous
  */
 	'elgg:powered' => "Powered by Elgg",
-	
+	'field:required' => "Required",
+
+/**
+ * Accessibility
+ */
+	'aria:label:admin:users:search' => "User search",
+
+	'menu:admin_footer:header' => "Admin footer",
+	'menu:admin_header:header' => "Admin header",
+	'menu:admin:users:bulk:header' => "Users bulk actions",
+	'menu:annotation:header' => "Annotation",
+	'menu:breadcrumbs:header' => "Breadcrumbs",
+	'menu:comments:header' => "Comments",
+	'menu:entity:header' => "Entity",
+	'menu:entity_navigation:header' => "Entity navigation",
+	'menu:filter:header' => "Filter",
+	'menu:footer:header' => "Footer",
+	'menu:login:header' => "Login",
+	'menu:owner_block:header' => "Owner block",
+	'menu:page:header' => "Page",
+	'menu:relationship:header' => "Relationship",
+	'menu:river:header' => "River",
+	'menu:site:header' => "Site",
+	'menu:social:header' => "Social",
+	'menu:title:header' => "Title",
+	'menu:title:widgets:header' => "Widget administration",
+	'menu:topbar:header' => "Topbar",
+	'menu:user_hover:header' => "User hover",
+	'menu:user:unvalidated:header' => "Unvalidated user",
+	'menu:walled_garden:header' => "Walled garden",
+	'menu:widget:header' => "Widget controls",
+
 /**
  * Cli commands
  */
@@ -1793,6 +1850,12 @@ Global variables:
 	'cli:database:seed:option:create_until' => "A PHP time string to set the upper bound creation time of seeded entities",
 	'cli:database:seed:log:error:faker' => "This is a developer tool currently intended for testing purposes only. Please refrain from using it.",
 	'cli:database:seed:log:error:logged_in' => "Database seeding should not be run with a logged in user",
+	'cli:database:seed:ask:limit' => "How many items to seed for the '%s' seeder",
+
+	'cli:database:seeders:description' => "List all available database seeders with the current count of seeded entities",
+	'cli:database:seeders:handler' => "Seed handler",
+	'cli:database:seeders:type' => "Seed type",
+	'cli:database:seeders:count' => "Seeded count",
 	
 	'cli:database:unseed:description' => "Removes seeded fake entities from the database",
 	
@@ -1810,14 +1873,6 @@ Global variables:
 	'cli:plugins:list:option:status' => "Plugin status ( %s )",
 	'cli:plugins:list:option:refresh' => "Refresh plugin list with recently installed plugins",
 	'cli:plugins:list:error:status' => "%s is not a valid status. Allowed options are: %s",
-	
-	'cli:simpletest:description' => "Run simpletest test suite (deprecated)",
-	'cli:simpletest:option:config' => "Path to settings file that the Elgg Application should be bootstrapped with",
-	'cli:simpletest:option:plugins' => "A list of plugins to enable for testing or 'all' to enable all plugins",
-	'cli:simpletest:option:filter' => "Only run tests that match filter pattern",
-	'cli:simpletest:error:class' => "You must install your Elgg application using '%s'",
-	'cli:simpletest:error:file' => "%s is not a valid simpletest class",
-	'cli:simpletest:output:summary' => "Time: %.2f seconds, Memory: %.2fMb",
 	
 	'cli:upgrade:description' => "Run system upgrades",
 	'cli:upgrade:option:force' => "Force the upgrades to run even if currently an upgrade is already running.",
@@ -1851,11 +1906,11 @@ Global variables:
 	"ay" => "Aymara",
 	"az" => "Azerbaijani",
 	"ba" => "Bashkir",
-	"be" => "Byelorussian",
+	"be" => "Belarusian",
 	"bg" => "Bulgarian",
 	"bh" => "Bihari",
 	"bi" => "Bislama",
-	"bn" => "Bengali; Bangla",
+	"bn" => "Bengali / Bangla",
 	"bo" => "Tibetan",
 	"br" => "Breton",
 	"ca" => "Catalan",
@@ -1865,7 +1920,7 @@ Global variables:
 	"cy" => "Welsh",
 	"da" => "Danish",
 	"de" => "German",
-	"dz" => "Bhutani",
+	"dz" => "Dzongkha",
 	"el" => "Greek",
 	"en" => "English",
 	"eo" => "Esperanto",
@@ -1876,11 +1931,11 @@ Global variables:
 	"fa" => "Persian",
 	"fi" => "Finnish",
 	"fj" => "Fiji",
-	"fo" => "Faeroese",
+	"fo" => "Faroese",
 	"fr" => "French",
 	"fy" => "Frisian",
 	"ga" => "Irish",
-	"gd" => "Scots / Gaelic",
+	"gd" => "(Scottish) Gaelic",
 	"gl" => "Galician",
 	"gn" => "Guarani",
 	"gu" => "Gujarati",
@@ -1893,8 +1948,7 @@ Global variables:
 	"ia" => "Interlingua",
 	"id" => "Indonesian",
 	"ie" => "Interlingue",
-	"ik" => "Inupiak",
-	//"in" => "Indonesian",
+	"ik" => "Inupiaq",
 	"is" => "Icelandic",
 	"it" => "Italian",
 	"iu" => "Inuktitut",
@@ -1913,9 +1967,9 @@ Global variables:
 	"ky" => "Kirghiz",
 	"la" => "Latin",
 	"ln" => "Lingala",
-	"lo" => "Laothian",
+	"lo" => "Lao",
 	"lt" => "Lithuanian",
-	"lv" => "Latvian/Lettish",
+	"lv" => "Latvian",
 	"mg" => "Malagasy",
 	"mi" => "Maori",
 	"mk" => "Macedonian",
@@ -1939,7 +1993,7 @@ Global variables:
 	"pt" => "Portuguese",
 	"pt_br" => "Portuguese (Brazil)",
 	"qu" => "Quechua",
-	"rm" => "Rhaeto-Romance",
+	"rm" => "Romansh",
 	"rn" => "Kirundi",
 	"ro" => "Romanian",
 	"ro_ro" => "Romanian (Romania)",
@@ -1947,9 +2001,9 @@ Global variables:
 	"rw" => "Kinyarwanda",
 	"sa" => "Sanskrit",
 	"sd" => "Sindhi",
-	"sg" => "Sangro",
+	"sg" => "Sango",
 	"sh" => "Serbo-Croatian",
-	"si" => "Singhalese",
+	"si" => "Sinhalese",
 	"sk" => "Slovak",
 	"sl" => "Slovenian",
 	"sm" => "Samoan",
@@ -1970,13 +2024,13 @@ Global variables:
 	"ti" => "Tigrinya",
 	"tk" => "Turkmen",
 	"tl" => "Tagalog",
-	"tn" => "Setswana",
+	"tn" => "Tswana",
 	"to" => "Tonga",
 	"tr" => "Turkish",
 	"ts" => "Tsonga",
 	"tt" => "Tatar",
 	"tw" => "Twi",
-	"ug" => "Uigur",
+	"ug" => "Uighur",
 	"uk" => "Ukrainian",
 	"ur" => "Urdu",
 	"uz" => "Uzbek",
@@ -1987,13 +2041,14 @@ Global variables:
 	//"y" => "Yiddish",
 	"yi" => "Yiddish",
 	"yo" => "Yoruba",
-	"za" => "Zuang",
+	"za" => "Zhuang",
 	"zh" => "Chinese",
 	"zh_hans" => "Chinese Simplified",
 	"zu" => "Zulu",
 
-	"field:required" => 'Required',
-
+/**
+ * Upgrades
+ */
 	"core:upgrade:2017080900:title" => "Alter database encoding for multi-byte support",
 	"core:upgrade:2017080900:description" => "Alters database and table encoding to utf8mb4, in order to support multi-byte characters such as emoji",
 	
@@ -2001,7 +2056,7 @@ Global variables:
 	"core:upgrade:2020102301:description" => "Deletes the entity associated with the Diagnostics plugin removed in Elgg 4.0",
 	
 	"core:upgrade:2021022401:title" => "Migrate notification subscriptions",
-	"core:upgrade:2021022401:description" => "Notifcation subscriptions are stored differently in the database. Use this upgrade to migrate all subscriptions to the new form.",
+	"core:upgrade:2021022401:description" => "Notification subscriptions are stored differently in the database. Use this upgrade to migrate all subscriptions to the new form.",
 	
 	"core:upgrade:2021040701:title" => "Migrate user notification settings",
 	"core:upgrade:2021040701:description" => "In order to have a more developer friendly way to store notification settings of a user a migration is needed to the new naming convention.",

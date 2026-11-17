@@ -3,12 +3,9 @@
 namespace Elgg\Integration;
 
 use Elgg\IntegrationTestCase;
-use Elgg\HooksRegistrationService\Hook;
+use Elgg\Event;
 
 class ElggHtmLawedTest extends IntegrationTestCase {
-
-	protected $configHooks = [];
-	protected $styleHooks = [];
 
 	// 'schemes' => '*:http,https,ftp,news,mailto,rtsp,teamspeak,gopher,mms,callto',
 	protected $validSchemes = [
@@ -50,12 +47,13 @@ class ElggHtmLawedTest extends IntegrationTestCase {
 
 	public function up() {
 		// only use the Elgg core htmlAwed configuration
-		elgg()->hooks->backup();
-		elgg()->hooks->registerHandler('sanitize', 'input', \Elgg\Input\ValidateInputHandler::class, 1);
+		elgg()->events->backup();
+		elgg()->events->registerHandler('sanitize', 'input', \Elgg\Input\ValidateInputHandler::class, 1);
+		elgg()->events->registerHandler('attributes', 'htmlawed', '\Elgg\Input\ValidateInputHandler::sanitizeStyles');
 	}
 
 	public function down() {
-		elgg()->hooks->restore();
+		elgg()->events->restore();
 	}
 
 	/**
@@ -87,7 +85,7 @@ class ElggHtmLawedTest extends IntegrationTestCase {
 
 		foreach ($tests as $input => $expected) {
 			$handler = new \Elgg\Input\ValidateInputHandler();
-			$result = $handler(new Hook(elgg(), null, null, $input, []));
+			$result = $handler(new Event(elgg(), '', '', $input));
 			$this->assertEquals($expected, $result);
 		}
 
@@ -99,7 +97,7 @@ class ElggHtmLawedTest extends IntegrationTestCase {
 
 		foreach ($weird_schemes as $input => $expected) {
 			$handler = new \Elgg\Input\ValidateInputHandler();
-			$result = $handler(new Hook(elgg(), null, null, $input, []));
+			$result = $handler(new Event(elgg(), '', '', $input));
 			$this->assertEquals($expected, $result);
 		}
 
@@ -119,7 +117,7 @@ class ElggHtmLawedTest extends IntegrationTestCase {
 
 		foreach ($tests as $input => $expected) {
 			$handler = new \Elgg\Input\ValidateInputHandler();
-			$result = $handler(new Hook(elgg(), null, null, $input, []));
+			$result = $handler(new Event(elgg(), '', '', $input));
 			$this->assertEquals($expected, $result);
 		}
 	}
@@ -162,7 +160,7 @@ class ElggHtmLawedTest extends IntegrationTestCase {
 
 		foreach ($tests as $input => $expected) {
 			$handler = new \Elgg\Input\ValidateInputHandler();
-			$result = $handler(new Hook(elgg(), null, null, $input, []));
+			$result = $handler(new Event(elgg(), '', '', $input));
 			$this->assertEquals($expected, $result);
 		}
 	}
@@ -174,7 +172,7 @@ class ElggHtmLawedTest extends IntegrationTestCase {
 	 */
 	public function testHtmlawedFilterTags($input, $expected) {
 		$handler = new \Elgg\Input\ValidateInputHandler();
-		$result = $handler(new Hook(elgg(), null, null, $input, []));
+		$result = $handler(new Event(elgg(), '', '', $input));
 		
 		$this->assertEquals($expected, $result);
 	}

@@ -22,6 +22,7 @@ return array(
 	'groups:add' => "Maak een nieuwe groep",
 	'groups:edit' => "Bewerk groep",
 	'groups:edit:profile' => "Profiel",
+	'groups:edit:images' => "Afbeeldingen",
 	'groups:edit:access' => "Toegang",
 	'groups:edit:tools' => "Tools",
 	'groups:edit:settings' => "Instellingen",
@@ -34,12 +35,10 @@ return array(
 	'relationship:invited' => '%2$s is uitgenodigd om lid te worden van %1$s',
 	'relationship:membership_request' => '%s wil graag lid worden van %s',
 
-	'groups:icon' => 'Groepsicoon (laat leeg om het huidige icoon te behouden)',
 	'groups:name' => 'Groepsnaam',
 	'groups:description' => 'Omschrijving',
 	'groups:briefdescription' => 'Korte omschrijving',
 	'groups:interests' => 'Tags',
-	'groups:website' => 'Website',
 	'groups:members' => 'Groepsleden',
 
 	'groups:members_count' => '%s leden',
@@ -51,21 +50,17 @@ return array(
 	'groups:content_access_mode:warning' => "Let op! Als je deze instelling verandert heeft dat <em>geen</em> invloed op de toegangsrechten van de reeds bestaande groepsinhoud!",
 	'groups:content_access_mode:unrestricted' => "Geen beperkingen. Toegang hangt af van de instelling van de content.",
 	'groups:content_access_mode:membersonly' => "Alleen voor leden - Niet-leden kunnen nooit de inhoud van de groep zien.",
-	'groups:access' => "Toegangsrechten",
 	'groups:owner' => "Eigenaar",
 	'groups:owner:warning' => "Opgelet: als je deze waarde aanpast ben je niet meer de eigenaar van deze groep",
 	'groups:widget:num_display' => 'Aantal groepen om weer te geven',
 	'widgets:a_users_groups:name' => 'Groepslidmaatschap',
 	'widgets:a_users_groups:description' => 'Laat de groepen waarvan je lid bent zien op je profiel',
 
-	'groups:noaccess' => 'Geen toegang tot de groep',
 	'groups:cantcreate' => 'Alleen sitebeheerders mogen nieuwe groepen aanmaken.',
 	'groups:cantedit' => 'Je kunt deze groep niet bewerken',
 	'groups:saved' => 'Groep opgeslagen',
 	'groups:save_error' => 'Groep kon niet worden opgeslagen',
 	'groups:featured' => 'Aangeraden groepen',
-	'groups:makeunfeatured' => 'Afraden',
-	'groups:makefeatured' => 'Aanraden',
 	'groups:featuredon' => '%s is nu een aangeraden groep',
 	'groups:unfeatured' => '%s is verwijderd van de aangeraden groepen',
 	'groups:featured_error' => 'Ongeldige groep.',
@@ -96,7 +91,6 @@ return array(
 
 	'groups:open' => "open groep",
 	'groups:closed' => "besloten groep",
-	'groups:member' => "leden",
 	'groups:search' => "Zoek naar groepen",
 
 	'groups:more' => 'Meer groepen',
@@ -146,7 +140,7 @@ return array(
 	'groups:invite:remove:check' => 'Weet je zeker dat je deze uitnodiging wilt verwijderen?',
 	'groups:invite:body' => "%s heeft je uitgenodigd om lid te worden van de groep '%s'.
 
-On al je uitnodigingen te bekijken, klik hier:
+Om al je uitnodigingen te bekijken, klik hier:
 %s",
 
 	'groups:welcome:subject' => "Welkom bij de groep '%s'!",
@@ -161,7 +155,7 @@ Je kunt direct beginnen in de groep!
 Om het profiel te bekijken, klik hier:
 %s
 
-of klik op de link om alle lidmaatschapsverzoeken te bekijken:
+of klik op onderstaande link om alle lidmaatschapsverzoeken te bekijken:
 %s",
 
 	'river:group:create' => '%s heeft de groep %s aangemaakt',
@@ -184,4 +178,8 @@ of klik op de link om alle lidmaatschapsverzoeken te bekijken:
 	
 	'groups:usersettings:notifications:title' => 'Groepsnotificaties',
 	'groups:usersettings:notifications:description' => 'Om notificaties te ontvangen uit groepen waar je lid van bent kun je in onderstaande lijst aangeven of en hoe je op de hoogte moet worden gebracht',
+	
+	// accessibility
+	'groups:aria:label:group_search' => "Zoek naar groepen",
+	'groups:aria:label:search_in_group' => "Zoek in deze groep",
 );

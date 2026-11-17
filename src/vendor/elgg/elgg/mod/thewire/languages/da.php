@@ -16,14 +16,12 @@ return array(
 	'collection:object:thewire:all' => "Alle wire indlæg",
 	'collection:object:thewire:owner' => "%s's wire indlæg",
 	'collection:object:thewire:friends' => "Dine venner på the wire",
-
+	
 	'thewire:replying' => "Svar til %s (@%s) som skrev",
 	'thewire:thread' => "Tråd",
 	'thewire:charleft' => "tegn tilbage",
 	'thewire:tags' => "Wire indlæg tagged med '%s'",
 	'thewire:noposts' => "Ingen wire indlæg endnu",
-
-	'thewire:by' => 'Wire post by %s',
 	
 	/**
 	 * The wire river
@@ -59,6 +57,4 @@ return array(
 	/**
 	 * Settings
 	 */
-	'thewire:settings:limit' => "Maximum number of characters for wire messages:",
-	'thewire:settings:limit:none' => "No limit",
 );

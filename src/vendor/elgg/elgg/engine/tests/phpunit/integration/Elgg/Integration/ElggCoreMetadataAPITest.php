@@ -3,25 +3,18 @@
 namespace Elgg\Integration;
 
 use Elgg\Database\Select;
+use Elgg\Database\Update;
 use Elgg\IntegrationTestCase;
-use ElggMetadata;
-use ElggObject;
 
-/**
- * Elgg Test metadata API
- *
- * @group IntegrationTests
- * @group Metadata
- */
 class ElggCoreMetadataAPITest extends IntegrationTestCase {
 
 	/**
-	 * @var ElggObject
+	 * @var \ElggObject
 	 */
 	protected $object;
 
 	public function up() {
-		_elgg_services()->session->setLoggedInUser($this->getAdmin());
+		_elgg_services()->session_manager->setLoggedInUser($this->getAdmin());
 		
 		// can not use createObject(). The tests rely on an unsaved entity
 		$this->object = new \ElggObject();
@@ -35,7 +28,6 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 	}
 
 	public function testElggGetEntitiesFromMetadata() {
-
 		$this->object->title = 'Meta Unit Test';
 		$this->object->save();
 
@@ -80,7 +72,6 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 	 * @dataProvider caseSensitivePairsProvider
 	 */
 	public function testElggGetEntitiesFromMetadataCaseSensitive($comparison, $value, $case_sensitive, $count) {
-
 		$this->object->setSubtype($this->getRandomSubtype());
 		$this->object->metadata = 'CaseSensitive';
 		$this->object->save();
@@ -162,7 +153,6 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 	 * @dataProvider booleanPairsProvider
 	 */
 	public function testElggGetEntitiesFromBooleanMetadata($value, $query, $type) {
-
 		$this->object->setSubtype($this->getRandomSubtype());
 		$this->object->metadata = $value;
 		$this->object->save();
@@ -220,7 +210,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 	}
 
 	public function testElggDeleteMetadata() {
-		$e = new ElggObject();
+		$e = new \ElggObject();
 		$e->setSubtype($this->getRandomSubtype());
 		$e->save();
 
@@ -262,8 +252,8 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 
 		// need to fake different logins.
 		// good times without mocking.
-		$original_user = _elgg_services()->session->getLoggedInUser();
-		_elgg_services()->session->setLoggedInUser($user1);
+		$original_user = _elgg_services()->session_manager->getLoggedInUser();
+		_elgg_services()->session_manager->setLoggedInUser($user1);
 
 		elgg_call(ELGG_ENFORCE_ACCESS, function() use ($entity, $user2) {
 			$md_values = [
@@ -291,7 +281,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 			}
 	
 			// add md w/ same name as a different user
-			_elgg_services()->session->setLoggedInUser($user2);
+			_elgg_services()->session_manager->setLoggedInUser($user2);
 			$md_values2 = [
 				'four',
 				'five',
@@ -311,7 +301,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 			}
 		});
 		
-		_elgg_services()->session->setLoggedInUser($original_user);
+		_elgg_services()->session_manager->setLoggedInUser($original_user);
 	}
 
 	public function testDefaultOrderedById() {
@@ -319,7 +309,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 		$md_values = null;
 		
 		elgg_call(ELGG_IGNORE_ACCESS, function() use (&$obj, &$md_values) {
-			$obj = new ElggObject();
+			$obj = new \ElggObject();
 			$obj->setSubtype($this->getRandomSubtype());
 			$obj->owner_guid = elgg_get_site_entity()->guid;
 			$obj->container_guid = elgg_get_site_entity()->guid;
@@ -329,7 +319,6 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 			$obj->test_md = [1, 2, 3];
 	
 			$time = time();
-			$prefix = _elgg_services()->db->prefix;
 	
 			// all times the same
 			$mds = elgg_get_metadata([
@@ -339,11 +328,11 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 			]);
 	
 			foreach ($mds as $md) {
-				elgg()->db->updateData("
-					UPDATE {$prefix}metadata
-					SET time_created = " . ($time) . "
-					WHERE id = {$md->id}
-				");
+				$update_metadata = Update::table('metadata');
+				$update_metadata->set('time_created', $update_metadata->param($time, ELGG_VALUE_TIMESTAMP));
+				$update_metadata->where($update_metadata->compare('id', '=', $md->id, ELGG_VALUE_ID));
+				
+				elgg()->db->updateData($update_metadata);
 			}
 	
 			// with the same time_created expecting row order by ID
@@ -352,7 +341,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 				'metadata_names' => 'test_md',
 			]);
 	
-			$md_values = array_map(function (ElggMetadata $md) {
+			$md_values = array_map(function (\ElggMetadata $md) {
 				return (int) $md->value;
 			}, $mds);
 			$this->assertEquals([1, 2, 3], $md_values);
@@ -375,8 +364,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 	}
 
 	public function testCanDeleteMetadataByObject() {
-
-		$entity = $this->createObject([], [
+		$entity = $this->createObject([
 			'foo' => 'bar',
 			'bar' => 'baz',
 		]);

@@ -3,13 +3,13 @@
  * Reply page
  */
 
-$guid = elgg_extract('guid', $vars);
+$guid = (int) elgg_extract('guid', $vars);
 elgg_entity_gatekeeper($guid, 'object', 'thewire');
 
 /* @var $post ElggWire */
 $post = get_entity($guid);
 
-elgg_push_entity_breadcrumbs($post, true);
+elgg_push_entity_breadcrumbs($post);
 
 $content = elgg_view('thewire/reply', ['post' => $post]);
 

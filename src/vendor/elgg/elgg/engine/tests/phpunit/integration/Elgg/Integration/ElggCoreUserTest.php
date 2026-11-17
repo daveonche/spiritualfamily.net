@@ -5,12 +5,6 @@ namespace Elgg\Integration;
 use Elgg\Database\Select;
 use Elgg\Helpers\ElggUserWithExposableAttributes;
 
-/**
- * Elgg Test \ElggUser
- *
- * @group IntegrationTests
- * @group ElggUser
- */
 class ElggCoreUserTest extends \Elgg\IntegrationTestCase {
 
 	/**
@@ -19,7 +13,7 @@ class ElggCoreUserTest extends \Elgg\IntegrationTestCase {
 	private $user;
 
 	public function up() {
-		_elgg_services()->session->setLoggedInUser($this->getAdmin());
+		_elgg_services()->session_manager->setLoggedInUser($this->getAdmin());
 
 		$this->user = new ElggUserWithExposableAttributes();
 		$this->user->username = $this->getRandomUsername();
@@ -40,7 +34,7 @@ class ElggCoreUserTest extends \Elgg\IntegrationTestCase {
 		$object = $this->createObject();
 		
 		// fail on wrong type
-		$this->assertFalse(get_user($object->guid));
+		$this->assertNull(get_user($object->guid));
 	}
 
 	public function testElggUserSave() {
@@ -77,12 +71,12 @@ class ElggCoreUserTest extends \Elgg\IntegrationTestCase {
 		$db_user = $this->fetchUser($this->user->guid);
 		$this->assertNotEmpty($db_user);
 
-		$user = get_user_by_username($name);
+		$user = elgg_get_user_by_username($name);
 
 		$this->assertTrue($user->delete());
 
-		$user = get_user_by_username($name);
-		$this->assertFalse($user);
+		$user = elgg_get_user_by_username($name);
+		$this->assertNull($user);
 	}
 
 	public function testGetUserByUsernameAcceptsUrlEncoded() {
@@ -96,7 +90,7 @@ class ElggCoreUserTest extends \Elgg\IntegrationTestCase {
 		$first_letter = str_pad('%' . dechex(ord($first_letter)), 2, '0', STR_PAD_LEFT);
 		$username =   $first_letter . substr($username, 1);
 
-		$user = get_user_by_username($username);
+		$user = elgg_get_user_by_username($username);
 		$this->assertTrue((bool) $user);
 		$this->assertEquals($user->guid, $this->user->guid);
 
@@ -111,7 +105,7 @@ class ElggCoreUserTest extends \Elgg\IntegrationTestCase {
 
 		$uc_username = strtoupper($username);
 		
-		$user = get_user_by_username($uc_username);
+		$user = elgg_get_user_by_username($uc_username);
 		$this->assertTrue((bool) $user);
 		$this->assertEquals($user->guid, $this->user->guid);
 
@@ -124,17 +118,23 @@ class ElggCoreUserTest extends \Elgg\IntegrationTestCase {
 		$this->user->email = $email;
 		$this->assertTrue($this->user->save());
 
-		$users = get_user_by_email($email);
+		$user = elgg_get_user_by_email($email);
 		
-		$this->assertCount(1, $users);
-		$this->assertEquals($users[0]->guid, $this->user->guid);
+		$this->assertInstanceOf(\ElggUser::class, $user);
+		$this->assertEquals($user->guid, $this->user->guid);
 		
 		// lower case
 		$email = strtolower($email);
-		$users = get_user_by_email($email);
+		$user = elgg_get_user_by_email($email);
 		
-		$this->assertCount(1, $users);
-		$this->assertEquals($users[0]->guid, $this->user->guid);
+		$this->assertInstanceOf(\ElggUser::class, $user);
+		$this->assertEquals($user->guid, $this->user->guid);
+		
+		// get by email username
+		$user = elgg_get_user_by_username($email, true);
+		
+		$this->assertInstanceOf(\ElggUser::class, $user);
+		$this->assertEquals($user->guid, $this->user->guid);
 
 		$this->user->delete();
 	}
@@ -213,7 +213,7 @@ class ElggCoreUserTest extends \Elgg\IntegrationTestCase {
 		$profile_user = $this->createUser();
 		$reading_user = $this->createUser();
 		
-		$session = elgg_get_session();
+		$session = _elgg_services()->session_manager;
 		
 		// store profile data
 		$session->setLoggedInUser($profile_user);
@@ -237,7 +237,7 @@ class ElggCoreUserTest extends \Elgg\IntegrationTestCase {
 		$profile_user = $this->createUser();
 		$reading_user = $this->createUser();
 		
-		$session = elgg_get_session();
+		$session = _elgg_services()->session_manager;
 		
 		// store profile data
 		$session->setLoggedInUser($profile_user);

@@ -4,16 +4,10 @@ namespace Elgg\Actions;
 
 use Elgg\ActionResponseTestCase;
 use Elgg\Exceptions\Configuration\RegistrationException;
-use Elgg\Hook;
 use Elgg\Http\ErrorResponse;
 use Elgg\Http\OkResponse;
 use Elgg\Exceptions\Http\Gatekeeper\RegistrationAllowedGatekeeperException;
 
-/**
- * @group ActionsService
- * @group AccountActions
- * @group Registration
- */
 class RegisterIntegrationTest extends ActionResponseTestCase {
 
 	public function up() {
@@ -28,13 +22,13 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 			],
 		]);
 
-		_elgg_services()->hooks->backup();
+		_elgg_services()->events->backup();
 		
-		elgg_register_plugin_hook_handler('registeruser:validate:password', 'all', [_elgg_services()->passwordGenerator, 'registerUserPasswordValidation']);
+		elgg_register_event_handler('registeruser:validate:password', 'all', [_elgg_services()->passwordGenerator, 'registerUserPasswordValidation']);
 	}
 
 	public function down() {
-		_elgg_services()->hooks->restore();
+		_elgg_services()->events->restore();
 
 		parent::down();
 	}
@@ -55,13 +49,13 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('Security:InvalidPasswordLengthException', [3]), $response->getContent());
 
-		$this->assertFalse(get_user_by_username($username));
+		$this->assertNull(elgg_get_user_by_username($username));
 	}
 
 	public function testRegistrationFailsWithInvalidPassword() {
 
-		$hook = $this->registerTestingHook('registeruser:validate:password', 'all', function (Hook $hook) {
-			if (strpos($hook->getParam('password'), 'X') === false) {
+		$event = $this->registerTestingEvent('registeruser:validate:password', 'all', function (\Elgg\Event $event) {
+			if (strpos($event->getParam('password'), 'X') === false) {
 				return;
 			}
 
@@ -81,10 +75,10 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('registration:passwordnotvalid'), $response->getContent());
 
-		$hook->assertNumberOfCalls(1);
-		$hook->unregister();
+		$event->assertNumberOfCalls(1);
+		$event->unregister();
 
-		$this->assertFalse(get_user_by_username($username));
+		$this->assertNull(elgg_get_user_by_username($username));
 	}
 
 	public function testRegistrationFailsWithEmptyPassword() {
@@ -101,7 +95,7 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('RegistrationException:EmptyPassword'), $response->getContent());
 
-		$this->assertFalse(get_user_by_username($username));
+		$this->assertNull(elgg_get_user_by_username($username));
 	}
 
 	public function testRegistrationFailsWithMismatchingPassword() {
@@ -119,7 +113,7 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('RegistrationException:PasswordMismatch'), $response->getContent());
 
-		$this->assertFalse(get_user_by_username($username));
+		$this->assertNull(elgg_get_user_by_username($username));
 	}
 
 	public function testRegistrationFailsWithInvalidUsername() {
@@ -137,7 +131,7 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		//$this->assertEquals(elgg_echo('registerbad'), $response->getContent());
 
-		$this->assertFalse(get_user_by_username('username\r\n'));
+		$this->assertNull(elgg_get_user_by_username('username\r\n'));
 	}
 
 	public function testRegistrationFailsWithInvalidUsernameContainingBlacklistChar() {
@@ -155,7 +149,7 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		//$this->assertEquals(elgg_echo('registerbad'), $response->getContent());
 
-		$this->assertFalse(get_user_by_username('username?#'));
+		$this->assertNull(elgg_get_user_by_username('username?#'));
 	}
 
 	public function testRegistrationFailsWithShortUsername() {
@@ -173,7 +167,7 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('registration:usernametooshort', [4]), $response->getContent());
 
-		$this->assertFalse(get_user_by_username('abc'));
+		$this->assertNull(elgg_get_user_by_username('abc'));
 	}
 
 	public function testRegistrationFailsWithLongUsername() {
@@ -192,7 +186,7 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('registration:usernametoolong', [128]), $response->getContent());
 
-		$this->assertFalse(get_user_by_username($username));
+		$this->assertNull(elgg_get_user_by_username($username));
 	}
 
 	public function testRegistrationFailsWithInvalidEmail() {
@@ -210,13 +204,13 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals(elgg_echo('registration:notemail'), $response->getContent());
 
-		$this->assertFalse(get_user_by_username($username));
+		$this->assertNull(elgg_get_user_by_username($username));
 	}
 
 	public function testRegistrationFailsWithExistingEmail() {
 
 		$username = $this->getRandomUsername();
-		$this->createUser([], [
+		$this->createUser([
 			'email' => "$username@example.com",
 		]);
 
@@ -236,7 +230,7 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 	public function testRegistrationFailsWithExistingUsername() {
 
 		$username = $this->getRandomUsername();
-		$this->createUser([], [
+		$this->createUser([
 			'username' => $username,
 		]);
 
@@ -266,15 +260,15 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 
 		$this->assertInstanceOf(OkResponse::class, $response);
 
-		$user = get_user_by_username($username);
+		$user = elgg_get_user_by_username($username);
 		$this->assertInstanceOf(\ElggUser::class, $user);
 
 		$this->assertEquals($user->guid, elgg_get_logged_in_user_guid());
 	}
 
-	public function testRegistrationSucceedsButExceptionThrownFromHook() {
+	public function testRegistrationSucceedsButExceptionThrownFromEvent() {
 
-		$hook = $this->registerTestingHook('register', 'user', function () {
+		$event = $this->registerTestingEvent('register', 'user', function () {
 			throw new RegistrationException('Hello');
 		});
 
@@ -291,19 +285,19 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		$this->assertInstanceOf(ErrorResponse::class, $response);
 		$this->assertEquals('Hello', $response->getContent());
 
-		$user = get_user_by_username($username);
-		$this->assertFalse($user);
+		$user = elgg_get_user_by_username($username);
+		$this->assertNull($user);
 
-		$hook->assertNumberOfCalls(1);
-		$hook->unregister();
+		$event->assertNumberOfCalls(1);
+		$event->unregister();
 	}
 	
 	public function testRegisterWithAdminValidation() {
 		
 		_elgg_services()->config->require_admin_validation = true;
 		
-		// re-register admin validation hooks
-		_elgg_services()->hooks->registerHandler('register', 'user', 'Elgg\Users\Validation::checkAdminValidation', 999);
+		// re-register admin validation events
+		_elgg_services()->events->registerHandler('register', 'user', 'Elgg\Users\Validation::checkAdminValidation', 999);
 		
 		$username = $this->getRandomUsername();
 		
@@ -319,7 +313,7 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		
 		/* @var $user \ElggUser */
 		$user = elgg_call(ELGG_SHOW_DISABLED_ENTITIES, function () use ($username) {
-			return get_user_by_username($username);
+			return elgg_get_user_by_username($username);
 		});
 		$this->assertInstanceOf(\ElggUser::class, $user);
 		$this->assertFalse($user->isValidated());
@@ -347,7 +341,7 @@ class RegisterIntegrationTest extends ActionResponseTestCase {
 		
 		/* @var $user \ElggUser */
 		$user = elgg_call(ELGG_SHOW_DISABLED_ENTITIES, function () use ($username) {
-			return get_user_by_username($username);
+			return elgg_get_user_by_username($username);
 		});
 		$this->assertInstanceOf(\ElggUser::class, $user);
 		$this->assertTrue($user->isValidated());

@@ -2,14 +2,13 @@
 
 namespace Elgg\Cache;
 
-use DateTime;
-use ElggCache;
 use Elgg\Config;
 use Elgg\Exceptions\ConfigurationException;
 use Elgg\Exceptions\InvalidArgumentException;
 use Elgg\Values;
 use Phpfastcache\CacheManager;
 use Phpfastcache\Cluster\ClusterAggregator;
+use Phpfastcache\Config\ConfigurationOption;
 use Phpfastcache\Core\Pool\ExtendedCacheItemPoolInterface;
 
 /**
@@ -17,7 +16,7 @@ use Phpfastcache\Core\Pool\ExtendedCacheItemPoolInterface;
  *
  * @internal
  */
-class CompositeCache extends ElggCache {
+class CompositeCache extends BaseCache {
 
 	/**
 	 * TTL of saved items (default timeout after a day to prevent anything getting too stale)
@@ -70,26 +69,26 @@ class CompositeCache extends ElggCache {
 	/**
 	 * Save data in a cache.
 	 *
-	 * @param string       $key  Name
-	 * @param mixed        $data Value
-	 * @param int|DateTime $ttl  Expire value after
+	 * @param string        $key          Name
+	 * @param mixed         $data         Value
+	 * @param int|\DateTime $expire_after Expire value after
 	 *
 	 * @return bool
 	 */
-	public function save($key, $data, $ttl = null) {
+	public function save($key, $data, $expire_after = null) {
 		if ($this->disabled) {
 			return false;
 		}
 		
-		$ttl = $ttl ?: $this->ttl;
+		$expire_after = $expire_after ?: $this->ttl;
 
 		$item = $this->pool->getItem($this->sanitizeItemKey($key));
 		$item->set($data);
 		
-		if (is_int($ttl)) {
-			$item->expiresAfter($ttl);
-		} elseif ($ttl instanceof DateTime) {
-			$item->expiresAt($ttl);
+		if (is_int($expire_after)) {
+			$item->expiresAfter($expire_after);
+		} elseif ($expire_after instanceof \DateTime) {
+			$item->expiresAt($expire_after);
 		}
 			
 		return $this->pool->save($item);
@@ -126,7 +125,6 @@ class CompositeCache extends ElggCache {
 
 	/**
 	 * {@inheritDoc}
-	 * @see ElggCache::delete()
 	 */
 	public function delete($key) {
 		if ($this->disabled) {
@@ -138,7 +136,6 @@ class CompositeCache extends ElggCache {
 
 	/**
 	 * {@inheritDoc}
-	 * @see ElggCache::clear()
 	 */
 	public function clear() {
 		return $this->pool->clear();
@@ -146,7 +143,6 @@ class CompositeCache extends ElggCache {
 	
 	/**
 	 * {@inheritDoc}
-	 * @see ElggCache::invalidate()
 	 */
 	public function invalidate() {
 		// Phpfastcache doesn't have invalidation as an action.
@@ -156,7 +152,6 @@ class CompositeCache extends ElggCache {
 	
 	/**
 	 * {@inheritDoc}
-	 * @see ElggCache::purge()
 	 */
 	public function purge() {
 		// Phpfastcache doesn't have purge as an action
@@ -226,7 +221,6 @@ class CompositeCache extends ElggCache {
 	protected function createPool() {
 		
 		$drivers = [];
-		$drivers[] = $this->buildApcDriver();
 		$drivers[] = $this->buildRedisDriver();
 		$drivers[] = $this->buildMemcachedDriver();
 		$drivers[] = $this->buildFileSystemDriver();
@@ -257,31 +251,13 @@ class CompositeCache extends ElggCache {
 		}
 		
 		$cluster_driver = $cluster->getCluster();
-		
-		$cluster_driver->getConfig()->setPreventCacheSlams(true);
-		$cluster_driver->getConfig()->setDefaultChmod(0770);
-		$cluster_driver->getConfig()->setUseStaticItemCaching(true);
-		$cluster_driver->getConfig()->setItemDetailedDate(true);
+		$cluster_driver->setConfig(new ConfigurationOption([
+			'preventCacheSlams' => true,
+			'useStaticItemCaching' => true,
+			'itemDetailedDate' => true,
+		]));
 		
 		return $cluster_driver;
-	}
-
-	/**
-	 * Builds APC driver
-	 * @return null
-	 */
-	protected function buildApcDriver() {
-		if (!($this->flags & ELGG_CACHE_APC)) {
-			return null;
-		}
-
-		if (!extension_loaded('apc') || !ini_get('apc.enabled')) {
-			return null;
-		}
-
-		elgg_deprecated_notice('The APC driver for caching is no longer available. Switch to an alternative method for caching.', '4.1');
-		
-		return null;
 	}
 
 	/**

@@ -42,7 +42,8 @@ $pagination_after_options = (array) elgg_extract('pagination_after_options', $va
 unset($vars['pagination_after_options']);
 
 if (in_array($pagination_behaviour, ['ajax-append', 'ajax-append-auto'])) {
-	$vars['position'] = $position = 'both';
+	$position = 'both';
+	$vars['position'] = $position;
 
 	// set before options
 	$pagination_before_options['pagination_show_numbers'] = false;
@@ -70,7 +71,7 @@ foreach ($items as $item) {
 	$item_view_vars = $vars;
 	$item_view_vars['list_item_index'] = $index;
 	$item_view = elgg_view_list_item($item, $item_view_vars);
-	if (!$item_view) {
+	if (empty($item_view)) {
 		continue;
 	}
 
@@ -116,16 +117,20 @@ if (!empty($base_url)) {
 	$base_url = elgg_http_add_url_query_elements($base_url, ['offset' => null, 'limit' => null]);
 }
 
-$id = elgg_build_hmac([
-	$list_classes,
-	$list_item_view,
-	elgg_extract('item_view', $vars),
-	elgg_extract('type', $vars),
-	elgg_extract('subtype', $vars),
-	elgg_extract('offset_key', $vars),
-	elgg_extract('pagination_class', $vars),
-	$base_url,
-])->getToken();
+// make a unique ID for AJAX pagination
+$id = null;
+if ($pagination) {
+	$id = 'list-container-' . elgg_build_hmac([
+		$list_classes,
+		$list_item_view,
+		elgg_extract('item_view', $vars),
+		elgg_extract('type', $vars),
+		elgg_extract('subtype', $vars),
+		elgg_extract('offset_key', $vars),
+		elgg_extract('pagination_class', $vars),
+		$base_url,
+	])->getToken();
+}
 
 $container_classes = ['elgg-list-container'];
 if ($pagination && ($pagination_behaviour !== 'navigate')) {
@@ -140,4 +145,4 @@ if ($pagination && ($pagination_behaviour !== 'navigate')) {
 	}
 }
 
-echo elgg_format_element('div', ['class' => $container_classes, 'id' => "list-container-{$id}"], $result);
+echo elgg_format_element('div', ['class' => $container_classes, 'id' => $id], $result);

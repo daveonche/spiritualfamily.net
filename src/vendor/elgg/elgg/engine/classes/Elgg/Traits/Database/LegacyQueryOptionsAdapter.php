@@ -12,7 +12,6 @@ use Elgg\Database\Clauses\HavingClause;
 use Elgg\Database\Clauses\JoinClause;
 use Elgg\Database\Clauses\MetadataWhereClause;
 use Elgg\Database\Clauses\OrderByClause;
-use Elgg\Database\Clauses\PrivateSettingWhereClause;
 use Elgg\Database\Clauses\RelationshipWhereClause;
 use Elgg\Database\Clauses\SelectClause;
 use Elgg\Database\Clauses\WhereClause;
@@ -47,7 +46,6 @@ trait LegacyQueryOptionsAdapter {
 
 		$options = $this->normalizeTypeSubtypeOptions($options);
 
-		$options = $this->normalizePrivateSettingOptions($options);
 		$options = $this->normalizeRelationshipOptions($options);
 		$options = $this->normalizeAnnotationOptions($options);
 		$options = $this->normalizeMetadataOptions($options);
@@ -69,9 +67,7 @@ trait LegacyQueryOptionsAdapter {
 		$options = $this->normalizeWhereClauses($options);
 		$options = $this->normalizeJoinClauses($options);
 		$options = $this->normalizeOrderByClauses($options);
-		$options = $this->normalizeGroupByClauses($options);
-
-		return $options;
+		return $this->normalizeGroupByClauses($options);
 	}
 
 	/**
@@ -109,7 +105,6 @@ trait LegacyQueryOptionsAdapter {
 			'metadata_name_value_pairs' => null,
 			'metadata_name_value_pairs_operator' => 'AND',
 			'metadata_case_sensitive' => true,
-			'order_by_metadata' => null,
 			'metadata_ids' => null,
 			'metadata_created_time_lower' => null,
 			'metadata_created_time_upper' => null,
@@ -122,7 +117,6 @@ trait LegacyQueryOptionsAdapter {
 			'annotation_name_value_pairs' => null,
 			'annotation_name_value_pairs_operator' => 'AND',
 			'annotation_case_sensitive' => true,
-			'order_by_annotation' => null,
 			'annotation_ids' => null,
 			'annotation_created_time_lower' => null,
 			'annotation_created_time_upper' => null,
@@ -137,13 +131,6 @@ trait LegacyQueryOptionsAdapter {
 			'relationship_join_on' => 'guid',
 			'relationship_created_time_lower' => null,
 			'relationship_created_time_upper' => null,
-
-			'private_setting_names' => null,
-			'private_setting_values' => null,
-			'private_setting_name_value_pairs' => null,
-			'private_setting_name_value_pairs_operator' => 'AND',
-			'private_setting_name_prefix' => '',
-			'private_setting_case_sensitive' => false,
 
 			'preload_owners' => false,
 			'preload_containers' => false,
@@ -166,10 +153,7 @@ trait LegacyQueryOptionsAdapter {
 	 * @return array
 	 */
 	protected function normalizeAccessOptions(array $options = []) {
-
-		$options = self::normalizePluralOptions($options, ['access_id']);
-
-		return $options;
+		return self::normalizePluralOptions($options, ['access_id']);
 	}
 
 	/**
@@ -213,6 +197,7 @@ trait LegacyQueryOptionsAdapter {
 				if (!in_array($type, Config::ENTITY_TYPES)) {
 					elgg_log("'$type' is not a valid entity type", 'WARNING');
 				}
+				
 				if (!empty($subtypes) && !is_array($subtypes)) {
 					$options['type_subtype_pairs'][$type] = [$subtypes];
 				}
@@ -244,26 +229,6 @@ trait LegacyQueryOptionsAdapter {
 		$options = self::normalizePluralOptions($options, $singulars);
 
 		$options = $this->normalizePairedOptions('metadata', $options);
-
-		if (isset($options['order_by_metadata'])) {
-			elgg_deprecated_notice('Passing "order_by_metadata" to sort your results has been deprecated. Use "sort_by" options instead.', '4.3');
-			
-			$name = elgg_extract('name', $options['order_by_metadata']);
-			$direction = strtoupper(elgg_extract('direction', $options['order_by_metadata'], 'asc'));
-			$as = elgg_extract('as', $options['order_by_metadata']);
-
-			if ($name) {
-				$options['sort_by'][] = [
-					'property' => $name,
-					'direction' => in_array($direction, ['ASC', 'DESC']) ? $direction : null,
-					'signed' => $as === ELGG_VALUE_INTEGER,
-					'property_type' => 'metadata',
-				];
-			}
-
-			$options['order_by'] = null;
-			$options['order_by_metadata'] = null;
-		}
 
 		$props = [
 			'metadata_ids',
@@ -313,14 +278,6 @@ trait LegacyQueryOptionsAdapter {
 			}
 
 			$pair = array_merge($defaults, $pair);
-
-			if (in_array(strtolower($pair['comparison']), ['in', 'eq', '=']) && is_string($pair['value'])) {
-				// Apparently this madness is supported
-				// \Elgg\Integration\ElggCoreGetEntitiesFromMetadataTest::testElggApiGettersEntityMetadataNVPValidNValidVOperandIn
-				$pair['value'] = array_map(function ($e) {
-					return trim($e, ' \"\'');
-				}, explode(',', $pair['value']));
-			}
 
 			if (in_array($pair['name'], \ElggEntity::PRIMARY_ATTR_NAMES)) {
 				$clause = new AttributeWhereClause();
@@ -390,14 +347,6 @@ trait LegacyQueryOptionsAdapter {
 
 			$pair = array_merge($defaults, $pair);
 
-			if (in_array(strtolower($pair['comparison']), ['in', 'eq', '=']) && is_string($pair['value'])) {
-				// Apparently this madness is supported
-				// \Elgg\Integration\ElggCoreGetEntitiesFromMetadataTest::testElggApiGettersEntityMetadataNVPValidNValidVOperandIn
-				$pair['value'] = array_map(function ($e) {
-					return trim($e, ' \"\'');
-				}, explode(',', $pair['value']));
-			}
-
 			if (in_array($pair['name'], \ElggEntity::PRIMARY_ATTR_NAMES)) {
 				$clause = new AttributeWhereClause();
 			} else {
@@ -438,26 +387,6 @@ trait LegacyQueryOptionsAdapter {
 		$options = self::normalizePluralOptions($options, $singulars);
 
 		$options = $this->normalizePairedOptions('annotation', $options);
-
-		if (isset($options['order_by_annotation'])) {
-			elgg_deprecated_notice('Passing "order_by_annotation" to sort your results has been deprecated. Use "sort_by" options instead.', '4.3');
-			
-			$name = elgg_extract('name', $options['order_by_annotation']);
-			$direction = strtoupper(elgg_extract('direction', $options['order_by_annotation'], 'asc'));
-			$as = elgg_extract('as', $options['order_by_annotation']);
-
-			if ($name) {
-				$options['sort_by'][] = [
-					'property' => $name,
-					'property_type' => 'annotation',
-					'direction' => in_array($direction, ['ASC', 'DESC']) ? $direction : null,
-					'signed' => $as === ELGG_VALUE_INTEGER,
-				];
-			}
-
-			$options['order_by'] = null;
-			$options['order_by_annotation'] = null;
-		}
 
 		$props = [
 			'annotation_ids',
@@ -540,78 +469,6 @@ trait LegacyQueryOptionsAdapter {
 	}
 
 	/**
-	 * Normalizes private settings options
-	 *
-	 * @param array $options Options
-	 *
-	 * @return array
-	 */
-	protected function normalizePrivateSettingOptions(array $options = []) {
-
-		$singulars = [
-			'private_setting_name',
-			'private_setting_value',
-			'private_setting_name_value_pair',
-		];
-
-		$options = self::normalizePluralOptions($options, $singulars);
-
-		$options = $this->normalizePairedOptions('private_setting', $options);
-
-		foreach ($options['private_setting_name_value_pairs'] as $key => $pair) {
-			if ($pair instanceof WhereClause) {
-				continue;
-			}
-
-			$options['private_setting_name_value_pairs'][$key]['entity_guids'] = $options['guids'];
-		}
-
-		$options['private_setting_name_value_pairs'] = $this->removeKeyPrefix('private_setting_', $options['private_setting_name_value_pairs']);
-
-		$prefix = null;
-		if (isset($options['private_setting_name_prefix'])) {
-			$prefix = $options['private_setting_name_prefix'];
-			unset($options['private_setting_name_prefix']);
-		}
-
-		$defaults = [
-			'name' => null,
-			'value' => null,
-			'comparison' => '=',
-			'type' => ELGG_VALUE_STRING,
-			'case_sensitive' => true,
-			'entity_guids' => null,
-			'ids' => null,
-		];
-
-		foreach ($options['private_setting_name_value_pairs'] as $key => $pair) {
-			if ($pair instanceof WhereClause) {
-				continue;
-			}
-
-			$pair = array_merge($defaults, $pair);
-
-			$names = (array) elgg_extract('name', $pair);
-			$names = array_map(function($name) use ($prefix) {
-				return $prefix ? "$prefix$name" : $name;
-			}, $names);
-
-			$clause = new PrivateSettingWhereClause();
-			$clause->ids = (array) $pair['ids'];
-			$clause->entity_guids = (array) $pair['entity_guids'];
-			$clause->names = $names;
-			$clause->values = (array) $pair['value'];
-			$clause->comparison = $pair['comparison'];
-			$clause->value_type = $pair['type'];
-			$clause->case_sensitive = $pair['case_sensitive'];
-
-			$options['private_setting_name_value_pairs'][$key] = $clause;
-		}
-
-		return $options;
-	}
-
-	/**
 	 * Normalizes paired options
 	 *
 	 * @param string $type    Pair type
@@ -661,7 +518,7 @@ trait LegacyQueryOptionsAdapter {
 		foreach ($options["{$type}_name_value_pairs"] as $index => $pair) {
 			if (is_array($pair)) {
 				$keys = array_keys($pair);
-				if (sizeof($keys) === 1 && is_string($keys[0]) && $keys[0] !== 'name' && $keys[0] !== 'value') {
+				if (count($keys) === 1 && is_string($keys[0]) && $keys[0] !== 'name' && $keys[0] !== 'value') {
 					$options["{$type}_name_value_pairs"][$index] = [
 						'name' => $keys[0],
 						'value' => $pair[$keys[0]],
@@ -688,6 +545,7 @@ trait LegacyQueryOptionsAdapter {
 					continue;
 				}
 			}
+			
 			$options["{$type}_name_value_pairs"][$index] = [
 				'name' => $index,
 				'value' => $values,
@@ -711,16 +569,19 @@ trait LegacyQueryOptionsAdapter {
 			if (!isset($value['case_sensitive'])) {
 				$value['case_sensitive'] = $case_sensitive_default;
 			}
+			
 			if (!isset($value['type'])) {
 				if (isset($value['value']) && is_bool($value['value'])) {
 					$value['value'] = (int) $value['value'];
 				}
+				
 				if (isset($value['value']) && is_int($value['value'])) {
 					$value['type'] = ELGG_VALUE_INTEGER;
 				} else {
 					$value['type'] = ELGG_VALUE_STRING;
 				}
 			}
+			
 			if (!isset($value['comparison']) && isset($value['operand'])) {
 				$value['comparison'] = $value['operand'];
 				unset($value['operand']);
@@ -761,6 +622,7 @@ trait LegacyQueryOptionsAdapter {
 			if (isset($options[$prop])) {
 				$pair[$prop] = $options[$prop];
 			}
+			
 			unset($options[$prop]);
 		}
 
@@ -782,9 +644,7 @@ trait LegacyQueryOptionsAdapter {
 				continue;
 			}
 
-			$pair = array_merge($defaults, $pair);
-
-			if (!$pair['relationship'] && !$pair['relationship_guid']) {
+			if (!$pair['relationship'] && !$pair['guid'] && !$pair['ids']) {
 				unset($options['relationship_pairs'][$key]);
 				continue;
 			}
@@ -800,6 +660,7 @@ trait LegacyQueryOptionsAdapter {
 			} else {
 				$clause->subject_guids = (array) $pair['guid'];
 			}
+			
 			$clause->created_after = $pair['created_after'];
 			$clause->created_before = $pair['created_before'];
 
@@ -848,7 +709,6 @@ trait LegacyQueryOptionsAdapter {
 			foreach ($options[$name] as $key => $value) {
 				if ($value === false || $value === '') {
 					unset($options[$name][$key]);
-					continue;
 				}
 			}
 		}
@@ -908,12 +768,14 @@ trait LegacyQueryOptionsAdapter {
 	protected function removeKeyPrefix($prefix, array $array = []) {
 		foreach ($array as $key => $value) {
 			$new_key = $key;
-			if (strpos($key, $prefix) === 0) {
+			if (str_starts_with($key, $prefix)) {
 				$new_key = substr($key, strlen($prefix));
 			}
+			
 			if (!isset($array[$new_key])) {
-				$array[$new_key] = $array[$key];
+				$array[$new_key] = $value;
 			}
+			
 			if ($new_key !== $key) {
 				unset($array[$key]);
 			}
@@ -974,16 +836,6 @@ trait LegacyQueryOptionsAdapter {
 				continue;
 			}
 
-			if (is_string($clause)) {
-				elgg_deprecated_notice("
-					Using literal MySQL statements in 'wheres' options parameter is deprecated.
-					Instead use a closure that receives an instanceof of QueryBuilder
-					and returns a composite DBAL expression
-					
-					{{ $clause }}
-				", '3.0');
-			}
-
 			$options['wheres'][$key] = new WhereClause($clause);
 		}
 
@@ -1020,17 +872,9 @@ trait LegacyQueryOptionsAdapter {
 				$condition = preg_replace('/\r|\n/', '', $parts[7]);
 
 				$dbprefix = elgg_get_config('dbprefix');
-				if (!elgg_is_empty($dbprefix) && strpos($table, $dbprefix) === 0) {
+				if (!elgg_is_empty($dbprefix) && str_starts_with($table, $dbprefix)) {
 					$table = substr($table, strlen($dbprefix));
 				}
-
-				elgg_deprecated_notice("
-					Using literal MySQL statements in 'joins' options parameter is deprecated.
-					Instead use a closure that receives an instanceof of QueryBuilder and returns an instanceof of JoinClause,
-					also consider using one of the built-in methods in QueryBuilder.
-					
-					{{ $join }}
-				", '3.0');
 
 				$clause = new JoinClause($table, $alias, $condition, $type);
 				$options['joins'][$key] = $clause;
@@ -1076,8 +920,6 @@ trait LegacyQueryOptionsAdapter {
 					$column = $order;
 					$direction = 'ASC';
 				}
-
-				$direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
 
 				$options['order_by'][] = new OrderByClause($column, $direction);
 			}
@@ -1135,28 +977,12 @@ trait LegacyQueryOptionsAdapter {
 		}
 
 		if (is_string($options['group_by'])) {
-			$clause = $options['group_by'];
-
-			$options['group_by'] = explode(',', $options['group_by']);
-
-			if (count($options['group_by']) > 1) {
-				elgg_deprecated_notice("
-					Using literal MySQL statements in 'group_by' options parameter is deprecated.
-					Instead use a closure that receives an instanceof of QueryBuilder
-					and returns a prepared clause.
-					
-					{{ $clause }}
-				", '3.0');
-			}
+			$options['group_by'] = (array) trim($options['group_by']);
 		}
 
 		foreach ($options['group_by'] as $key => $expr) {
 			if ($expr instanceof GroupByClause) {
 				continue;
-			}
-			
-			if (is_string($expr)) {
-				$expr = trim($expr);
 			}
 			
 			$options['group_by'][$key] = new GroupByClause($expr);

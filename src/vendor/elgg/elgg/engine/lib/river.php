@@ -4,6 +4,8 @@
  * Activity stream functions.
  */
 
+use Elgg\Exceptions\InvalidArgumentException as ElggInvalidArgumentException;
+
 /**
  * Adds an item to the river.
  *
@@ -19,12 +21,11 @@
  * @option int    $target_guid   The GUID of the the object entity's container
  * @option int    $posted        The UNIX epoch timestamp of the river item (default: now)
  * @option int    $annotation_id The annotation ID associated with this river entry
- * @option bool   $return_item   set to true to return the ElggRiverItem created
  *
- * @return int|ElggRiverItem|bool River ID/item or false on failure
+ * @return ElggRiverItem|null Riveritem or null on failure
  * @since  1.9
  */
-function elgg_create_river_item(array $options = []) {
+function elgg_create_river_item(array $options = []): ?\ElggRiverItem {
 	$item = new \ElggRiverItem();
 	$item->action_type = elgg_extract('action_type', $options);
 	$item->view = elgg_extract('view', $options);
@@ -35,10 +36,10 @@ function elgg_create_river_item(array $options = []) {
 	$item->posted = elgg_extract('posted', $options);
 	
 	if (!$item->save()) {
-		return false;
+		return null;
 	}
 	
-	return (bool) elgg_extract('return_item', $options, false) ? $item : $item->id;
+	return $item;
 }
 
 /**
@@ -62,7 +63,7 @@ function elgg_create_river_item(array $options = []) {
  *   type_subtype_pairs   => ARR     Array of type => subtype pairs where subtype
  *                                   can be an array of subtype strings
  *
- *   @note If using types and subtypes in a query, they are joined with an AND.
+ *   NOTE: If using types and subtypes in a query, they are joined with an AND.
  *
  *   Additionally accepts all "relationship_*" options supported by {@link elgg_get_entities()}
  *   relationship         => STR     Relationship identifier
@@ -106,10 +107,10 @@ function elgg_get_river(array $options = []) {
  *
  * @param int $id ID
  *
- * @return ElggRiverItem|false
+ * @return ElggRiverItem|null
  */
-function elgg_get_river_item_from_id(int $id) {
-	return _elgg_services()->riverTable->get($id) ?? false;
+function elgg_get_river_item_from_id(int $id): ?\ElggRiverItem {
+	return _elgg_services()->riverTable->get($id);
 }
 
 /**
@@ -126,11 +127,12 @@ function elgg_get_river_item_from_id(int $id) {
  *
  * @param array $options An options array. {@link elgg_get_river()}
  *
- * @return bool|null true on success, false on failure, null if no metadata to delete.
+ * @return bool true on success, false on failure
+ * @throws \Elgg\Exceptions\InvalidArgumentException
  *
  * @since   1.8.0
  */
-function elgg_delete_river(array $options = []) {
+function elgg_delete_river(array $options = []): bool {
 
 	$required = [
 		'id', 'ids',
@@ -151,7 +153,8 @@ function elgg_delete_river(array $options = []) {
 	}
 
 	if (!$found) {
-		return false;
+		// requirements not met
+		throw new ElggInvalidArgumentException(__METHOD__ . ' requires at least one of the following keys in $options: ' . implode(', ', $required));
 	}
 
 	return elgg_call(ELGG_IGNORE_ACCESS, function() use ($options) {
@@ -163,7 +166,7 @@ function elgg_delete_river(array $options = []) {
 		$count = $river->count();
 	
 		if (!$count) {
-			return;
+			return true;
 		}
 	
 		$success = 0;
@@ -173,7 +176,7 @@ function elgg_delete_river(array $options = []) {
 			}
 		}
 	
-		return $success == $count;
+		return $success === $count;
 	});
 }
 
@@ -188,7 +191,7 @@ function elgg_delete_river(array $options = []) {
  * @return string
  * @since 1.8.0
  */
-function elgg_list_river(array $options = []) {
+function elgg_list_river(array $options = []): string {
 	$defaults = [
 		'offset'     => (int) max(get_input('offset', 0), 0),
 		'limit'      => (int) max(get_input('limit', max(20, _elgg_services()->config->default_limit)), 0),
@@ -203,9 +206,9 @@ function elgg_list_river(array $options = []) {
 		elgg_register_rss_link();
 	}
 	
-	if (!$options["limit"] && !$options["offset"]) {
+	if (!$options['limit'] && !$options['offset']) {
 		// no need for pagination if listing is unlimited
-		$options["pagination"] = false;
+		$options['pagination'] = false;
 	}
 	
 	$options['count'] = false;

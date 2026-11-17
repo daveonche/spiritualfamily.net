@@ -24,12 +24,12 @@ echo elgg_view_field([
 	'#label' => elgg_echo('admin:maintenance_mode:message_label'),
 	'name' => 'message',
 	'id' => 'message',
-	'value' => $site->getPrivateSetting('elgg_maintenance_message') ?: elgg_echo('admin:maintenance_mode:default_message'),
+	'value' => $site->elgg_maintenance_message ?: elgg_echo('admin:maintenance_mode:default_message'),
 ]);
 
 $footer = elgg_view_field([
 	'#type' => 'submit',
-	'value' => elgg_echo('save'),
+	'text' => elgg_echo('save'),
 ]);
 
 elgg_set_form_footer($footer);

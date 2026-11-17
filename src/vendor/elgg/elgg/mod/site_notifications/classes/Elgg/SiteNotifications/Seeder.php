@@ -5,6 +5,7 @@ namespace Elgg\SiteNotifications;
 use Elgg\Database\Clauses\OrderByClause;
 use Elgg\Database\QueryBuilder;
 use Elgg\Database\Seeds\Seed;
+use Elgg\Exceptions\Seeding\MaxAttemptsException;
 
 /**
  * Add site notification seed
@@ -19,19 +20,17 @@ class Seeder extends Seed {
 	public function seed() {
 		$this->advance($this->getCount());
 		
-		$attributes = [
-			'subtype' => 'site_notification',
-			'access_id' => ACCESS_PRIVATE,
-		];
-		
 		while ($this->getCount() < $this->limit) {
-			$metadata = [
-				'read' => $this->faker()->boolean(),
-				'summary' => $this->faker()->sentence(),
-			];
-			
-			$notification = $this->createObject($attributes, $metadata);
-			if (!$notification instanceof \SiteNotification) {
+			try {
+				/* @var $notification \SiteNotification */
+				$notification = $this->createObject([
+					'subtype' => 'site_notification',
+					'access_id' => ACCESS_PRIVATE,
+					'read' => $this->faker()->boolean(),
+					'summary' => $this->faker()->sentence(),
+				]);
+			} catch (MaxAttemptsException $e) {
+				// unable to create site notification with the given options
 				continue;
 			}
 			
@@ -59,7 +58,6 @@ class Seeder extends Seed {
 	 * {@inheritdoc}
 	 */
 	public function unseed() {
-		
 		/* @var $notifications \ElggBatch */
 		$notifications = elgg_get_entities([
 			'type' => 'object',
@@ -76,6 +74,8 @@ class Seeder extends Seed {
 				$this->log("Deleted site notification {$notification->guid}");
 			} else {
 				$this->log("Failed to delete site notification {$notification->guid}");
+				$notifications->reportFailure();
+				continue;
 			}
 			
 			$this->advance();

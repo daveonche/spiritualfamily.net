@@ -5,11 +5,11 @@
  */
 
 /**
- * Returns an \ElggCache object suitable for caching system information
+ * Returns an \Elgg\Cache\BaseCache object suitable for caching system information
  *
- * @return ElggCache
+ * @return \Elgg\Cache\BaseCache
  */
-function elgg_get_system_cache(): \ElggCache {
+function elgg_get_system_cache(): \Elgg\Cache\BaseCache {
 	return _elgg_services()->fileCache;
 }
 
@@ -31,7 +31,7 @@ function elgg_reset_system_cache(): void {
  *
  * @return bool
  */
-function elgg_save_system_cache($type, $data, int $expire_after = null): bool {
+function elgg_save_system_cache(string $type, $data, int $expire_after = null): bool {
 	return _elgg_services()->systemCache->save($type, $data, $expire_after);
 }
 
@@ -42,7 +42,7 @@ function elgg_save_system_cache($type, $data, int $expire_after = null): bool {
  *
  * @return mixed null if key not found in cache
  */
-function elgg_load_system_cache($type) {
+function elgg_load_system_cache(string $type) {
 	return _elgg_services()->systemCache->load($type);
 }
 
@@ -53,7 +53,7 @@ function elgg_load_system_cache($type) {
  * @return bool
  * @since 3.0
  */
-function elgg_delete_system_cache($type): bool {
+function elgg_delete_system_cache(string $type): bool {
 	return _elgg_services()->systemCache->delete($type);
 }
 
@@ -108,7 +108,7 @@ function elgg_disable_system_cache(): void {
  * @see elgg_get_simplecache_url()
  * @since 1.8.0
  */
-function elgg_register_simplecache_view($view_name): void {
+function elgg_register_simplecache_view(string $view_name): void {
 	_elgg_services()->views->registerCacheableView($view_name);
 }
 
@@ -136,7 +136,7 @@ function elgg_register_simplecache_view($view_name): void {
  * @return string
  * @since 1.8.0
  */
-function elgg_get_simplecache_url($view, $subview = ''): string {
+function elgg_get_simplecache_url(string $view, string $subview = ''): string {
 	return _elgg_services()->simpleCache->getUrl($view, $subview);
 }
 
@@ -224,15 +224,15 @@ function elgg_purge_caches(): void {
  * @internal
  */
 function _elgg_is_cache_symlinked(): bool {
-	$root_path = elgg_get_root_path();
-
 	$simplecache_path = elgg_get_asset_path();
-	$symlink_path = "{$root_path}cache";
-
 	if (!is_dir($simplecache_path)) {
 		return false;
 	}
-	return is_dir($symlink_path) && realpath($simplecache_path) == realpath($symlink_path);
+	
+	$root_path = elgg_get_root_path();
+	$symlink_path = "{$root_path}cache";
+	
+	return is_dir($symlink_path) && realpath($simplecache_path) === realpath($symlink_path);
 }
 
 /**

@@ -18,14 +18,11 @@ return array(
 	'messages:message' => "Messaggio",
 	'messages:title' => "Oggetto",
 	'messages:to:help' => "Scrivi il nome utente del destinatario qui.",
-	'messages:inbox' => "In arrivo",
 	'messages:sendmessage' => "Invia un messaggio",
 	'messages:add' => "Scrivi un messaggio",
 	'messages:sentmessages' => "Messaggi inviati",
 	'messages:toggle' => 'Inverti selezione a tutti',
 	'messages:markread' => 'Segna come già letto',
-
-	'notification:method:site' => 'Sito',
 
 	'messages:error' => 'Si è verificato un errore salvando il messaggio. Per favore riprova.',
 
