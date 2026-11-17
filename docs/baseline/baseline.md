@@ -77,8 +77,15 @@ produced the 8.3 correction recorded above; the runtime image rebuild lands
 at Step 3, and the vendor-tree sync completes there too — Composer 2.10
 refuses to parse the asset-packagist tar archives on the still-7.4 runtime
 (`Refusing to parse a tar/phar archive on PHP < 8.0`), so the
-install-from-lock verification moves behind the rebuild. Until Step 3 lands,
-the pin-consistency guard tests (`BaselineRuntimeVersionTest`,
+install-from-lock verification moves behind the rebuild. The aborted update
+also leaves the guard suite unrunnable until then, not merely mismatched:
+the update removed `symfony/polyfill-php81` from the vendor tree while the
+4.3.10-era autoload map still references it (`Failed opening required
+.../symfony/polyfill-php81/bootstrap.php`), and the resolved 5.x tree
+requires PHP 8.x at runtime (laminas-mail 2.25.1 `~8.1.0 || ~8.2.0 ||
+~8.3.0`; laminas-servicemanager/stdlib/validator `~8.2.0 || ~8.3.0 ||
+~8.4.0 || ~8.5.0`; doctrine/event-manager `^8.1`). Until Step 3 lands, the
+pin-consistency guard tests (`BaselineRuntimeVersionTest`,
 `CiPinnedRuntimeTest`, `ComposeImageBuildTest`) read the previous 7.4
 surfaces — the expected transient mismatch, per the story's step order.
 Dependency-change record: `docs/dependencies/S1.11-dependencies.md`
