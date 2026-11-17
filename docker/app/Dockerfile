@@ -34,7 +34,7 @@
 #   The per-step pinned tag (recorded in docs/baseline/baseline.md) is
 #   the runtime pin; CI's image-build job additionally verifies the tag
 #   resolves to the recorded digest
-#   sha256:6ce84d10cfe10c10d7c1f12bfc53b13415785a1df0296970b8a8bf58e48573d5
+#   sha256:a98dbd585dcfb259bb8933f0de6dd13a07db872c1ba33e3a2426403b7dbc6350
 #   and fails the pipeline on upstream tag movement. Re-resolve after an
 #   intentional base refresh with:
 #   docker buildx imagetools inspect coldtrick/elgg_webserver:<tag>
@@ -45,7 +45,7 @@ FROM composer:2@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f
 
 FROM coldtrick/elgg_webserver:${PHP_VERSION}
 
-# Layer the Composer 2 phar onto the PHP 7.4 webserver image, plus a
+# Layer the Composer 2 phar onto the PHP 8.2 webserver image, plus a
 # `composer` wrapper: the base image's php.ini restricts open_basedir to
 # the web root, dataroot, /tmp and the cache/asset roots, so the phar at
 # /usr/local/bin cannot run directly, and it disables putenv(), which
@@ -76,22 +76,6 @@ RUN <<EOF
 if command -v apk >/dev/null 2>&1; then
     apk add --no-cache msmtp
 elif command -v apt-get >/dev/null 2>&1; then
-    # Workaround (Elgg 2.3 baseline only): the base image's baked-in apt
-    # lists pin gsasl 1.10.0-4+deb11u3, whose .deb has been pruned from
-    # the security pool — the install 404s. Repointing the suite at
-    # deb.debian.org and then cdn-aws.deb.debian.org (Fastly and
-    # CloudFront edges, distinct IPs in the build logs) still resolved
-    # the pruned version, so the security suite is unusable here
-    # regardless of index/pool sync state. Drop the security lines and
-    # their stale baked-in lists, then install from bullseye main, whose
-    # index and pool are self-consistent; the relay forgoes only the
-    # newest gsasl security patches, acceptable for this throwaway dev
-    # layer. Drop this whole workaround with the legacy base image once
-    # the journey leaves 2.3.
-    if [ -f /etc/apt/sources.list ]; then
-        sed -i '/security\.debian\.org/d' /etc/apt/sources.list
-        rm -f /var/lib/apt/lists/*security*
-    fi
     apt-get update && apt-get install -y --no-install-recommends msmtp && rm -rf /var/lib/apt/lists/*
 else
     echo "unknown base image: no apk or apt-get found" >&2

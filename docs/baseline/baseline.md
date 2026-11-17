@@ -8,7 +8,7 @@ Ground-zero version reference for the Spiritual Family Network upgrade journey
 | Component | Pinned version | Source |
 | --- | --- | --- |
 | Elgg core | 5.1.12 | Story S1.11 Step 1 pin (Packagist p2 resolution, 2026-11-16); declared in `src/composer.json` (`"elgg/elgg": "5.1.12"`) and `src/composer.lock` (tracked — the baked-image pin) at Story S1.11 Step 2 |
-| PHP runtime | 8.2 (exact patch confirmed at the Step 3 image rebuild) | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); its exact-pinned laminas/laminas-mime 2.11.0 requires `~8.0.0 \|\| ~8.1.0 \|\| ~8.2.0`, excluding 8.3 (Story S1.11 Step 2 discovery); upstream base `coldtrick/elgg_webserver:8.2` (see `docker/app/Dockerfile`); app image `sfn/elgg_webserver:8.2-composer2` built at Story S1.11 Step 3 |
+| PHP runtime | 8.2.21 | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); its exact-pinned laminas/laminas-mime 2.11.0 requires `~8.0.0 \|\| ~8.1.0 \|\| ~8.2.0`, excluding 8.3 (Story S1.11 Step 2 discovery); upstream base `coldtrick/elgg_webserver:8.2` (see `docker/app/Dockerfile`); app image `sfn/elgg_webserver:8.2-composer2` built at Story S1.11 Step 3 — the rebuilt container reports PHP 8.2.21 (`php -r 'echo PHP_VERSION;'`, 2026-11-17) |
 | Database server | MariaDB 10.11.18 | Compose stack `dbm` image `mariadb:10.11.18` (see `compose.yml`); confirmed via `SELECT VERSION()` → `10.11.18-MariaDB-ubu2204` |
 | Cron service base | alpine:3.23.3 | Compose stack `cron` image `sfn/elgg_cron:3.23.3`, built locally from `alpine:3.23.3` (see `docker/cron/Dockerfile`); the image tag carries the pinned base version (Story S1.6 Step 2) |
 | phpMyAdmin | 5.2.3 | Compose stack `pma` image `phpmyadmin/phpmyadmin:5.2.3` (see `compose.dev.yml`); confirmed via the image's `/var/www/html/package.json` |
@@ -37,8 +37,9 @@ containerized server reports `10.11.18-MariaDB-ubu2204` — the `-log` and
 `-ubu2204` suffixes are build variants, not part of the Docker tag. Bump the
 `mariadb:` tag deliberately alongside the upgrade journey, never float.
 
-Environment note (2026-09-19): the app image layers Composer 2.x (2.10.3 at
-time of recording) onto the upstream PHP 7.4 webserver image via
+Environment note (2026-09-19; base line updated to PHP 8.2 at Story S1.11
+Step 3): the app image layers Composer 2.x (2.10.3 at
+time of recording) onto the upstream PHP 8.2 webserver image via
 `docker/app/Dockerfile`, confirmed via `docker compose exec app composer --version`,
 so manifest and lock-file work runs inside the orchestration. The web SAPI's
 `open_basedir` restriction is unchanged; the Composer CLI wrapper clears
@@ -66,7 +67,7 @@ runtime image tag listing (Docker Hub `coldtrick/elgg_webserver`, queried
 | Component | Pinned version | Source |
 | --- | --- | --- |
 | Elgg core (upgrade target) | 5.1.12 | Newest stable 5.x release in the Packagist version list — the 5.x line ends at 5.1.12 (the 6.x line begins above it; no 5.2.x exists) |
-| PHP runtime | 8.2 (exact patch confirmed at the Step 3 image rebuild) | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); the pinned 7.4.27 runtime does not satisfy it, so the runtime pin moves. Step 1 pinned 8.3; Step 2's resolution corrected it to 8.2 — elgg 5.1.12 exact-pins laminas/laminas-mime 2.11.0, whose `~8.0.0 \|\| ~8.1.0 \|\| ~8.2.0` constraint excludes 8.3, making (5.1.12, 8.3) unresolvable. 8.2 is the highest line the pinned tree supports and exists upstream (`coldtrick/elgg_webserver:8.2`); the PHP 8.3 runtime arrives with the Elgg 7.1.0 target (Story S1.13, per `docs/tech_stack.md`) |
+| PHP runtime | 8.2.21 | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); the pinned 7.4.27 runtime does not satisfy it, so the runtime pin moves. Step 1 pinned 8.3; Step 2's resolution corrected it to 8.2 — elgg 5.1.12 exact-pins laminas/laminas-mime 2.11.0, whose `~8.0.0 \|\| ~8.1.0 \|\| ~8.2.0` constraint excludes 8.3, making (5.1.12, 8.3) unresolvable. 8.2 is the highest line the pinned tree supports and exists upstream (`coldtrick/elgg_webserver:8.2`); the Step 3 rebuild reports PHP 8.2.21 in the rebuilt container (2026-11-17); the PHP 8.3 runtime arrives with the Elgg 7.1.0 target (Story S1.13, per `docs/tech_stack.md`) |
 
 With Step 1 complete, the Pinned Versions table above carries this pair as
 the active pin — the core row moved from the 4.3.10 second-hop value, which
@@ -91,6 +92,19 @@ surfaces — the expected transient mismatch, per the story's step order.
 Dependency-change record: `docs/dependencies/S1.11-dependencies.md`
 (transitive tree replacement, laminas-mime runtime-pin correction, vendor
 sync deferred to the Step 3 image rebuild).
+
+Step 3 rebuild record (2026-11-17): the app image rebuilt on
+`coldtrick/elgg_webserver:8.2` (digest
+`sha256:a98dbd585dcfb259bb8933f0de6dd13a07db872c1ba33e3a2426403b7dbc6350`,
+Base-Image Digest Pins below); the rebuilt container reports PHP 8.2.21
+with Composer 2.10.3. Rebuild gotcha for the runbook: a stale
+`PHP_VERSION=7.4` export in the command environment outranked the `.env`
+and compose-default interpolation, so the first OK rebuild silently
+produced the 7.4 image again — an explicit `PHP_VERSION=8.2` assignment
+on the rebuild command resolved it (the command environment beats `.env`
+in Compose interpolation). The vendor-tree sync and the
+install-from-lock verification run in the rebuilt container as this
+step's next actions.
 
 ## Upgrade-Stage Pin (Story S1.10 Step 1)
 
@@ -143,12 +157,13 @@ no edit.
 ## Base-Image Digest Pins
 
 Digest pins for the app image build chain (`docker/app/Dockerfile`),
-resolved 2026-10-14 with `docker buildx imagetools inspect <name:tag>`:
+resolved 2026-10-14 (composer:2) and 2026-11-17 (runtime webserver base,
+PHP 8.2 line) with `docker buildx imagetools inspect <name:tag>`:
 
 | Base image | Digest (sha256) | Enforcement |
 | --- | --- | --- |
 | `composer:2` | `af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac` | Hard-pinned inline in the Dockerfile (`FROM composer:2@sha256:<digest>`); the stage only contributes the Composer phar and is version-agnostic, so a hard pin is safe |
-| Runtime webserver base (tag per Pinned Versions above) | `6ce84d10cfe10c10d7c1f12bfc53b13415785a1df0296970b8a8bf58e48573d5` | The Dockerfile FROM stays tag-pinned so `PHP_VERSION` overrides keep working — in a `name:tag@digest` reference the digest wins over the tag — and the CI `image-build` job verifies the pulled tag against this digest, failing the pipeline on upstream tag movement |
+| Runtime webserver base (tag per Pinned Versions above) | `a98dbd585dcfb259bb8933f0de6dd13a07db872c1ba33e3a2426403b7dbc6350` | The Dockerfile FROM stays tag-pinned so `PHP_VERSION` overrides keep working — in a `name:tag@digest` reference the digest wins over the tag — and the CI `image-build` job verifies the pulled tag against this digest, failing the pipeline on upstream tag movement |
 
 Re-resolve both digests after an intentional base refresh and update the
 Dockerfile pin and the CI workflow together.
@@ -158,9 +173,9 @@ Dockerfile pin and the CI workflow together.
 - Historical note (resolved in S1.1 Step 3): the repository-root
   `composer.json` had been overwritten in a previous session with Elgg 7
   requirements and was corrected back to the pinned baseline; it is now the
-  authoritative pin declaration (`"elgg/elgg": "4.3.10"`, Story S1.10).
+  authoritative pin declaration (`"elgg/elgg": "5.1.12"`, Story S1.11).
 - Manual verification for this pin: confirm the `"version"` field in the
-  installed core's `vendor/elgg/elgg/composer.json` reads `4.3.10` (inside
+  installed core's `vendor/elgg/elgg/composer.json` reads `5.1.12` (inside
   the app container — `src/vendor/` is tracked, re-tracked in S1.9 Step 8
   as the baked-image pin; elgg 4 removed the `version.php` the 2.3/3.x
   cores carried), and cross-check against the version reported by the

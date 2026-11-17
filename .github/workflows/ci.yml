@@ -7,7 +7,7 @@
 #   the local .agent/githooks/commit-msg hook, which stays a local-only
 #   dev tool and is intentionally not committed.
 # - runtime: verify the pipeline executes on the single pinned runtime
-#   version recorded in docs/baseline/baseline.md (PHP 7.4.27).
+#   version recorded in docs/baseline/baseline.md (PHP 8.2.21).
 # - composer-validate: validate the dependency manifest's structure and
 #   declared metadata with `composer validate --strict`, independent of
 #   installation (nothing is downloaded). Manifest ↔ lock consistency is
@@ -24,7 +24,7 @@
 #   runtime; any syntax error fails the pipeline and names the file.
 # - image-build: build the application image from the committed build
 #   recipe (docker/app/Dockerfile) with the same version build argument
-#   the local Compose orchestration passes (PHP_VERSION, default 7.4).
+#   the local Compose orchestration passes (PHP_VERSION, default 8.2).
 #   The runtime base tag is verified against its recorded digest pin
 #   before building, so upstream tag movement fails the pipeline.
 #   Validation only — the image is never published or pushed.
@@ -118,22 +118,22 @@ jobs:
           exit "$status"
 
   runtime:
-    name: Pinned runtime verification (PHP 7.4.27)
+    name: Pinned runtime verification (PHP 8.2.21)
     runs-on: ubuntu-latest
     container:
       # Single pinned runtime version from docs/baseline/baseline.md
-      # (Pinned Versions: PHP runtime 7.4.27). The project's own app image
+      # (Pinned Versions: PHP runtime 8.2.21). The project's own app image
       # is built locally and not registry-published, so CI uses the official
       # php image tagged at the exact pinned version; the version assertion
       # below guards against tag drift.
-      image: php:7.4.27-cli
+      image: php:8.2.21-cli
     steps:
       - name: Verify runtime matches the pinned baseline version
         run: |
           set -euo pipefail
           php -v
           actual="$(php -r 'echo PHP_VERSION;')"
-          expected="7.4.27"
+          expected="8.2.21"
           if [ "$actual" != "$expected" ]; then
             echo "::error::PHP runtime $actual does not match the pinned baseline version $expected (docs/baseline/baseline.md)"
             exit 1
@@ -148,9 +148,10 @@ jobs:
     permissions:
       contents: read
     container:
-      # Composer 2.2 LTS line — the composer line compatible with the
-      # PHP 7.4 baseline era — at an exact tag. Validation is local
-      # only: no dependency download, no install step.
+      # Composer 2.2 LTS line at an exact tag — the long-term-support
+      # composer release, kept across the journey's runtime moves because
+      # these jobs execute no project PHP (metadata-only). Validation is
+      # local only: no dependency download, no install step.
       image: composer:2.2.24
     steps:
       - name: Check out repository
@@ -178,20 +179,15 @@ jobs:
     # scope visible on top of the workflow-level baseline.
     permissions:
       contents: read
-    env:
-      # Composer on the pinned PHP 7.4 refuses to extract the bower-asset
-      # tar dists (asset-packagist serves tars; Composer's tar/phar
-      # hardening applies below PHP 8.0). The dists are the official
-      # bower releases and the extraction happens only inside this CI
-      # container — the same override the app image's build-time install
-      # uses (docker/app/Dockerfile).
-      COMPOSER_ALLOW_UNSAFE_PHAR_METADATA: "1"
     container:
-      # The pinned runtime (docs/baseline/baseline.md, PHP 7.4.27) — the
-      # same image as the runtime job. The composer:2.2.24 image runs a
-      # newer PHP, so it cannot host this check: config.platform.php
-      # pins the platform to 7.4.27, which that image does not satisfy.
-      image: php:7.4.27-cli
+      # The pinned runtime (docs/baseline/baseline.md, PHP 8.2.21) — the
+      # same image as the runtime job. The composer:2.2.24 image runs its
+      # own PHP rather than the pinned runtime, so it cannot host this
+      # check: the steps below assert the actual runtime version against
+      # the pinned value. (The former COMPOSER_ALLOW_UNSAFE_PHAR_METADATA
+      # override is gone with the PHP 7.4 runtime: Composer extracts the
+      # asset-packagist tar dists natively on PHP 8.x.)
+      image: php:8.2.21-cli
     steps:
       - name: Check out repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -202,7 +198,7 @@ jobs:
         run: |
           set -euo pipefail
           actual="$(php -r 'echo PHP_VERSION;')"
-          expected="7.4.27"
+          expected="8.2.21"
           if [ "$actual" != "$expected" ]; then
             echo "::error::PHP runtime $actual does not match the pinned baseline version $expected (docs/baseline/baseline.md)"
             exit 1
@@ -241,7 +237,7 @@ jobs:
           # Per-fetch retries: snapshot 503 rate limits are per-request,
           # so retrying each individual fetch (InRelease, Packages, .deb)
           # absorbs them far better than coarse outer-loop retries.
-          # Check-Valid-Until=false: bullseye-updates/-security Release
+          # Check-Valid-Until=false: bookworm-updates/-security Release
           # files carry a Valid-Until freshness stamp, so any pinned
           # snapshot older than it is "expired" by design — frozen data
           # is the point. GPG signature verification is unaffected; only
@@ -379,12 +375,12 @@ jobs:
     permissions:
       contents: read
     container:
-      # The pinned runtime (docs/baseline/baseline.md, PHP 7.4.27).
+      # The pinned runtime (docs/baseline/baseline.md, PHP 8.2.21).
       # Syntax rules are PHP-version-dependent, so the lint must run on
       # the exact pinned version — a drifted image tag would silently
       # change what "valid syntax" means. `php -l` needs no extra
       # extensions, so no apt/gd step is required here.
-      image: php:7.4.27-cli
+      image: php:8.2.21-cli
     steps:
       - name: Check out repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -395,7 +391,7 @@ jobs:
         run: |
           set -euo pipefail
           actual="$(php -r 'echo PHP_VERSION;')"
-          expected="7.4.27"
+          expected="8.2.21"
           if [ "$actual" != "$expected" ]; then
             echo "::error::PHP runtime $actual does not match the pinned baseline version $expected (docs/baseline/baseline.md)"
             exit 1
@@ -441,7 +437,7 @@ jobs:
 
       - name: Build the app image with the orchestration's version build arg
         # Same parameterized entry point as the local orchestration:
-        # compose.yml passes PHP_VERSION (default 7.4, the pinned
+        # compose.yml passes PHP_VERSION (default 8.2, the pinned
         # baseline runtime) into docker/app/Dockerfile's ARG. CI passes
         # the same value explicitly so the pipeline build is identical
         # to a local `docker compose build`. Validation only — nothing
@@ -449,14 +445,14 @@ jobs:
         # job and therefore the whole pipeline.
         run: |
           set -euo pipefail
-          php_version="7.4"
-          # Recorded digest of coldtrick/elgg_webserver:7.4, resolved with
-          # `docker buildx imagetools inspect coldtrick/elgg_webserver:7.4`
-          # on 2026-10-14 (recorded in docs/baseline/baseline.md and
+          php_version="8.2"
+          # Recorded digest of coldtrick/elgg_webserver:8.2, resolved with
+          # `docker buildx imagetools inspect coldtrick/elgg_webserver:8.2`
+          # on 2026-11-17 (recorded in docs/baseline/baseline.md and
           # docker/app/Dockerfile). The tag is mutable; this pin turns
           # silent upstream tag movement into a hard pipeline failure
           # instead of a build on shifted content.
-          expected_digest="sha256:6ce84d10cfe10c10d7c1f12bfc53b13415785a1df0296970b8a8bf58e48573d5"
+          expected_digest="sha256:a98dbd585dcfb259bb8933f0de6dd13a07db872c1ba33e3a2426403b7dbc6350"
           # The composer stage's digest is pinned inline in the Dockerfile
           # (FROM composer:2@sha256:<digest>); guard its presence so a
           # revert to the mutable major tag cannot land unnoticed.
@@ -478,7 +474,7 @@ jobs:
           # the runner default, pinned explicitly so a runner-image
           # change cannot silently flip it off.
           export DOCKER_BUILDKIT=1
-          echo "Building with PHP_VERSION=${php_version} (compose.yml default: PHP_VERSION=7.4)"
+          echo "Building with PHP_VERSION=${php_version} (compose.yml default: PHP_VERSION=8.2)"
           # Build context is the repository root (Story S1.6): the
           # Dockerfile COPYs src/ and docker/app/php/ from the repo root — the images
           # carry their runtime content (the production definition has no
