@@ -9,7 +9,7 @@
 class ComposeImageBuildTest extends \PHPUnit\Framework\TestCase
 {
 	/** Docker-tag form of the stage's pinned PHP runtime (docs/baseline/baseline.md). */
-	const PINNED_RUNTIME_DOCKER_TAG = '7.4';
+	const PINNED_RUNTIME_DOCKER_TAG = '8.2';
 
 	private function repoDir()
 	{
@@ -65,7 +65,7 @@ class ComposeImageBuildTest extends \PHPUnit\Framework\TestCase
 		// stage's pinned default
 		$this->assertSame(
 			1,
-			preg_match('/PHP_VERSION:\s*"\$\{PHP_VERSION:-7\.4\}"/', $contents),
+			preg_match('/PHP_VERSION:\s*"\$\{PHP_VERSION:-8\.2\}"/', $contents),
 			'compose.yml does not pass PHP_VERSION as a build arg with the pinned default'
 		);
 
@@ -73,7 +73,7 @@ class ComposeImageBuildTest extends \PHPUnit\Framework\TestCase
 		// each PHP version builds under its own tag
 		$this->assertSame(
 			1,
-			preg_match('/image:\s*"sfn\/elgg_webserver:\$\{PHP_VERSION:-7\.4\}-composer2"/', $contents),
+			preg_match('/image:\s*"sfn\/elgg_webserver:\$\{PHP_VERSION:-8\.2\}-composer2"/', $contents),
 			'compose.yml does not tag the built image with the interpolated PHP version'
 		);
 	}

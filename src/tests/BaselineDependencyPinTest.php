@@ -19,7 +19,7 @@ class BaselineDependencyPinTest extends \PHPUnit\Framework\TestCase
 	const PINNED_CORE_VERSION = '4.3.10';
 
 	/** The single pinned PHP runtime version (docs/baseline/baseline.md). */
-	const PINNED_RUNTIME_VERSION = '7.4.27';
+	const PINNED_RUNTIME_VERSION = '8.2.21';
 
 	private function srcDir()
 	{

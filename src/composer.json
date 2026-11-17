@@ -27,7 +27,7 @@
 	"config": {
 		"process-timeout": 0,
 		"platform": {
-			"php": "8.2"
+			"php": "8.2.21"
 		},
 		"allow-plugins": {
 			"composer/installers": true
