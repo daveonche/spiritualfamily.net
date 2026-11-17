@@ -51,12 +51,15 @@ FROM coldtrick/elgg_webserver:${PHP_VERSION}
 # /usr/local/bin cannot run directly, and it disables putenv(), which
 # Composer requires. The wrapper runs PHP with both restrictions cleared
 # for the composer CLI only; the web SAPI's restrictions stay untouched.
+# It also pins max_execution_time back to 0 for composer runs only: the
+# repo's limits.ini (Story S1.11 Step 9) caps both SAPIs at 120s, and
+# dependency updates legitimately run longer.
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer.phar
 
 RUN <<EOF
 printf '%s\n' \
     '#!/bin/sh' \
-    'exec php -d open_basedir= -d disable_functions= /usr/local/bin/composer.phar "$@"' \
+    'exec php -d open_basedir= -d disable_functions= -d max_execution_time=0 /usr/local/bin/composer.phar "$@"' \
     > /usr/local/bin/composer
 chmod 0755 /usr/local/bin/composer
 composer --version
