@@ -213,16 +213,15 @@ jobs:
         # extract dist archives (zip) or fall back to source downloads
         # (git) — unzip and git ride along with libpng-dev below.
         #
-        # The php:7.4.27-cli image is never rebuilt, so its apt state is
+        # The php:8.2.21-cli image is never rebuilt, so its apt state is
         # frozen while the live Debian mirrors keep moving: superseded
-        # .deb versions 404 from the CDN pool, and post-EOL suites
-        # disappear entirely (bullseye left LTS in 2026-08). Retrying
-        # with a fresh index cannot fix either mode — the CDN's cached
-        # index outlives any backoff, and a removed suite never returns.
-        # Pin apt to a snapshot.debian.org timestamp instead: index and
-        # pool are frozen together and can never disagree. To refresh:
-        # pick a new timestamp, verify its three InRelease URLs return
-        # 200, and update the snapshot variable below. snapshot.debian.org
+        # .deb versions 404 from the CDN pool even while the suite is in
+        # LTS support. Retrying with a fresh index cannot fix that — the
+        # CDN's cached index outlives any backoff. Pin apt to a
+        # snapshot.debian.org timestamp instead: index and pool are
+        # frozen together and can never disagree. To refresh: pick a new
+        # timestamp, verify its three InRelease URLs return 200, and
+        # update the snapshot variable below. snapshot.debian.org
         # rate-limits per request (503), so apt gets per-fetch retries
         # (Acquire::Retries) on top of the outer loop, and every failed
         # attempt prints apt's error lines instead of hiding them.
@@ -230,9 +229,9 @@ jobs:
           set -euo pipefail
           snapshot='20250601T000000Z'
           cat > /etc/apt/sources.list <<EOF
-          deb https://snapshot.debian.org/archive/debian/${snapshot}/ bullseye main
-          deb https://snapshot.debian.org/archive/debian/${snapshot}/ bullseye-updates main
-          deb https://snapshot.debian.org/archive/debian-security/${snapshot}/ bullseye-security main
+          deb https://snapshot.debian.org/archive/debian/${snapshot}/ bookworm main
+          deb https://snapshot.debian.org/archive/debian/${snapshot}/ bookworm-updates main
+          deb https://snapshot.debian.org/archive/debian-security/${snapshot}/ bookworm-security main
           EOF
           # Per-fetch retries: snapshot 503 rate limits are per-request,
           # so retrying each individual fetch (InRelease, Packages, .deb)
