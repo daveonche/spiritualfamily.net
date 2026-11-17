@@ -1,6 +1,6 @@
 services:
   app:
-    # The app server — locally built: upstream PHP 7.4 webserver + Composer 2
+    # The app server — locally built: upstream PHP 8.2 webserver + Composer 2
     # (docker/app/Dockerfile) so composer.json/composer.lock work runs in the
     # orchestration.
     # Build context is the repository root (Story S1.6): the production
@@ -16,11 +16,11 @@ services:
       # override via environment (shell export or .env) to build any
       # runtime version from these unedited files
       args:
-        PHP_VERSION: "${PHP_VERSION:-7.4}"
+        PHP_VERSION: "${PHP_VERSION:-8.2}"
     # Tag for the locally built image (Compose allows build + image together);
     # adjust the name to taste; the runtime version is interpolated so each
     # PHP version builds under its own tag
-    image: "sfn/elgg_webserver:${PHP_VERSION:-7.4}-composer2"
+    image: "sfn/elgg_webserver:${PHP_VERSION:-8.2}-composer2"
     container_name: ${APP_CONTAINER_NAME}
     env_file:
       # This passes variables from .env to the container
