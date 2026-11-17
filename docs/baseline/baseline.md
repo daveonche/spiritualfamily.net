@@ -102,9 +102,18 @@ with Composer 2.10.3. Rebuild gotcha for the runbook: a stale
 and compose-default interpolation, so the first OK rebuild silently
 produced the 7.4 image again — an explicit `PHP_VERSION=8.2` assignment
 on the rebuild command resolved it (the command environment beats `.env`
-in Compose interpolation). The vendor-tree sync and the
-install-from-lock verification run in the rebuilt container as this
-step's next actions.
+in Compose interpolation). The vendor-tree sync completed in the rebuilt
+container the same day: `composer update --lock` refreshed the lock's
+content-hash and `platform-overrides.php` to 8.2.21, and `composer install`
+reported "Installing dependencies from lock file (including require-dev)" —
+the asset-packagist tar dists extracted natively on the 8.2 runtime,
+closing the Step 2 partial-install state; the vendored core reports 5.1.12.
+The previous core version's caches were cleared (`$WWW_CACHE` emptied)
+before the guard suite ran; the suite is green (138 tests, 1158
+assertions) with the pin guards updated to the new pair. A second rebuild
+verified the workaround-free Dockerfile (the legacy bullseye msmtp
+workaround removed with the 7.4 base): the build installs msmtp from
+bookworm main cleanly and the recreated container still reports PHP 8.2.21.
 
 ## Upgrade-Stage Pin (Story S1.10 Step 1)
 
