@@ -362,7 +362,7 @@ class ComposeEnvInjectionTest extends \PHPUnit\Framework\TestCase
 		// Documented non-secret defaults (key => exact value); any other
 		// non-changeme value must be allowlisted here first
 		$documentedDefaults = array(
-			'PHP_VERSION'   => '7.4',
+			'PHP_VERSION'   => '8.2',
 			'APP_HOST_PORT' => '3000',
 			'PMA_HOST_PORT' => '3001',
 			'WWW_DATA'      => '/var/www/dataroot',
