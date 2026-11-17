@@ -220,8 +220,10 @@ jobs:
         # CDN's cached index outlives any backoff. Pin apt to a
         # snapshot.debian.org timestamp instead: index and pool are
         # frozen together and can never disagree. To refresh: pick a new
-        # timestamp, verify its three InRelease URLs return 200, and
-        # update the snapshot variable below. snapshot.debian.org
+        # timestamp, verify its three InRelease URLs (a plain curl shows
+        # the snapshot's 302 redirect to the CDN — existence confirmed;
+        # add -L to follow it to the 200), and update the snapshot
+        # variable below. snapshot.debian.org
         # rate-limits per request (503), so apt gets per-fetch retries
         # (Acquire::Retries) on top of the outer loop, and every failed
         # attempt prints apt's error lines instead of hiding them.
