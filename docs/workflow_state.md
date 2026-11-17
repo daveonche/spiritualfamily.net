@@ -2,7 +2,7 @@
 Last updated: 2026-11-17
 
 ## Active Workflow
-- $workflows-post-scaffolding-chain — S1.11 implementation in progress (Step 4 of 11 complete)
-- Last completed: S1.11 Step 4 — database-copy reuse verified: site loads at Elgg 4.3.10 against the existing copy, no fresh restore; pin surfaces swapped to 1eca8db2 and back to HEAD 4416a46f (5.1.12/8.2), swap completeness restored (clean tree, tracked=ondisk=15904); guard suite green (138 tests, 1267 assertions)
-- Next action: #implement-step S1.11 5
+- $workflows-post-scaffolding-chain — S1.11 implementation in progress (Step 5 of 11 complete)
+- Last completed: S1.11 Step 5 — official upgrade.php ran against the reused copy under the pinned pair (5.1.12, PHP 8.2.21): completed, 0 fatal/CRITICAL and 0 ELGG.ERROR (.log/s1.11-step5-app.log); schema 32→31 tables (elggjr_private_settings dropped, MergePrivateSettingsInMetadata), migrations 52→54; pending upgrades empty; cron paused until Step 7
+- Next action: #implement-step S1.11 6
 - Reload to resume: .agent/workflows/code/implementation/SKILL.md, docs/analysis/S1.11-story-steps.md, docs/sprints/sprint_1_stories.md, docs/baseline/baseline.md, docs/dependencies/S1.11-dependencies.md
