@@ -1,6 +1,6 @@
 # Implementation Status Report
 
-Analysis date: 2026-11-07 (third analysis pass; supersedes the 2026-10-23 analysis)
+Analysis date: 2026-11-18 (fourth analysis pass; supersedes the 2026-11-07 analysis)
 
 Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/core_requirements.md`, `docs/sprints/sprint_1_stories.md`, and `docs/tech_stack.md`.
 
@@ -8,7 +8,7 @@ Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/co
 
 ### A. Completed Features
 
-- Version-pinned Elgg 2.3 baseline (S1.1; REQ-FR-PU-5 anchor): `src/composer.json` pins `elgg/elgg: 2.3.17` with platform `php: 7.4.27`; `src/composer.lock` locks elgg/elgg 2.3.17 with `platform-overrides.php: 7.4.27`; `docs/baseline/baseline.md` records the pinned pair. Enforced by `src/tests/BaselineVersionTest.php`, `src/tests/BaselineDependencyPinTest.php`, `src/tests/BaselineRuntimeVersionTest.php`.
+- Version-pinned Elgg 2.3 baseline (S1.1; REQ-FR-PU-5 anchor): `src/composer.json`/`src/composer.lock` pin history and `docs/baseline/baseline.md` records — unchanged from the third pass; the pin has since moved twice (see S1.10/S1.11 below). Enforced by `src/tests/BaselineVersionTest.php`, `src/tests/BaselineDependencyPinTest.php`, `src/tests/BaselineRuntimeVersionTest.php`.
 - Fresh-checkout reproducibility (S1.1 DoD): `docs/baseline/fresh_checkout.md` documents the end-to-end procedure; `docs/baseline/baseline.md` records the verification (2026-09-18, commit `951ef51`, site loads, admin login, PHP 7.4.27). Test: `src/tests/BaselineFreshCheckoutTest.php`.
 - Production inventory as migration starting point (S1.1 Step 4): `docs/baseline/inventory.md` captures the database size (1121.1 MB `spirihf6_elgg114`), the 77-plugin active set with GUIDs and activation dates, site settings, and the data-directory summary (47,939.3 MB / 102,690 files). Test: `src/tests/BaselineInventoryTest.php`.
 - Compose orchestration of web/db/cron (S1.2; REQ-DEPL-1, REQ-DEPL-2): `compose.yml` defines `app`, `dbm`, and `cron` on one `appnet` network with a healthcheck-gated `dbm` startup; the cron service renders the tokenized `crontab` and runs `crond -f -d 8`; the dev-only `pma` service is isolated in `compose.dev.yml` (corrected 2026-10-23; the 2026-09-26 entry listed `pma` in `compose.yml`). Test: `src/tests/ComposeOrchestrationTest.php`.
@@ -27,6 +27,8 @@ Scope: Sprint 1 scaffolding stories (S1.1–S1.17) against `docs/requirements/co
 - Logging, configuration &amp; environment management (S1.8): `settings.php` env-injection and secrets rules asserted by `src/tests/LoggingEnvironmentTest.php`, `src/tests/SecretsHandlingRulesTest.php`, `src/tests/ProductionSecretHygieneTest.php`, `src/tests/ContainerLogRoutingTest.php`; the Coolify environment-variable walk recorded green in `docs/baseline/baseline.md` (Production Environment Injection, Step 3 Manual Verification).
 
 - Upgrade Step — Elgg 2.3 → Elgg 3 (S1.9; REQ-FR-PU-5 first hop, REQ-DEPL-4): `docs/baseline/baseline.md` (Upgrade-Stage Pin — Elgg 3.3.25 / PHP 7.4.27; Production Upgrade S1.9 Step 8 — admin area reports v3.3.25, pending list empty, backup-restore-recover sequence recorded); `docs/deployment/deploy_runbook.md` (S1.9 upgrade-sequence record, Run log 2026-11-05 commit `b84b6e1`); `docs/dependencies/S1.9-dependencies.md`; `docs/analysis/S1.9-story-steps.md`; `docs/workflow_state.md` records Story S1.9 complete (Steps 1–10 implemented and verified).
+- Upgrade Step — Elgg 3 → Elgg 4 (S1.10; REQ-FR-PU-5, REQ-DEPL-4) — new since the third pass: `docs/baseline/baseline.md` Upgrade-Stage Pin (Story S1.10 Step 1) — elgg/elgg 4.3.10 pinned with PHP 7.4.27 unchanged (Packagist resolution via `composer show -a elgg/elgg`, 2026-11-07; preserved as the resolution record after S1.11 moved the active pin); `docs/dependencies/S1.10-dependencies.md` — transitive tree replacement (zendframework→laminas, symfony 3.4/4.4→~5.3, doctrine/dbal→~3.3.0, bower-asset→npm-asset renames) and security-advisory acceptances via `policy.advisories.ignore-id`; production deployed in sync — the S1.10 pre-deploy backup (`sfn-elgg-20261116T100100.sql.gz`, 96 MB, 2026-11-16, cited in `docs/verification/s1.11-backup-verification.md`) and that record's scope note confirming the VPS production database ran Elgg 4.3.10 until the S1.11 deploy; sprint file status: Completed 2026-11-16.
+- Upgrade Step — Elgg 4 → Elgg 5 (S1.11; REQ-FR-PU-5, REQ-DEPL-4) — new since the third pass: `src/composer.json` pins `elgg/elgg: 5.1.12` with platform `php: 8.2.21` — the active pin, enforced by the pin guards; `docs/baseline/baseline.md` Upgrade-Stage Pin (Story S1.11 Step 1) — 5.1.12/8.2 resolved from Packagist p2 metadata, the (5.1.12, 8.3) pair proven unresolvable (elgg 5.1.12 exact-pins laminas/laminas-mime 2.11.0, excluding PHP 8.3) and the pin corrected to 8.2; Step 3 rebuild record (2026-11-17) — app image on `coldtrick/elgg_webserver:8.2`, vendor-tree sync completed, guard suite green (138 tests, 1158 assertions) with the pin guards updated to the new pair; Production Upgrade (Story S1.11 Step 9, 2026-11-17/18) — PHP 8.2.21 in production, Move Files 3403/3403 after the `limits.ini` raise, site email moved to `noreply@spiritualfamily.online`, deployed commit `87b34fe9`; `docs/dependencies/S1.11-dependencies.md` — transitive tree replacement, laminas-mime runtime-pin correction, lock content-hash refresh; `docs/verification/s1.11-backup-verification.md` — Step 8 pre-upgrade backup (97 MB, restorability verified into scratch `backup_verify`, 32 tables); `docs/verification/s1.11-cron-verification.md` — Step 7 scheduled-task verification under PHP 8.2.21 (minute/halfhour/fifteenmin completed post-recovery, zero wget errors, clean Elgg-log scan; stale `PHP_VERSION=7.4` export gotcha recorded with the explicit-pin recreate remedy); sprint file status: Completed 2026-11-18.
 
 ### B. Partially Implemented Features
 
@@ -34,19 +36,20 @@ None — no story has source evidence of partial progress without completion.
 
 ### C. Not Yet Implemented Features
 
-- S1.10–S1.13 — Sequential upgrades 3→4→5→6→7.1.0 (REQ-FR-PU-5, REQ-DEPL-4).
-- S1.14–S1.16 — Plugin provisioning, activation, and theme skeleton at Elgg 7 (REQ-FR-PU-4, REQ-FR-TR-1).
-- S1.17 — Developer workflow and upgrade runbook documentation.
+- S1.12 — Upgrade Step — Elgg 5 → Elgg 6 (REQ-FR-PU-5, REQ-DEPL-4): the only unblocked open story
+- S1.13 — Upgrade Step — Elgg 6 → Elgg 7.1.0 (REQ-FR-PU-5, REQ-DEPL-4): blocked behind S1.12
+- S1.14–S1.16 — Plugin provisioning, activation, and theme skeleton at Elgg 7 (REQ-FR-PU-4, REQ-FR-TR-1): blocked behind S1.13
+- S1.17 — Developer workflow and upgrade runbook documentation: blocked behind S1.15/S1.16
 - All `REQ-FR-CF-*`, `REQ-FR-CMF-*`, `REQ-FR-PS-*` feature preservation — scheduled for restoration at Elgg 7 in S1.14–S1.15, by design.
 
 ## Priority Order for Next Implementation Phase
 
-- Priority 1 - Platform upgrade sequence (S1.10):
-  - Upgrade Step — Elgg 3 → Elgg 4: the only unblocked open story; REQ-FR-PU-5 mandates one major version at a time, so every later story (S1.11–S1.16) depends on this chain advancing
-  - Rationale: S1.10 → S1.11 → S1.12 → S1.13 → S1.14 → S1.15 → S1.16 is a strict dependency chain; S1.10 is its head
+- Priority 1 - Platform upgrade sequence (S1.12):
+  - Upgrade Step — Elgg 5 → Elgg 6: pin the latest stable 6.x with its required PHP version, execute the official upgrade tooling against the reused verified database copy, verify the site post-upgrade, deploy production in sync with a pre-upgrade backup, update the runbook
+  - Rationale: REQ-FR-PU-5 mandates one major version at a time; S1.12 → S1.13 → S1.14 → S1.15 → S1.16 is a strict dependency chain and S1.12 is its head — the only unblocked open story
 
 - Priority 2 - Feature restoration at Elgg 7 (S1.14–S1.16):
-  - Plugin provisioning, activation, and theme skeleton restore the REQ-FR-CF/CMF/PS/TR requirement set
+  - Plugin provisioning (S1.14), activation baseline (S1.15), theme skeleton (S1.16) — restore the REQ-FR-CF/CMF/PS/TR requirement set
   - Rationale: blocked by S1.13; strictly after the upgrade chain per REQ-FR-PU-5
 
 - Priority 3 - Documentation (S1.17):
