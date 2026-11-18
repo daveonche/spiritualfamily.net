@@ -628,6 +628,33 @@ Run log row is added at the deploy. Recorded in execution order:
   fix (the 4 CRITICAL lines are the classified bot-triggered relay
   rejections, pre-fix); file thumbnails + download button verified; pins
   unchanged (MariaDB 10.11.18 / alpine 3.23.3; PHP now 8.2.21).
+- **Database-copy reuse (step-specific deviation).** The local upgrade
+  ran against the verified database copy reused from the previous
+  upgrade steps — no fresh production restore at this step (per the
+  sprint story; the fresh, updated restore from the live production
+  database is deferred to S1.13). Production was upgraded in place, so
+  its data remained the 2026-11-04 old-live snapshot throughout this
+  hop; the S1.13 fresh restore (database + dataroot) replaces it.
+- **Image rebuild per ini change.** The `docker/app/php/` ini overrides
+  are baked into the app image (the production definition carries no
+  bind mounts), so each `limits.ini` change (128M → 512M → 1024M)
+  required a commit + Coolify rebuild/redeploy — why the deploy
+  converged over three commits (`0e068977` → `ddcd7bbe` → `87b34fe9`).
+- **For the next upgrade point (S1.12).** Verify the schema delta
+  against the recorded 4 → 5 expectation above (31 tables;
+  `elggjr_migrations` 54 = shipped files) with the dump-vs-post-upgrade
+  diff; compose Elgg schema queries only from the recorded delta or the
+  installed core source (Rules above). Expect a possible Locator-path
+  storm re-fire for the remaining disabled dropped-plugin entities —
+  classify it (per-plugin counts + last timestamps), do not chase it;
+  verify end states after the run. Pause cron across the upgrade
+  window, restart after. Check for stale `PHP_VERSION` overrides before
+  any rebuild. The `limits.ini` 1024M headroom is permanent — no ini
+  change expected unless a new migration needs more. S1.13 (not S1.12)
+  owns the fresh database + dataroot restore from the old host.
+  Carry-forward: the 4.1 commentable deprecation warnings
+  (`hjwall`/`campaign`/`album`) flagged at S1.10 for S1.11 have no
+  classification in this record — re-check them at S1.12.
 
 ## Run log
 
