@@ -7,29 +7,25 @@ Ground-zero version reference for the Spiritual Family Network upgrade journey
 
 | Component | Pinned version | Source |
 | --- | --- | --- |
-| Elgg core | 5.1.12 | Story S1.11 Step 1 pin (Packagist p2 resolution, 2026-11-16); declared in `src/composer.json` (`"elgg/elgg": "5.1.12"`) and `src/composer.lock` (tracked — the baked-image pin) at Story S1.11 Step 2 |
+| Elgg core | 6.3.10 | Story S1.12 Step 1 pin (Packagist resolution via `composer show -a elgg/elgg`, 2026-11-18); declared in `src/composer.json` (`"elgg/elgg": "6.3.10"`) and `src/composer.lock` (tracked — the baked-image pin) at Story S1.12 Step 2 |
 | PHP runtime | 8.2.21 | elgg/elgg 5.1.12 declares `"php": ">=8.0"` (Packagist p2 metadata); its exact-pinned laminas/laminas-mime 2.11.0 requires `~8.0.0 \|\| ~8.1.0 \|\| ~8.2.0`, excluding 8.3 (Story S1.11 Step 2 discovery); upstream base `coldtrick/elgg_webserver:8.2` (see `docker/app/Dockerfile`); app image `sfn/elgg_webserver:8.2-composer2` built at Story S1.11 Step 3 — the rebuilt container reports PHP 8.2.21 (`php -r 'echo PHP_VERSION;'`, 2026-11-17) |
 | Database server | MariaDB 10.11.18 | Compose stack `dbm` image `mariadb:10.11.18` (see `compose.yml`); confirmed via `SELECT VERSION()` → `10.11.18-MariaDB-ubu2204` |
 | Cron service base | alpine:3.23.3 | Compose stack `cron` image `sfn/elgg_cron:3.23.3`, built locally from `alpine:3.23.3` (see `docker/cron/Dockerfile`); the image tag carries the pinned base version (Story S1.6 Step 2) |
 | phpMyAdmin | 5.2.3 | Compose stack `pma` image `phpmyadmin/phpmyadmin:5.2.3` (see `compose.dev.yml`); confirmed via the image's `/var/www/html/package.json` |
 
-This is the single pinned Elgg core version — the active pin, moved to 5.1.12
-by Story S1.11 Step 1 (the 4.3.10 second-hop value is preserved as the
+This is the single pinned Elgg core version — the active pin, moved to 6.3.10
+by Story S1.12 Step 1 (the 5.1.12 third-hop value is preserved as the
 resolution record in the Upgrade-Stage Pin section below); it is the
 reference value for all subsequent steps in the upgrade sequence
 (REQ-FR-PU-5).
 
 The pinned PHP runtime sits directly beneath the core version so future steps
-can cite them as a pair. Constraint note: the pinned Elgg 5.1.12 core declares
-`"php": ">=8.0"` (Packagist p2 metadata, recorded in the Upgrade-Stage Pin
-section below); the 7.4.27 runtime does not satisfy it, so the runtime pin
-moves — the first runtime move since the baseline (the sprint story's
-Developer Note: "PHP version changes from here on"). Story S1.11 Step 1
-initially pinned 8.3; Step 2's resolution proved that pair unresolvable —
-elgg 5.1.12 exact-pins laminas/laminas-mime 2.11.0, whose
-`~8.0.0 || ~8.1.0 || ~8.2.0` constraint excludes 8.3 — so the pin was
-corrected to 8.2, the highest line the pinned tree supports. The PHP 8.3
-runtime belongs to the journey's Elgg 7.1.0 target (Story S1.13).
+can cite them as a pair. Constraint note: the pinned Elgg 6.3.10 core declares
+`"php": ">=8.2"` (Packagist metadata, recorded in the Upgrade-Stage Pin
+section below); the pinned 8.2.21 runtime satisfies it, so the runtime pin
+does not move at this hop — the first hop with an unchanged runtime since
+S1.10. The PHP 8.3 runtime belongs to the journey's Elgg 7.1.0 target
+(Story S1.13).
 
 The database server pin (Story S1.2 Step 5) targets production parity:
 production reports `10.11.18-MariaDB-log` via phpMyAdmin server info and the
@@ -68,15 +64,16 @@ the Packagist version metadata for elgg/elgg, queried via
 | Elgg core (upgrade target) | 6.3.10 | Newest stable 6.x release in the Packagist version list — the 6.x line ends at 6.3.10 (`6.3.x-dev` above it is a branch, not a release; the 7.x line above that belongs to the S1.13 final hop) |
 | PHP runtime | 8.2.21 (unchanged) | elgg/elgg 6.3.10 declares `"php": ">=8.2"` (`composer show -a elgg/elgg 6.3.10`); the pinned 8.2.21 runtime satisfies it, so the runtime pin does not move |
 
-Step 1 records the resolution only: the active-pin move in the Pinned
-Versions table above and the manifest/lock declaration
-(`src/composer.json`/`src/composer.lock`) land at Step 2, per the story's
-step order. The MariaDB, cron, and phpMyAdmin pins are untouched by this
-step. Full tree-resolution proof lands at Step 2's `composer update`
-against `platform.php 8.2.21` — the S1.11 Step 2 laminas-mime discovery is
-the reminder that transitive constraints can still surprise; if one
-surfaces there, the runtime move becomes its own step per the story's
-Developer Notes.
+Step 2 record (2026-11-18): the pair is declared across the version surfaces —
+`src/composer.json` pins `"elgg/elgg": "6.3.10"` and the regenerated
+`src/composer.lock` (tracked — the baked-image pin) resolves the 6.3.10 tree
+against `platform.php 8.2.21`, with the vendor tree synced in the same run
+(no runtime rebuild — Step 3 is a no-op this hop, the runtime pin does not
+move). The Pinned Versions table above carries the pair as the active pin,
+with the 5.1.12 third-hop value preserved as the resolution record in the
+S1.11 section below. The pin-consistency guard tests were updated to expect
+the new pair. The MariaDB, cron, and phpMyAdmin pins are untouched by this
+step.
 
 ## Upgrade-Stage Pin (Story S1.11 Step 1)
 
@@ -205,9 +202,9 @@ Dockerfile pin and the CI workflow together.
 - Historical note (resolved in S1.1 Step 3): the repository-root
   `composer.json` had been overwritten in a previous session with Elgg 7
   requirements and was corrected back to the pinned baseline; it is now the
-  authoritative pin declaration (`"elgg/elgg": "5.1.12"`, Story S1.11).
+  authoritative pin declaration (`"elgg/elgg": "6.3.10"`, Story S1.12).
 - Manual verification for this pin: confirm the `"version"` field in the
-  installed core's `vendor/elgg/elgg/composer.json` reads `5.1.12` (inside
+  installed core's `vendor/elgg/elgg/composer.json` reads `6.3.10` (inside
   the app container — `src/vendor/` is tracked, re-tracked in S1.9 Step 8
   as the baked-image pin; elgg 4 removed the `version.php` the 2.3/3.x
   cores carried), and cross-check against the version reported by the
