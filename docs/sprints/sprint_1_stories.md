@@ -268,6 +268,8 @@ Definition of Done:
 Story S1.11: Upgrade Step — Elgg 4 → Elgg 5
 As a developer, I want the third sequential upgrade executed and deployed so the platform continues along the supported path with production in sync.
 
+- Status: Completed 2026-11-18
+
 Acceptance Criteria:
 
 - Target Elgg 5.x version pinned (⚠ pin exact) together with its required PHP version (⚠ pin exact)
