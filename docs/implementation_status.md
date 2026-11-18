@@ -59,10 +59,9 @@ None — no story has source evidence of partial progress without completion.
 ## Sprint State
 
 Latest sprint file: `docs/sprints/sprint_1_stories.md`
-- S1.10: Not Yet Implemented — the platform reports Elgg 3.3.25 (production readout, `docs/baseline/baseline.md`); no Elgg 4.x pin exists
-- S1.11–S1.13: Not Yet Implemented — upgrade chain blocked behind S1.10
-- S1.14–S1.17: Not Yet Implemented — blocked behind S1.13
+- S1.12: Open — basis: the platform pins elgg/elgg 5.1.12 (`src/composer.json`); no Elgg 6.x pin exists; no upgrade-tooling execution, post-upgrade verification, production deploy, or runbook-update evidence for the 5→6 hop
+- S1.13–S1.17: Not Yet Implemented — blocked behind S1.12
 
-Sprint state: OPEN (Mid-Sprint Entry applies — Phase 2 skipped; Phase 3 runs directly on the first open story, S1.10)
+Sprint state: OPEN
 
-Next workflow step: `$planning-story-analysis S1.10`
+Next workflow step: `$planning-story-analysis S1.12`
