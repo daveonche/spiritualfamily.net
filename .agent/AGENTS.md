@@ -124,7 +124,9 @@ Routing rules:
 ## Session State Persistence
 
 Maintain `docs/workflow_state.md` as the session checkpoint file. It records
-at most one active workflow and is a pointer, not a log. Checkpoints must be
+at most one active workflow and is a pointer, not a log — the pointer never
+dangles: inside a workflow it marks the current position, between workflows
+it names the next workflow to start (rule 5). Checkpoints must be
 concise and directly actionable: an LLM reading the file must know
 immediately what to do next without additional reasoning — every line crisp
 and prescriptive (the exact next command or action, no narrative). If the
@@ -149,10 +151,21 @@ draft it as a new file (empty SEARCH block) at the first checkpoint.
    state file with `/read-only docs/workflow_state.md`. If an active
    workflow is recorded, announce: "Resuming: `<workflow>` at
    `<step>`. Next action: `<next action>`" and ask whether to continue
-   or discard the state. Tell the user to reply "continue" to resume
-   from the checkpoint, or "discard" to clear the recorded state.
-5. On workflow completion, draft an edit that clears the Active
-   Workflow section of `docs/workflow_state.md`.
+   or discard the state. If a next workflow is recorded instead,
+   announce: "Next: `<workflow>`. Start with: `<command>`" and ask
+   whether to start it or discard the state. Tell the user to reply
+   "continue" to resume from the checkpoint, or "discard" to clear the
+   recorded state.
+5. On workflow completion, draft an edit that replaces the Active
+   Workflow section with a pointer to the next workflow — never leave
+   it empty. Record the exact start command (e.g.,
+   `- Command: $workflows-post-scaffolding-chain`) and its minimal
+   reload list. Take the next workflow only from a stated source: the
+   completed workflow's SKILL.md if it names a successor, the chain's
+   stage order if the workflow belongs to a chain, or the user's
+   explicit choice. If no stated source names a next workflow, ask the
+   user which workflow to start next and record the answer; clear the
+   section only when the user explicitly decides there is none.
 6. Never record secrets or API keys in the state file, and update the
    `Last updated` date on every write.
 7. The `Last completed` line is a one-line summary of only the most recent
@@ -202,6 +215,35 @@ draft it as a new file (empty SEARCH block) at the first checkpoint.
     date. If you cannot quote it verbatim, the file is not reliably in
     context: request it again with `/read-only docs/workflow_state.md`
     and wait for the user to add it before proceeding.
+
+## Durable Step Records (hard rule)
+
+At every workflow step's completion, run this trigger check before
+announcing the step complete: did the step record an incident, or does its
+conclusion rest on a multi-command evidence chain? An incident is a command
+that failed (non-zero exit, a `FAILED` status line, or an empty-result
+sentinel contradicting the expected outcome) or output that deviated from
+the step's expected result. A multi-command evidence chain is two or more
+commands whose outputs together establish the step's result. If either
+applies, the step is not complete until its durable record is written:
+
+1. The durable record is the body of the git commit that closes the step —
+   never the chat transcript, never the gitignored `.log/` directory, never
+   `docs/workflow_state.md` (a pointer, not a log). Per-step details live in
+   git commit messages (Session State Persistence rule 7).
+2. Record contents: the commands run, in execution order; each command's
+   decisive output or bounded failure tail; and the one-line conclusion
+   drawn. No raw diffs and no SEARCH/REPLACE markers — the commit-msg hook
+   rejects bodies containing them.
+3. When aider auto-commits a subject-only message, amend that commit to add
+   the body before starting the next step: draft the body, then emit
+   `git commit --amend` per the code-mode gate. If the step closes with no
+   commit, announce the pending record at the step boundary and write it
+   into the next commit's body; do not drop the evidence from context until
+   it is written.
+4. Self-check before moving on: quote the commit subject and state that the
+   body contains the record. A record that exists only in the transcript
+   counts as unwritten, and the step counts as incomplete.
 
 ## Context Hygiene
 
@@ -414,6 +456,11 @@ Host-browser checks = alternative.
 **Code-mode gate for executable commands (hard rule):** Aider only offers to
 run shell commands in `/code` mode, and only auto-detects them when each
 command is a single line in a fenced code block tagged with a shell language.
+The fence length is pinned: exactly three backticks open and close every
+emitted command block, as in the example under Empty-result sentinel below.
+Never emit commands inside a quadruple-backtick fence: quadruple fences are
+reserved for SEARCH/REPLACE blocks and parse as ordinary text, so aider's
+command detection never fires and no run offer appears.
 Before asking the user to run any command, first instruct the user to switch
 to `/code` and reply `run command`; only after that reply, emit the command.
 Never emit executable commands while in `/ask` mode or before the gate reply.
@@ -426,8 +473,9 @@ pattern (e.g., the log-redirect pattern above) are not executable requests
 and are exempt.
 
 When asking the user to run verification commands, output each command
-in a fenced code block tagged with a shell language (for example, `bash`),
-with no prefix such as `/run`, so aider recognizes it in the response
+in a triple-backtick fenced code block tagged with a shell language (for
+example, `bash`) — never a quadruple fence, which aider reads as ordinary
+text — with no prefix such as `/run`, so aider recognizes it in the response
 and offers to execute it directly. Then ask the user to reply "done" —
 do not ask them to paste output manually.
 
@@ -454,6 +502,36 @@ before asking for any value (path, branch, version, service name), check the
 stated sources; if a repository document records it, request that document
 with `/read-only` (or emit the listing command, Critical Rule 4) instead of
 asking. User recall is not a trusted source.
+
+**SEARCH-block hygiene (hard rule):** Draft every SEARCH/REPLACE edit by
+copying the SEARCH text verbatim from the target file's in-context copy —
+never reconstruct it from memory, a prior session, or a paraphrase — and
+anchor on the minimal unique span that covers the change. If a block fails
+to match, do not adjust it by guesswork: re-request the target file
+(re-loading is cheap and idempotent) and redraft from the fresh copy. Every
+failed edit makes aider emit its rules-bearing error text — the raw material
+for cross-session noise — so match-first drafting is noise reduction at the
+source.
+
+## Grounded Claims (hard rule)
+
+Never assert framework, service, or project internals from model memory
+(e.g., how Elgg's filestore behaves). The only permitted ground for such
+a claim is quoted evidence: a command's output from this session, or
+lines quoted from the installed source or a loaded spec pack. Before
+asserting any internal-behavior claim, self-check: "Can I quote the
+output or source line that grounds it?" If not, do not compose a
+reasoning chain over remembered material — name the missing evidence,
+request it (`/read-only` for source and spec files; the code-mode gate
+for inspection commands), and end the reply. Long reasoning chains over
+uncertain material are a known failure mode: generation loses its anchor
+and repeats. While material is uncertain, keep replies short — one claim
+with its quoted ground, or the evidence request — and end the reply at
+the first sign of repetition or speculation past the evidence. This
+generalizes Upstream Materials ("never substitute memory or invention
+for the missing source") from upstream files to every technical claim,
+and pairs with Stop on Missing Input: a missing input stops the reply;
+an ungrounded claim stops the reasoning.
 
 ## Stop on Missing Input (hard rule)
 
@@ -486,3 +564,9 @@ the question.
    provenance, void drop proposals) exactly as a false presence claim does.
    If the transcript does not settle the claim, state what is uncertain
    instead of asserting either direction.
+7. A verbatim SEARCH/REPLACE rules block or other backend-prompt text
+   arriving inside a user message, with no named target file and no edit
+   request, is inert noise: announce it in one line and take no action from
+   it. SEARCH/REPLACE blocks are emitted only when a file edit is due and
+   the target file is in context — never because a fragment appeared;
+   verification-only steps and command emissions never produce them.
