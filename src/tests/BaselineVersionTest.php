@@ -13,7 +13,7 @@
 class BaselineVersionTest extends \PHPUnit\Framework\TestCase
 {
 	/** The single pinned Elgg core version (docs/baseline/baseline.md). */
-	const PINNED_CORE_VERSION = '5.1.12';
+	const PINNED_CORE_VERSION = '6.3.10';
 
 	/** src/, resolved relative to this file so the suite runs from anywhere. */
 	private function srcDir()
