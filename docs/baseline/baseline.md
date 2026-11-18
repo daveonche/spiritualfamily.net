@@ -290,7 +290,7 @@ below records the per-variable treatment for the production settings; the
 
 | Variable(s) | Treatment in the platform settings |
 | :--- | :--- |
-| `PHP_VERSION` | Plain setting — pinned to `7.4` (build arg and image tag; see Pinned Versions) |
+| `PHP_VERSION` | Plain setting — pinned to `8.2` (build arg and image tag; see Pinned Versions; moved 7.4 → 8.2 at Story S1.11 Step 9) |
 | `APP_CONTAINER_NAME`, `MYSQL_CONTAINER_NAME`, `CRON_CONTAINER_NAME` | Plain settings — operator-chosen container names |
 | `APP_HOST` | Plain setting — the production domain; also feeds the cron service's `HOST` and, in Step 4, entry routing |
 | `APP_HOST_PORT` | Plain setting — as the platform's entry routing requires (finalized in Step 4) |
@@ -461,3 +461,25 @@ sync → upgrade → verify. The Step 7 pre-upgrade dump (restorability verified
 | Async upgrades | pending list empty, no errors; plugin entities 102, widget entities 12604, `elgg_upgrade` records 22 (8 dump-carried + 14 session-registered) |
 | Version readout | admin area reports v3.3.25 |
 | Post-upgrade verification | admin login + dashboard ✓; representative core pages render ✓; test email delivered through the production relay ✓; pins unchanged (PHP 7.4.27 / MariaDB 10.11.18 / alpine 3.23.3) ✓; no CRITICAL or PHP-fatal lines in the app log across the upgrade + browsing window ✓ |
+
+## Production Upgrade (Story S1.11 Step 9)
+
+The third sequential hop (Elgg 4.3.10 → 5.1.12) executed on production per
+`docs/deployment/deploy_runbook.md` (S1.11 record) on 2026-11-17/18 — the
+first runtime move: PHP 7.4.27 → 8.2.21 (Coolify `PHP_VERSION` 8.2). The
+Step 8 pre-upgrade dump (restorability verified 2026-11-17) is the rollback
+point. Full narrative, blocker remediations, and the S1.12 expectations live
+in the runbook's S1.11 record; the headline figures:
+
+| Check | Result |
+| :--- | :--- |
+| Verification date | 2026-11-18 (deploy 2026-11-17 20:06 UTC; Move Files completed 2026-11-18 ~01:40; mail fix + final verification 2026-11-18) |
+| Deployed commit | `87b34fe9` — converged over `0e068977` → `ddcd7bbe` → `87b34fe9` (Move Files memory fix; per-commit causes in the runbook Run log) |
+| Runtime | PHP 8.2.21 in the app container (`php -r 'echo PHP_VERSION;'`); app image `sfn/elgg_webserver:8.2-composer2` |
+| Move Files | 3403/3403 after the `limits.ini` raise (128M → 1024M; 0 timeout fatals at 120s); 10 zero-byte masters from the interrupted runs deleted + regenerated via scratch script (ignore access) |
+| Schema | 31 tables (32 − `elggjr_private_settings`, migration `20220825064811`); `elggjr_migrations` 54 = 54 shipped files |
+| Entity counts (object/user/group/site) | 87476 / 1202 / 288 / 1 — drift vs the S1.9-era figures classified as expected (stale 2026-11-04 snapshot + public reachability; S1.13 fresh restore replaces all of it) |
+| Site email | `site@spiritualfamily.net` → `noreply@spiritualfamily.online` (site entity metadata, guid 1) — deliberate change, same class as the S1.6 site-URL change; relay 550 rejections resolved, Elgg-native reset email verified |
+| Embed storm | 696 ELGG.ERROR lines, all `embed` guid 11, bounded 20:09–20:17 UTC 2026-11-17; end state absent on the redeploy boot |
+| Post-upgrade verification | admin login + core pages render ✓; file thumbnails + download button ✓; 0 fatals/criticals after the mail fix ✓; pins unchanged (MariaDB 10.11.18 / alpine 3.23.3) ✓ |
+| Known orphans | old-site uploads after ~2026-10-21 lack file data on the VPS (e.g. guid 96926) — **S1.13 must include a fresh dataroot transfer from the old host** |

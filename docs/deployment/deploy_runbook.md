@@ -559,6 +559,76 @@ Steps 1–5 above (Run log row below). Recorded here in execution order:
   the run. Compose Elgg schema queries only from the recorded schema
   delta or the installed core source (Rules above).
 
+## Elgg major-version upgrade sequence (S1.11 record)
+
+Story S1.11 Step 9 executed the third sequential hop (Elgg 4.3.10 → 5.1.12)
+on production on PHP 8.2.21 — the first runtime move since the baseline
+(Coolify `PHP_VERSION` 7.4 → 8.2 set before the deploy; a stale value
+rebuilds the 7.4 image, the same override-beats-`.env` gotcha caught at the
+Step 3 local rebuild). The production deploy followed Steps 1–5 above; the
+Run log row is added at the deploy. Recorded in execution order:
+
+- **Move Files blocker (the hop's defining issue).** The file plugin's
+  async `MoveFiles` upgrade (3403 items) generates a master icon per image
+  via Imagine/Gd; the base image's 128M limit fataled every batch
+  (`Allowed memory size … Gd/Image.php`), leaving the counter at 0/3403
+  with Elgg's generic AJAX-error message. Remediated with a repo ini
+  override (`docker/app/php/limits.ini`, commits `ae919fe`/`ddcd7bbe`/
+  `87b34fe9`): `memory_limit` 128M → 512M → **1024M** (one ~50–64 MP image
+  holds two ~192 MB buffers during the icon-size sequence),
+  `max_execution_time` 30s → 120s (0 timeout fatals observed), with the
+  composer CLI wrapper pinning `max_execution_time=0` back for composer
+  runs only. Permanent production headroom — the S1.13 fresh-restore hop
+  re-runs this migration chain against 2.3-era image data. Host context:
+  kernel `free -m` 15835 MB total / ~8 GB available (provider panel reports
+  12 GB — discrepancy unresolved, hosting-side); swap 17 MB.
+- **Embed ghost-plugin storm — classified, not chased** (per the S1.10
+  guidance): 696 ELGG.ERROR lines, all `embed` (guid 11 — dropped in S1.4,
+  entity still enabled), boot path (`activateEntities`, from 20:09:09) then
+  the Locator path (`UpgradeController → generateEntities → deactivate`,
+  last 20:17:41), nothing after. End state verified absent on the redeploy
+  boot (0 lines) — the upgrade run retired the ghost, the S1.10 pattern.
+- **Schema delta, 4 → 5 — recorded expectation for S1.12:** 32 → 31 tables;
+  `elggjr_private_settings` dropped by the core's own
+  `20220825064811_merge_private_settings_in_metadata.php` (rows merged into
+  `*_metadata`); `elggjr_migrations` 52 → 54 (= shipped migration files).
+  The dump-vs-post-upgrade table diff (runbook pattern) classified one
+  collation artifact (access_collections sort-order swap) before the real
+  delta.
+- **Icon remediation.** The interrupted 128M/512M-era icon runs left 10
+  zero-byte `icons/icon/master.jpg` files; MoveFiles sets its
+  `_elgg_file_migrated` marker after icon generation, so re-runs took the
+  old-file-missing branch and marked entities migrated without
+  regenerating — and the on-demand icon handler does not rebuild a missing
+  master from the source. Fix: delete the 10 zero-byte masters, then
+  regenerate via a scratch script (`deleteIcon()` +
+  `saveIconFromElggFile()`, the upload action's own calls) run as www-data
+  with ignore access (5 of the 10 are access-restricted and invisible to a
+  guest-context CLI). Verified: all 10 masters non-zero, thumbnails render.
+- **Site email stale (mail broken until fixed).** Elgg 5's mail path sends
+  with the site email as envelope-from; the setting still carried
+  `site@spiritualfamily.net` (old-domain data), and the StackCP relay
+  rejects it (550 "Please send as noreply@spiritualfamily.online") —
+  surfacing as `Unable to send mail` ELGG.CRITICAL on bot-triggered
+  validation emails. Fixed by updating the site entity's `email` metadata
+  (guid 1) to `noreply@spiritualfamily.online`; Elgg-native send verified
+  via a password-reset email. The manual `-f` trigger of 2026-10-20 had
+  masked this: it passed the envelope-from explicitly, Elgg's native path
+  was never exercised until now.
+- **Known orphans (data-level, deferred to S1.13):** the VPS dataroot was
+  transferred from the old host ~2026-10-21 and never re-synced — old-site
+  uploads after that date exist as DB rows without file data (observed:
+  guid 96926, uploaded 2026-10-24). **The S1.13 fresh restore must include
+  a fresh dataroot transfer from the old host**, not only the database
+  dump. CKEditor-embedded `/photos/...` URLs 404 on the VPS until tidypics
+  arrives (S1.14 manual install); absolute `.net` embed URLs keep serving
+  from the old site until cutover, then need a content rewrite.
+- **Step 10 post-upgrade verification (2026-11-18).** Admin login + core
+  pages render; 0 PHP Fatal/Parse and 0 new ELGG.CRITICAL after the mail
+  fix (the 4 CRITICAL lines are the classified bot-triggered relay
+  rejections, pre-fix); file thumbnails + download button verified; pins
+  unchanged (MariaDB 10.11.18 / alpine 3.23.3; PHP now 8.2.21).
+
 ## Run log
 
 One row per production deploy:
@@ -570,3 +640,4 @@ One row per production deploy:
 | 2026-10-22 | `8593c88` | `sfn-elgg-20261022T175255.sql.gz` | passed — 36 tables | clean re-deploy (S1.6 Step 8); premature deploy recovered via volume re-attach; domain → `spiritualfamily.online` |
 | 2026-11-05 | `b84b6e1` | `sdb-74_hosting_stackcp_net.sql.gz` (Step 7 pre-upgrade, restorability verified 2026-11-04) + `sfn-elgg-20261104T162613.sql.gz` (fresh pre-restore) + `sfn-elgg-broken-20261105T230009.sql.gz` (intermediate-state forensic) | passed — 38 tables | S1.9 Step 8: production upgraded Elgg 2.3.17 → 3.3.25. Converged over four commits: `09ed6dec` (image baked without vendor/ — untracked since the S1.9 composer-install pivot the Dockerfile never implemented), `afe8b45d` (vendor re-tracked), `1cf33e85` (`!src/vendor/**` — the `**/cache/` pattern stripped the psr/cache package, fataling every full boot), `b84b6e1` (`ELGG_WWWROOT` pin — the request sniff yields http:// behind the TLS proxy, failing the upgrade path's RewriteTest self-check). The first upgrade pass completed all migrations but died at the psr fatal before the completion phase; recovered via clean Step 7-dump restore + full re-run. Charset async upgrade remediated with the recorded manual SQL (16 tables → utf8mb4_general_ci); pending list empty; post-upgrade bot registration deleted |
 | 2026-11-16 | `d2feb7a5` | `sfn-elgg-20261116T100100.sql.gz` (pre-deploy, 3.3.25 state) + `sdb-74_hosting_stackcp_net-20261114.sql.gz` (S1.10 Step 8 authoritative-data backup, retained) | passed — 31 tables (31 = 31 `CREATE TABLE`) | S1.10 Step 9: production upgraded Elgg 3.3.25 → 4.3.10 in place (data = 2026-11-04 old-live snapshot; fresh live-site sync deferred to S1.13). Pin commit `1eca8db2` (2026-11-14). Blocker remediated pre-upgrade: two 2.3-era bundled plugins dropped from the Elgg 4 bundle (`diagnostics` guid 9, `notifications` guid 25) with entities still enabled → `Cannot include elgg-plugin.php` ELGG.ERROR on every boot (2436× each in 3h); both entities disabled + cache cleared, verified 0 errors in a 5m browsing-only window — the storm re-fired via the upgrade run's Locator path (deploy-day capture: 2490 + 2491 lines, bounded 12:36:07–13:26:57, none after; see the S1.10 record); both entities subsequently auto-removed by the upgrade run (admin notification; not manual), end state verified absent. Schema delta: +`elggjr_delayed_email_queue` (migration `20210412110921`); `elggjr_migrations` 44 → 52 (= shipped migration files). Cron paused across the upgrade window, restarted after. 4.1 commentable deprecation warnings (`hjwall`/`campaign`/`album`) noted for S1.11 |
+| 2026-11-18 | `87b34fe9` | `sfn-elgg-20261117T194304.sql.gz` (pre-deploy, 4.3.10 state, restorability verified 2026-11-17: 32 = 32 tables) + `sfn-elgg-20261117T183058.sql.gz` (S1.11 Step 8 pre-upgrade backup, retained) | passed — 32 tables (32 = 32 `CREATE TABLE`) | S1.11 Step 9: production upgraded Elgg 4.3.10 → 5.1.12 on PHP 8.2.21 (Coolify `PHP_VERSION` 7.4 → 8.2 before deploy). Deployed in three stages: `0e068977` (upgrade + first Move Files run), `ddcd7bbe` (limits.ini 512M + composer CLI exemption), `87b34fe9` (memory_limit 1024M) — the Move Files async upgrade (3403 items) was blocked by GD memory fatals until 1024M. Embed ghost-plugin storm classified (696 ELGG.ERROR lines, all `embed` guid 11, boot + Locator paths 20:09–20:17 UTC 2026-11-17, end state verified absent on the redeploy boot). Schema delta: `elggjr_private_settings` dropped (migration `20220825064811`), 32 → 31 tables; `elggjr_migrations` 52 → 54 (= shipped files). Icon remediation: 10 zero-byte masters (interrupted icon generation; the re-run marked entities migrated without regenerating) deleted and regenerated via a scratch script with ignore access. Site email stale (`site@spiritualfamily.net` → `noreply@spiritualfamily.online`, elggjr_metadata guid 1) — relay 550 rejections fixed, Elgg-native reset email verified. Cron paused across the upgrade window, restarted after. Post-upgrade: core pages render, 0 fatals/criticals, file thumbnails + download button verified. Mailbox password rotation pending (debug trace exposed it) |
