@@ -55,6 +55,29 @@ documents every required variable with placeholder values and no real
 secrets; copy it to `.env` and supply real values locally. `.env` is
 git-ignored, so real secrets never enter the repository.
 
+## Upgrade-Stage Pin (Story S1.12 Step 1)
+
+The fourth sequential upgrade step (Elgg 5 → Elgg 6) resolved the sprint
+story's exact-version pinning flags from the official release information:
+the Packagist version metadata for elgg/elgg, queried via
+`composer show -a elgg/elgg` inside the dev-stack app container
+(2026-11-18):
+
+| Component | Pinned version | Source |
+| --- | --- | --- |
+| Elgg core (upgrade target) | 6.3.10 | Newest stable 6.x release in the Packagist version list — the 6.x line ends at 6.3.10 (`6.3.x-dev` above it is a branch, not a release; the 7.x line above that belongs to the S1.13 final hop) |
+| PHP runtime | 8.2.21 (unchanged) | elgg/elgg 6.3.10 declares `"php": ">=8.2"` (`composer show -a elgg/elgg 6.3.10`); the pinned 8.2.21 runtime satisfies it, so the runtime pin does not move |
+
+Step 1 records the resolution only: the active-pin move in the Pinned
+Versions table above and the manifest/lock declaration
+(`src/composer.json`/`src/composer.lock`) land at Step 2, per the story's
+step order. The MariaDB, cron, and phpMyAdmin pins are untouched by this
+step. Full tree-resolution proof lands at Step 2's `composer update`
+against `platform.php 8.2.21` — the S1.11 Step 2 laminas-mime discovery is
+the reminder that transitive constraints can still surprise; if one
+surfaces there, the runtime move becomes its own step per the story's
+Developer Notes.
+
 ## Upgrade-Stage Pin (Story S1.11 Step 1)
 
 The third sequential upgrade step (Elgg 4 → Elgg 5) resolved the sprint
