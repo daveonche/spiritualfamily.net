@@ -123,6 +123,15 @@ unchanged (zero loss); the vendored core `composer.json` version field reads
 pending-upgrades list. Recorded expectation for S1.13: no schema delta at
 the 5 → 6 boundary.
 
+Step 5 record (2026-11-19): the upgraded site verified locally per the
+S1.9–S1.11 verification shape — admin login + dashboard confirmed;
+representative core pages (front page, Activity, Blog listing + post,
+group, profile, File, Page, discussion) all rendering on the 6.3.10 copy.
+Application-log scan across the browsing window: baseline capture 444
+lines before browsing, 67 new lines in the window, 0 PHP Fatal/Parse,
+0 ELGG.CRITICAL, 0 ELGG.ERROR, and 0 deprecation notices — no divergence
+from the prior hops' verification shape.
+
 ## Upgrade-Stage Pin (Story S1.11 Step 1)
 
 The third sequential upgrade step (Elgg 4 → Elgg 5) resolved the sprint
