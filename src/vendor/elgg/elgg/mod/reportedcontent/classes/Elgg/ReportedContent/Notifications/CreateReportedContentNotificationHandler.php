@@ -3,17 +3,17 @@
 namespace Elgg\ReportedContent\Notifications;
 
 use Elgg\Database\QueryBuilder;
-use Elgg\Notifications\NotificationEventHandler;
+use Elgg\Notifications\NonConfigurableNotificationEventHandler;
 
 /**
  * Handle the notification to site admins about new reported content
  *
  * @since 4.2
  */
-class CreateReportedContentNotificationHandler extends NotificationEventHandler {
+class CreateReportedContentNotificationHandler extends NonConfigurableNotificationEventHandler {
 	
 	/**
-	 * {@inheritDoc}
+	 * {@inheritdoc}
 	 */
 	public function getSubscriptions(): array {
 		$admins = elgg_get_entities([
@@ -37,8 +37,7 @@ class CreateReportedContentNotificationHandler extends NotificationEventHandler 
 		$subscriptions = [];
 		/* @var $admin \ElggUser */
 		foreach ($admins as $admin) {
-			$settings = $admin->getNotificationSettings('reportedcontent');
-			$settings = array_keys(array_filter($settings));
+			$settings = $admin->getNotificationSettings('reportedcontent', true);
 			if (empty($settings)) {
 				continue;
 			}
@@ -50,57 +49,45 @@ class CreateReportedContentNotificationHandler extends NotificationEventHandler 
 	}
 	
 	/**
-	 * {@inheritDoc}
-	 */
-	public static function isConfigurableByUser(): bool {
-		return false;
-	}
-	
-	/**
-	 * {@inheritDoc}
+	 * {@inheritdoc}
 	 */
 	protected function getNotificationSubject(\ElggUser $recipient, string $method): string {
-		/* @var $report \ElggReportedContent */
-		$report = $this->event->getObject();
-		
-		return elgg_echo('reportedcontent:notifications:create:admin:subject', [$report->getDisplayname()], $recipient->getLanguage());
+		return elgg_echo('reportedcontent:notifications:create:admin:subject', [$this->getEventEntity()?->getDisplayname()]);
 	}
 	
 	/**
-	 * {@inheritDoc}
+	 * {@inheritdoc}
 	 */
 	protected function getNotificationSummary(\ElggUser $recipient, string $method): string {
-		/* @var $report \ElggReportedContent */
-		$report = $this->event->getObject();
-		
-		return elgg_echo('reportedcontent:notifications:create:admin:summary', [$report->getDisplayname()], $recipient->getLanguage());
+		return elgg_echo('reportedcontent:notifications:create:admin:summary', [$this->getEventEntity()?->getDisplayname()]);
 	}
 	
 	/**
-	 * {@inheritDoc}
+	 * {@inheritdoc}
 	 */
 	protected function getNotificationBody(\ElggUser $recipient, string $method): string {
-		/* @var $reported \ElggReportedContent */
-		$reported = $this->event->getObject();
-		$actor = $this->event->getActor();
+		$reported = $this->getEventEntity();
+		if (!$reported instanceof \ElggReportedContent) {
+			$reported = null;
+		}
 		
 		return elgg_echo('reportedcontent:notifications:create:admin:body', [
-			$actor->getDisplayName(),
-			$reported->description,
-			$reported->address,
+			$this->getEventActor()?->getDisplayName(),
+			$reported?->description,
+			$reported?->address,
 			elgg_normalize_url('admin/administer_utilities/reportedcontent'),
-		], $recipient->getLanguage());
+		]);
 	}
 	
 	/**
-	 * {@inheritDoc}
+	 * {@inheritdoc}
 	 */
 	protected function getNotificationURL(\ElggUser $recipient, string $method): string {
 		return elgg_normalize_url('admin/administer_utilities/reportedcontent');
 	}
 	
 	/**
-	 * {@inheritDoc}
+	 * {@inheritdoc}
 	 */
 	protected function addMuteLink(): bool {
 		return false;

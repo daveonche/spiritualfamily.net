@@ -13,18 +13,9 @@ abstract class BaseCache implements \ArrayAccess {
 	 *
 	 * @var array
 	 */
-	private $variables = [];
+	private array $variables = [];
 
-	/**
-	 * @var bool
-	 */
-	protected $disabled = false;
-
-	/**
-	 * Set the constructor.
-	 */
-	public function __construct() {
-	}
+	protected bool $disabled = false;
 	
 	/**
 	 * Set a cache variable.
@@ -164,12 +155,12 @@ abstract class BaseCache implements \ArrayAccess {
 	/**
 	 * Populate cache from an array of key => values
 	 *
-	 * @param array $values        Values
-	 * @param int   $expires_after Expiration duration
+	 * @param array    $values        Values
+	 * @param null|int $expires_after Expiration duration
 	 *
 	 * @return void
 	 */
-	public function populate(array $values, int $expires_after = null): void {
+	public function populate(array $values, ?int $expires_after = null): void {
 		$this->clear();
 		foreach ($values as $key => $value) {
 			$this->save($key, $value, $expires_after);

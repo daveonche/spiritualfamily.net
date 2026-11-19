@@ -28,6 +28,8 @@ class Views {
 			$vars['id'] = 'elgg-input-' . base_convert(mt_rand(), 10, 36);
 		}
 		
+		$vars['tabindex'] = '-1';
+		
 		return $vars;
 	}
 
@@ -47,7 +49,7 @@ class Views {
 	/**
 	 * Sets the toolbar config if configured
 	 *
-	 * @param \Elgg\Event $event 'elgg.data', 'site'
+	 * @param \Elgg\Event $event 'elgg.data', 'page'
 	 *
 	 * @return array
 	 */

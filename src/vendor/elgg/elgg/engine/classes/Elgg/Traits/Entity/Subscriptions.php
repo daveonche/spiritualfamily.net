@@ -16,14 +16,14 @@ trait Subscriptions {
 	 *
 	 * @param int             $user_guid the user to subscribe (default: current user)
 	 * @param string|string[] $methods   notification method (default: current registered methods)
-	 * @param string          $type      entity type
-	 * @param string          $subtype   entity subtype
-	 * @param string          $action    notification action (eg. 'create')
+	 * @param null|string     $type      entity type
+	 * @param null|string     $subtype   entity subtype
+	 * @param null|string     $action    notification action (eg. 'create')
 	 *
 	 * @throws InvalidArgumentException
 	 * @return bool
 	 */
-	public function addSubscription(int $user_guid = 0, string|array $methods = [], string $type = null, string $subtype = null, string $action = null): bool {
+	public function addSubscription(int $user_guid = 0, string|array $methods = [], ?string $type = null, ?string $subtype = null, ?string $action = null): bool {
 		if ($user_guid === 0) {
 			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
@@ -31,9 +31,7 @@ trait Subscriptions {
 		if (!empty($user_guid) && is_array($methods) && empty($methods)) {
 			$user = get_user($user_guid);
 			if ($user instanceof \ElggUser) {
-				$prefered = $user->getNotificationSettings();
-				$methods = array_keys(array_filter($prefered));
-				
+				$methods = $user->getNotificationSettings('default', true);
 				if (empty($methods)) {
 					return true;
 				}
@@ -55,14 +53,14 @@ trait Subscriptions {
 	 *
 	 * @param int             $user_guid the user to subscribe (default: current user)
 	 * @param string|string[] $methods   notification method (default: current registered methods)
-	 * @param string          $type      entity type
-	 * @param string          $subtype   entity subtype
-	 * @param string          $action    notification action (eg. 'create')
+	 * @param null|string     $type      entity type
+	 * @param null|string     $subtype   entity subtype
+	 * @param null|string     $action    notification action (eg. 'create')
 	 *
 	 * @throws InvalidArgumentException
 	 * @return bool
 	 */
-	public function hasSubscription(int $user_guid = 0, string|array $methods = [], string $type = null, string $subtype = null, string $action = null): bool {
+	public function hasSubscription(int $user_guid = 0, string|array $methods = [], ?string $type = null, ?string $subtype = null, ?string $action = null): bool {
 		if ($user_guid === 0) {
 			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
@@ -101,14 +99,14 @@ trait Subscriptions {
 	 *
 	 * @param int             $user_guid the user to subscribe (default: current user)
 	 * @param string|string[] $methods   notification method (default: current registered methods)
-	 * @param string          $type      entity type
-	 * @param string          $subtype   entity subtype
-	 * @param string          $action    notification action (eg. 'create')
+	 * @param null|string     $type      entity type
+	 * @param null|string     $subtype   entity subtype
+	 * @param null|string     $action    notification action (eg. 'create')
 	 *
 	 * @throws InvalidArgumentException
 	 * @return bool
 	 */
-	public function removeSubscription(int $user_guid = 0, string|array $methods = [], string $type = null, string $subtype = null, string $action = null): bool {
+	public function removeSubscription(int $user_guid = 0, string|array $methods = [], ?string $type = null, ?string $subtype = null, ?string $action = null): bool {
 		if ($user_guid === 0) {
 			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}
@@ -146,13 +144,13 @@ trait Subscriptions {
 	 *
 	 * @param int             $user_guid user for subscriptions (default: current user)
 	 * @param string|string[] $methods   notification method (default: current registered methods)
-	 * @param string          $type      entity type
-	 * @param string          $subtype   entity subtype
-	 * @param string          $action    notification action (eg. 'create')
+	 * @param null|string     $type      entity type
+	 * @param null|string     $subtype   entity subtype
+	 * @param null|string     $action    notification action (eg. 'create')
 	 *
 	 * @return \ElggRelationship[]
 	 */
-	public function getSubscriptions(int $user_guid = 0, string|array $methods = [], string $type = null, string $subtype = null, string $action = null): array {
+	public function getSubscriptions(int $user_guid = 0, string|array $methods = [], ?string $type = null, ?string $subtype = null, ?string $action = null): array {
 		if ($user_guid === 0) {
 			$user_guid = _elgg_services()->session_manager->getLoggedInUserGuid();
 		}

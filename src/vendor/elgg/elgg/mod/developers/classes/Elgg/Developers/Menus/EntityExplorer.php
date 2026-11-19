@@ -26,16 +26,18 @@ class EntityExplorer {
 		$result = $event->getValue();
 		
 		// link to entity
-		$url = $entity->getURL();
-		if (!empty($url) && $url !== elgg_get_site_url()) {
-			$result[] = \ElggMenuItem::factory([
-				'name' => 'view',
-				'icon' => 'eye',
-				'text' => elgg_echo('developers:entity_explorer:view_entity'),
-				'href' => $url,
-				'link_class' => ['elgg-button', 'elgg-button-action'],
-				'priority' => 50,
-			]);
+		if (!$entity->isDeleted()) {
+			$url = $entity->getURL();
+			if (!empty($url) && $url !== elgg_get_site_url()) {
+				$result[] = \ElggMenuItem::factory([
+					'name' => 'view',
+					'icon' => 'eye',
+					'text' => elgg_echo('developers:entity_explorer:view_entity'),
+					'href' => $url,
+					'link_class' => ['elgg-button', 'elgg-button-action'],
+					'priority' => 50,
+				]);
+			}
 		}
 		
 		// delete entity
@@ -52,6 +54,10 @@ class EntityExplorer {
 			'link_class' => ['elgg-button', 'elgg-button-delete'],
 			'priority' => 9999,
 		]);
+		
+		// fix restore action classes
+		$result->get('restore')?->setLinkClass(['elgg-button', 'elgg-button-cancel']);
+		$result->get('restore_and_move')?->setLinkClass(['elgg-button', 'elgg-button-cancel']);
 		
 		return $result;
 	}

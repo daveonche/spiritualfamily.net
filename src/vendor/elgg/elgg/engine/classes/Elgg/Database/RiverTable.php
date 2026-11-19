@@ -20,17 +20,9 @@ class RiverTable {
 	/**
 	 * @var string name of the river database table
 	 */
-	const TABLE_NAME = 'river';
+	public const TABLE_NAME = 'river';
 	
-	protected AnnotationsTable $annotationsTable;
-	
-	protected Database $db;
-	
-	protected EntityTable $entityTable;
-	
-	protected EventsService $events;
-	
-	protected ViewsService $views;
+	public const DEFAULT_JOIN_ALIAS = 'rv';
 	
 	/**
 	 * Create the river table service
@@ -41,12 +33,13 @@ class RiverTable {
 	 * @param EventsService    $events           events service
 	 * @param ViewsService     $views            views service
 	 */
-	public function __construct(Database $db, AnnotationsTable $annotationsTable, EntityTable $entityTable, EventsService $events, ViewsService $views) {
-		$this->annotationsTable = $annotationsTable;
-		$this->db = $db;
-		$this->entityTable = $entityTable;
-		$this->events = $events;
-		$this->views = $views;
+	public function __construct(
+		protected Database $db,
+		protected AnnotationsTable $annotationsTable,
+		protected EntityTable $entityTable,
+		protected EventsService $events,
+		protected ViewsService $views
+	) {
 	}
 	
 	/**
@@ -165,11 +158,11 @@ class RiverTable {
 	 * Update the last_action column in the river table for $item.
 	 *
 	 * @param \ElggRiverItem $item        River item to update
-	 * @param int            $last_action Timestamp of last action
+	 * @param null|int       $last_action Timestamp of last action
 	 *
 	 * @return int
 	 */
-	public function updateLastAction(\ElggRiverItem $item, int $last_action = null): int {
+	public function updateLastAction(\ElggRiverItem $item, ?int $last_action = null): int {
 		if ($last_action === null) {
 			$last_action = $this->getCurrentTime()->getTimestamp();
 		}

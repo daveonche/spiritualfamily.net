@@ -1,28 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doctrine\DBAL\Platforms;
 
-use Doctrine\Deprecations\Deprecation;
+use Doctrine\DBAL\Platforms\Keywords\KeywordList;
+use Doctrine\DBAL\Platforms\Keywords\MySQL80Keywords;
+use Doctrine\DBAL\SQL\Builder\SelectSQLBuilder;
 
 /**
- * Provides the behavior, features and SQL dialect of the MySQL 8.0 (8.0 GA) database platform.
+ * Provides the behavior, features and SQL dialect of the MySQL 8.0 database platform.
+ *
+ * @deprecated This class will be removed once support for MySQL 5.7 is dropped.
  */
-class MySQL80Platform extends MySQL57Platform
+class MySQL80Platform extends MySQLPlatform
 {
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Implement {@see createReservedKeywordsList()} instead.
-     */
-    protected function getReservedKeywordsClass()
+    protected function createReservedKeywordsList(): KeywordList
     {
-        Deprecation::triggerIfCalledFromOutside(
-            'doctrine/dbal',
-            'https://github.com/doctrine/dbal/issues/4510',
-            'MySQL80Platform::getReservedKeywordsClass() is deprecated,'
-                . ' use MySQL80Platform::createReservedKeywordsList() instead.',
-        );
+        return new MySQL80Keywords();
+    }
 
-        return Keywords\MySQL80Keywords::class;
+    public function createSelectSQLBuilder(): SelectSQLBuilder
+    {
+        return AbstractPlatform::createSelectSQLBuilder();
     }
 }

@@ -15,19 +15,13 @@ use Elgg\Project\Paths;
  */
 class CssCompiler {
 
-	protected Config $config;
-
-	protected EventsService $events;
-
 	/**
 	 * Constructor
 	 *
 	 * @param Config        $config Config
 	 * @param EventsService $events Events service
 	 */
-	public function __construct(Config $config, EventsService $events) {
-		$this->config = $config;
-		$this->events = $events;
+	public function __construct(protected Config $config, protected EventsService $events) {
 	}
 
 	/**
@@ -53,7 +47,8 @@ class CssCompiler {
 		$options['vars'] = $this->getCssVars($options);
 	
 		Crush::$process = new CssCrushProcess($options, ['type' => 'filter', 'data' => $css]);
-		return Crush::$process->compile()->__toString();
+
+		return (string) Crush::$process->compile();
 	}
 	
 	/**

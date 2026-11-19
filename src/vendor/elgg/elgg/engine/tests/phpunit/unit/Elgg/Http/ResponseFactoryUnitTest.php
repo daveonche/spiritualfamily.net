@@ -3,8 +3,7 @@
 namespace Elgg\Http;
 
 use Elgg\Ajax\Service;
-use Elgg\Amd\Config;
-use Elgg\Config as Config2;
+use Elgg\Config;
 use Elgg\EventsService;
 use Elgg\HandlersService;
 use Elgg\SystemMessagesService;
@@ -21,7 +20,7 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 	private $session;
 
 	/**
-	 * @var Config2
+	 * @var Config
 	 */
 	private $config;
 
@@ -29,11 +28,6 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 	 * @var Request
 	 */
 	private $request;
-
-	/**
-	 * @var Config
-	 */
-	private $amd_config;
 
 	/**
 	 * @var SystemMessagesService
@@ -61,9 +55,8 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 		$this->events = new EventsService(new HandlersService());
 		$this->request = $this->createRequest('', 'GET');
 
-		$this->amd_config = new Config($this->events);
 		$this->system_messages = new SystemMessagesService($this->session);
-		$this->ajax = new Service($this->events, $this->system_messages, $this->request, $this->amd_config);
+		$this->ajax = new Service($this->events, $this->system_messages, $this->request, _elgg_services()->esm, _elgg_services()->externalFiles);
 
 		_elgg_services()->logger->disable();
 	}
@@ -75,7 +68,6 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 		$svc->set('config', $this->config);
 		$svc->set('events', $this->events);
 		$svc->set('request', $this->request);
-		$svc->set('amd_config', $this->amd_config);
 		$svc->set('system_messages', $this->system_messages);
 		$svc->set('ajax', $this->ajax);
 
@@ -355,7 +347,7 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 		$this->assertEquals($expected, $service->parseContext());
 	}
 
-	public function requestContextDataProvider() {
+	public static function requestContextDataProvider() {
 		return [
 			['ajax/view/foo/bar/', 'view:foo/bar'],
 			['ajax/form/foo/bar/baz/', 'form:foo/bar/baz'],
@@ -377,7 +369,7 @@ class ResponseFactoryUnitTest extends \Elgg\UnitTestCase {
 		$this->assertEquals($expected_output, $this->response_factory->stringify($input));
 	}
 	
-	public function stringifyProvider() {
+	public static function stringifyProvider() {
 		$std = new \stdClass();
 		$std->foo = 'bar';
 		

@@ -13,41 +13,6 @@ use Elgg\Http\ResponseBuilder;
 class Validation {
 
 	/**
-	 * Notify the user that their account is approved
-	 *
-	 * @param \Elgg\Event $event 'validate:after', 'user'
-	 *
-	 * @return void
-	 */
-	public static function notifyUserAfterValidation(\Elgg\Event $event) {
-		
-		if (!(bool) elgg_get_config('require_admin_validation')) {
-			return;
-		}
-		
-		$user = $event->getObject();
-		if (!$user instanceof \ElggUser) {
-			return;
-		}
-		
-		$site = elgg_get_site_entity();
-		
-		$subject = elgg_echo('account:notification:validation:subject', [$site->getDisplayName()], $user->getLanguage());
-		$body = elgg_echo('account:notification:validation:body', [
-			$site->getDisplayName(),
-			$site->getURL(),
-		], $user->getLanguage());
-		
-		$params = [
-			'action' => 'account:validated',
-			'object' => $user,
-			'apply_muting' => false,
-		];
-		
-		notify_user($user->guid, $site->guid, $subject, $body, $params, ['email']);
-	}
-
-	/**
 	 * Adds river activity that a new user joined the site
 	 *
 	 * @param \Elgg\Event $event 'validate:after', 'user'
@@ -74,7 +39,6 @@ class Validation {
 	 * @return void
 	 */
 	public static function checkAdminValidation(\Elgg\Event $event) {
-		
 		if (!(bool) elgg_get_config('require_admin_validation')) {
 			return;
 		}
@@ -84,8 +48,7 @@ class Validation {
 			return;
 		}
 		
-		elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES, function() use ($user, $event) {
-			
+		elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES, function() use ($user) {
 			if ($user->isEnabled()) {
 				// disable the user until validation
 				$user->disable('admin_validation_required', false);
@@ -98,66 +61,10 @@ class Validation {
 			$session = elgg_get_session();
 			$session->set('admin_validation', true);
 			
-			if (elgg_get_config('admin_validation_notification') === 'direct') {
-				self::notifyAdminsAboutPendingUsers($event);
+			if ((bool) elgg_get_config('admin_validation_notification')) {
+				_elgg_services()->notifications->enqueueEvent('admin_validation', $user, elgg_get_site_entity());
 			}
 		});
-	}
-	
-	/**
-	 * Send a notification to all admins that there are pending user validations
-	 *
-	 * @param \Elgg\Event $event various events
-	 *
-	 * @return void
-	 */
-	public static function notifyAdminsAboutPendingUsers(\Elgg\Event $event) {
-		
-		if (empty(elgg_get_config('admin_validation_notification'))) {
-			return;
-		}
-		
-		$unvalidated_count = elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES, function() {
-			return elgg_count_entities([
-				'type' => 'user',
-				'metadata_name_value_pairs' => [
-					'validated' => 0,
-				],
-			]);
-		});
-		if (empty($unvalidated_count)) {
-			// shouldn't be able to get here because this function is triggered when a user is marked as unvalidated
-			return;
-		}
-		
-		$site = elgg_get_site_entity();
-		$admins = elgg_get_admins([
-			'limit' => false,
-			'batch' => true,
-		]);
-		
-		$url = elgg_normalize_url('admin/users/unvalidated');
-		
-		/* @var $admin \ElggUser */
-		foreach ($admins as $admin) {
-			$user_setting = $admin->admin_validation_notification;
-			if (isset($user_setting) && !(bool) $user_setting) {
-				continue;
-			}
-			
-			$subject = elgg_echo('admin:notification:unvalidated_users:subject', [$site->getDisplayName()], $admin->getLanguage());
-			$body = elgg_echo('admin:notification:unvalidated_users:body', [
-				$unvalidated_count,
-				$site->getDisplayName(),
-				$url,
-			], $admin->getLanguage());
-			
-			$params = [
-				'action' => 'admin:unvalidated',
-				'object' => $admin,
-			];
-			notify_user($admin->guid, $site->guid, $subject, $body, $params, ['email']);
-		}
 	}
 	
 	/**
@@ -170,7 +77,6 @@ class Validation {
 	 * @throws LoginException
 	 */
 	public static function preventUserLogin(\Elgg\Event $event) {
-		
 		if (!(bool) elgg_get_config('require_admin_validation')) {
 			return;
 		}
@@ -197,7 +103,6 @@ class Validation {
 	 * @return void|ResponseBuilder
 	 */
 	public static function setRegistrationForwardUrl(\Elgg\Event $event) {
-		
 		$response = $event->getValue();
 		if (!$response instanceof ResponseBuilder) {
 			return;
@@ -227,7 +132,6 @@ class Validation {
 	 * @since 4.2
 	 */
 	public static function removeUnvalidatedUsers(\Elgg\Event $event): void {
-		
 		$days = (int) elgg_get_config('remove_unvalidated_users_days');
 		if ($days < 1) {
 			return;

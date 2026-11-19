@@ -18,17 +18,14 @@ class UsersRememberMeCookiesTable {
 	/**
 	 * @var string name of the persistent cookies database table
 	 */
-	const TABLE_NAME = 'users_remember_me_cookies';
+	public const TABLE_NAME = 'users_remember_me_cookies';
 
-	protected Database $database;
-	
 	/**
 	 * Create a new service
 	 *
 	 * @param Database $database the database service
 	 */
-	public function __construct(Database $database) {
-		$this->database = $database;
+	public function __construct(protected Database $database) {
 	}
 	
 	/**

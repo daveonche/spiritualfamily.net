@@ -8,7 +8,7 @@
  */
 
 elgg_require_css('forms/admin/users/bulk_actions');
-elgg_require_js('forms/admin/users/bulk_actions');
+elgg_import_esm('forms/admin/users/bulk_actions');
 
 // did we search
 $query = get_input('q');
@@ -17,8 +17,6 @@ $getter = $query ? 'elgg_search' : 'elgg_get_entities';
 // make selection options
 $default_options = [
 	'type' => 'user',
-	'subtype' => null,
-	'full_view' => false,
 	'list_type' => 'table',
 	'limit' => max(25, elgg_get_config('default_limit'), (int) get_input('limit', 0)),
 	'columns' => [

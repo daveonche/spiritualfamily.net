@@ -4,7 +4,6 @@ namespace Elgg;
 
 use Elgg\Exceptions\InvalidArgumentException;
 use Elgg\Helpers\TestEventResultsHandler;
-use Psr\Log\LogLevel;
 
 class EventsServiceResultsUnitTest extends \Elgg\UnitTestCase {
 
@@ -15,6 +14,11 @@ class EventsServiceResultsUnitTest extends \Elgg\UnitTestCase {
 	
 	public function up() {
 		$this->events = new EventsService(_elgg_services()->handlers);
+		_elgg_services()->logger->disable();
+	}
+	
+	public function down() {
+		_elgg_services()->logger->enable();
 	}
 
 	public function testTriggerCallsRegisteredHandlers() {

@@ -4,7 +4,6 @@ namespace Elgg\Email;
 
 use Elgg\Database\DelayedEmailQueueTable;
 use Elgg\Email;
-use Elgg\Email\DelayedQueue\DatabaseRecord;
 use Elgg\EmailService;
 use Elgg\Exceptions\DatabaseException;
 use Elgg\I18n\Translator;
@@ -24,32 +23,7 @@ class DelayedEmailService {
 	use Loggable;
 	
 	protected const NOTIFICATIONS_BATCH_SIZE = 500;
-	
-	/**
-	 * @var DelayedEmailQueueTable
-	 */
-	protected $queue_table;
-	
-	/**
-	 * @var EmailService
-	 */
-	protected $email;
-	
-	/**
-	 * @var ViewsService
-	 */
-	protected $views;
-	
-	/**
-	 * @var Translator
-	 */
-	protected $translator;
-	
-	/**
-	 * @var Invoker
-	 */
-	protected $invoker;
-	
+		
 	/**
 	 * Create a new service
 	 *
@@ -59,12 +33,13 @@ class DelayedEmailService {
 	 * @param Translator             $translator  translator service
 	 * @param Invoker                $invoker     invoker serivce
 	 */
-	public function __construct(DelayedEmailQueueTable $queue_table, EmailService $email, ViewsService $views, Translator $translator, Invoker $invoker) {
-		$this->queue_table = $queue_table;
-		$this->email = $email;
-		$this->views = $views;
-		$this->translator = $translator;
-		$this->invoker = $invoker;
+	public function __construct(
+		protected DelayedEmailQueueTable $queue_table,
+		protected EmailService $email,
+		protected ViewsService $views,
+		protected Translator $translator,
+		protected Invoker $invoker
+	) {
 	}
 	
 	/**

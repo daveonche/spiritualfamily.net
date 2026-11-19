@@ -19,11 +19,7 @@ class UsersApiSessionsTable {
 	/**
 	 * @var string name of the users api sessions database table
 	 */
-	const TABLE_NAME = 'users_apisessions';
-	
-	protected Database $database;
-	
-	protected Crypto $crypto;
+	public const TABLE_NAME = 'users_apisessions';
 	
 	/**
 	 * Create a new table handler
@@ -31,9 +27,7 @@ class UsersApiSessionsTable {
 	 * @param Database $database the Elgg database handler
 	 * @param Crypto   $crypto   crypto handler
 	 */
-	public function __construct(Database $database, Crypto $crypto) {
-		$this->database = $database;
-		$this->crypto = $crypto;
+	public function __construct(protected Database $database, protected Crypto $crypto) {
 	}
 	
 	/**

@@ -2,8 +2,10 @@
 
 namespace Elgg\Menus;
 
+use Elgg\Database\QueryBuilder;
 use Elgg\Menu\MenuItems;
 use Elgg\Menu\PreparedMenu;
+use Elgg\Values;
 
 /**
  * Register menu items for the admin_header menu
@@ -29,6 +31,27 @@ class AdminHeader {
 		$return = $event->getValue();
 		
 		$admin = elgg_get_logged_in_user_entity();
+		
+		$online_users_count = max(1, elgg_count_entities([
+			'type' => 'user',
+			'wheres' => [
+				function(QueryBuilder $qb, $main_alias) {
+					return $qb->compare("{$main_alias}.last_action", '>=', Values::normalizeTimestamp('-10 minutes'), ELGG_VALUE_TIMESTAMP);
+				}
+			],
+		]));
+		
+		$return[] = \ElggMenuItem::factory([
+			'name' => 'online_users_count',
+			'icon' => 'user',
+			'text' => false,
+			'title' => elgg_echo('admin:statistics:label:numonline'),
+			'badge' => elgg_format_element('span', ['title' => $online_users_count], Values::shortFormatOutput($online_users_count)),
+			'deps' => ['admin/users/online'],
+			'href' => 'admin/users/online',
+			'priority' => 10,
+			'section' => 'alt',
+		]);
 		
 		// link back to the site
 		$return[] = \ElggMenuItem::factory([
@@ -410,36 +433,6 @@ class AdminHeader {
 			'parent_name' => 'information',
 			'priority' => 90,
 		]);
-		
-		return $return;
-	}
-	
-	/**
-	 * Moves utility menu items to the new section
-	 *
-	 * @param \Elgg\Event $event 'register', 'menu:admin_header'
-	 *
-	 * @return void|MenuItems
-	 */
-	public static function moveUtilities(\Elgg\Event $event) {
-		if (!elgg_is_admin_logged_in()) {
-			return;
-		}
-		
-		/* @var $return MenuItems */
-		$return = $event->getValue();
-		
-		/* @var $menu_item \ElggMenuItem */
-		foreach ($return as $menu_item) {
-			if (in_array($menu_item->getParentName(), ['administer_utilities', 'configure_utilities'])) {
-				$message = 'The menu item ' . $menu_item->getName() . ' is using a deprecated parent.';
-				$message .= ' Utilities have been moved to a dedicated top menu item (utilities) in the admin header.';
-				
-				elgg_deprecated_notice($message, '5.1');
-				
-				$menu_item->setParentName('utilities');
-			}
-		}
 		
 		return $return;
 	}

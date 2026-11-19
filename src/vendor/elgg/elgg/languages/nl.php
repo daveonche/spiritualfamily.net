@@ -54,6 +54,7 @@ return array(
 
 	'ElggEntity:Error:SetSubtype' => 'Gebruik %s in plaats van de magic setter voor "subtype"',
 	'ElggEntity:Error:SetEnabled' => 'Gebruik %s in plaats van de magic setter voor "enabled"',
+	'ElggEntity:Error:SetDeleted' => 'Gebruik %s in plaats van de magic setter voor "deleted"',
 	'ElggUser:Error:SetAdmin' => 'Gebruik %s in plaats van de magic setter voor "admin"',
 	'ElggUser:Error:SetBanned' => 'Gebruik %s in plaats van de magic setter voor "banned"',
 
@@ -96,7 +97,7 @@ return array(
 	'UserFetchFailureException' => 'Kan voor user_guid [%s] niet de rechten nakijken omdat de gebruiker niet bestaat.',
 
 	'PageNotFoundException' => 'De pagina die je opvraagt bestaat niet, of je hebt onvoldoende rechten om deze te mogen bekijken.',
-	'EntityNotFoundException' => 'De inhoud is verwijderd of je hebt geen rechten om die te mogen bekijken.',
+	'EntityNotFoundException' => 'De content die je opvraagt bestaat niet, of je hebt onvoldoende rechten om deze te mogen bekijken.',
 	'EntityPermissionsException' => 'Je hebt onvoldoende rechten om deze actie uit te mogen voeren',
 	'GatekeeperException' => 'Je hebt niet de juiste rechten om deze pagina te zien.',
 	'RegistrationAllowedGatekeeperException:invalid_invitecode' => "De opgegeven uitnodigingscode is niet geldig",
@@ -104,14 +105,23 @@ return array(
 	'BadRequestException:invalid_host_header' => 'Het verzoek bevat een ongeldige HOST header',
 	'BadRequestException:livesearch:no_query' => 'Livesearch vereist een zoekopdracht',
 	'ValidationException' => 'De opgestuurde data voldoet niet aan de vereisten, controleer de invoer',
+	'ValidationException:field:required' => 'Het veld %sis verplicht, maar er is geen informatie aangeleverd',
+	'ValidationException:field:url' => 'Veld %s voldoet niet aan de URL vereisten. Controleer de invoer.',
 	'LogicException:InterfaceNotImplemented' => '%smoet %s implementeren',
+	'ForbiddenException' => 'Je hebt onvoldoende rechten om deze pagina te mogen bekijken',
+	'GoneException' => 'De verzochte resource is niet langer beschikbaar',
+	'InternalServerErrorException' => 'Een onbekend probleem is opgetreden tijdens de verwerking van uw verzoek',
+	'MethodNotAllowedException' => 'De verzochte methode is niet toegestaan voor deze resource',
+	'NotImplementedException' => 'De verzochte methode is niet geïmplementeerd voor deze resource',
+	'ServiceUnavailableException' => 'De server was niet in staat het verzoek af te handelen. Probeer het later opnieuw.',
+	'TooManyRequestsException' => 'Te veel verzoeken, doe rustiger aan',
+	'UnauthorizedException' => 'Je hebt niet de correcte authenticatie gegevens voor de gevraagde pagina',
 	
 	'Security:InvalidPasswordCharacterRequirementsException' => "Het opgegeven wachtwoord voldoet niet aan de minimale eisen",
 	'Security:InvalidPasswordLengthException' => "Het opgegeven wachtwoord voldoet niet aan de minimale lengte van %s",
 	
 	'Entity:Subscriptions:InvalidMethodsException' => '%s vereist dat $methods een string of een array van strings is',
 
-	'viewfailure' => 'Er is een interne fout in de view %s',
 	'changebookmark' => 'Wijzig je favoriet/bladwijzer voor deze pagina',
 	'error:missing_data' => 'Er missen enkele gegevens in je verzoek',
 	'save:fail' => 'Er ging iets mis bij het opslaan van je gegevens',
@@ -121,10 +131,14 @@ return array(
 	'error:default:content' => 'Oeps... er ging iets mis.',
 	'error:400:title' => 'Het verzoek is onjuist',
 	'error:400:content' => 'Sorry, Het verzoek is onjuist of onvolledig',
+	'error:401:title' => 'Niet geauthoriseerd',
 	'error:403:title' => 'Verboden',
 	'error:403:content' => 'Sorry. Je hebt geen toestemming om de opgevraagde pagina te bezoeken.',
 	'error:404:title' => 'Pagina niet gevonden',
 	'error:404:content' => 'Sorry. We konden de pagina die je opvroeg niet vinden.',
+	'error:407:title' => 'Proxy authenticatie vereist',
+	'error:500:title' => 'Interne server error',
+	'error:503:title' => 'Dienst niet beschikbaar',
 
 	'upload:error:ini_size' => 'Het bestand dat je wilt uploaden is te groot.',
 	'upload:error:form_size' => 'Het bestand dat je wilt uploaden is te groot.',
@@ -286,7 +300,7 @@ return array(
  */
 	'link:view' => 'Bekijk link',
 	'link:view:all' => 'Bekijk alles',
-
+	'link:skip_to_main' => 'Direct naar de inhoud',
 
 /**
  * River
@@ -330,6 +344,7 @@ return array(
 	'usersettings:notifications:content_create:description' => 'Standaard notificatie instellingen voor nieuwe door jou aangemaakte content. Dit betreft notificaties die te maken hebben met acties op jouw content zoals het achterlaten van een reactie.',
 	'usersettings:notifications:create_comment:description' => "Standaard notificatie instellingen indien je een reactie achterlaat op content om van het vervolg op de hoogte te blijven",
 	'usersettings:notifications:mentions:description' => "Ontvang een notificatie wanneer iemand je ergens vermeld",
+	'usersettings:notifications:admin_validation_notification:description' => "Ontvang een notificatie wanneer er een nieuwe gebruiker wacht op validatie",
 
 	'usersettings:notifications:timed_muting' => "Tijdelijk notificaties uitschakelen",
 	'usersettings:notifications:timed_muting:help' => "Indien je voor een bepaalde periode geen notificaties wilt ontvangen (bijvoorbeeld een vakantie) dan kun je hier een start en einddatum opgeven om tijdelijk alle notificaties te blokkeren.",
@@ -351,7 +366,7 @@ return array(
 	'notification:body' => 'Bekijk de nieuwe activiteit op %s',
 	
 	'notification:mentions:subject' => '%s heeft je vermeld',
-	'notification:mentions:body' => "%sheeft je vermeld in '%s'.
+	'notification:mentions:body' => "%s heeft je vermeld in '%s'.
 
 Bekijk het volledige bericht hier:
 %s",
@@ -873,8 +888,8 @@ Bekijk hier de volledige lijst van gebruikers:
 	'plugins:settings:save:fail' => "Er is een fout opgetreden tijdens het opslaan van de instellingen voor de plugin '%s'.",
 	'plugins:settings:remove:ok' => "Alle instellingen voor de %s plugin zijn verwijderd",
 	'plugins:settings:remove:fail' => "Er is een probleem  opgetreden tijdens het verwijderen van alle instellingen voor de %s plugin",
-	'plugins:usersettings:save:ok' => "Gebruikersinstellingen voor de plugin '%s' zijn succesvol opgeslagen.",
-	'plugins:usersettings:save:fail' => "Er is een fout opgetreden tijden het opslaan van de gebruikersinstellingen van de plugin '%s'.",
+	'plugins:usersettings:save:ok' => "Je instellingen voor %s zijn succesvol opgeslagen.",
+	'plugins:usersettings:save:fail' => "Er heeft zich een probleem voorgedaan tijdens het opslaan van de instellingen voor %s.",
 	
 	'item:object:plugin' => 'Plugins',
 	'collection:object:plugin' => 'Plugins',
@@ -942,7 +957,7 @@ Bekijk hier de volledige lijst van gebruikers:
 	'admin:statistics:label:numusers' => "Aantal gebruikers",
 	'admin:statistics:label:numonline' => "Aantal gebruikers online",
 	'admin:statistics:label:onlineusers' => "Online gebruikers",
-	'admin:statistics:label:admins'=>"Beheerders",
+	'admin:statistics:label:admins' => "Beheerders",
 	'admin:statistics:label:version' => "Elgg-versie",
 	'admin:statistics:label:version:release' => "Release",
 	'admin:statistics:label:version:version' => "Versie",
@@ -985,7 +1000,6 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	'admin:server:requirements:rewrite:fail' => "Controleer je .htaccess voor de correcte rewrite rules",
 	
 	'admin:server:requirements:database:server' => "Database server",
-	'admin:server:requirements:database:server:required' => "Elgg vereist MySQL v5.5.3 of hoger voor de database",
 	'admin:server:requirements:database:server:required_version' => "Elgg vereist MySQL versie %s of hoger voor zijn database",
 	'admin:server:requirements:database:client' => "Database client",
 	'admin:server:requirements:database:client:required' => "Elgg vereist pdo_mysql om verbinding met de database server te maken",
@@ -1122,6 +1136,7 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	'preview' => "Voorbeeld",
 	'edit' => "Bewerk",
 	'delete' => "Verwijder",
+	'trash' => "Prullenbak",
 	'accept' => "Accepteer",
 	'reject' => "Afwijzen",
 	'decline' => "Afwijzen",
@@ -1138,7 +1153,7 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	'banned' => "Geblokkeerd",
 	'enable' => "Activeren",
 	'disable' => "Deactiveren",
-	'request' => "Aanvraag",
+	'request' => "Aanvragen",
 	'complete' => "Compleet",
 	'open' => 'Open',
 	'close' => 'Sluiten',
@@ -1249,6 +1264,8 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 	'status:unavailable' => 'Niet beschikbaar',
 	'status:active' => 'Actief',
 	'status:inactive' => 'Inactief',
+	'status:deleted' => 'Verwijderd',
+	'status:trashed' => 'In de prullenbak',
 
 /**
  * Generic sorts
@@ -1297,6 +1314,9 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
 
 	'edit:this' => 'Bewerk dit',
 	'delete:this' => 'Verwijder dit',
+	'trash:this' => 'Naar de prullenbak',
+	'restore:this' => 'Herstel dit',
+	'restore:this:move' => 'Herstel en verplaats dit',
 	'comment:this' => 'Reageer hierop',
 
 /**
@@ -1304,6 +1324,9 @@ Voor verbeterde performance wordt het aangeraden om OPcache in te schakelen en t
  */
 
 	'deleteconfirm' => "Weet je zeker dat je dit item wilt verwijderen?",
+	'trashconfirm' => "Weer je zeker dat je dit item naar de prullenbak wilt verplaatsen?",
+	'restoreconfirm' => "Weet je zeker dat je dit item wilt herstellen?",
+	'restoreandmoveconfirm' => "Weet je zeker dat je dit item wilt herstellen en verplaatsen?",
 	'deleteconfirm:plural' => "Weet je zeker dat je deze items wilt verwijderen?",
 	'fileexists' => "Er is reeds een bestand geüpload. Om het te vervangen selecteer hieronder een nieuw bestand",
 	'input:file:upload_limit' => 'De maximale bestandsgrootte is %s',
@@ -1473,6 +1496,7 @@ Nadat je bent aangemeld raden we je aan je wachtwoord te wijzigen.',
 	'admin:legend:system' => 'Systeem',
 	'admin:legend:caching' => 'Caching',
 	'admin:legend:content' => 'Inhoud',
+	'admin:legend:comments' => 'Reacties',
 	'admin:legend:content_access' => 'Toegang tot content',
 	'admin:legend:site_access' => 'Toegang tot de site',
 	'admin:legend:debug' => 'Debugging en loggen',
@@ -1514,6 +1538,10 @@ Nadat je bent aangemeld raden we je aan je wachtwoord te wijzigen.',
 	'config:content:mentions_display_format:help' => "Hoe moeten vermeldingen worden weergegeven in de inhoud",
 	'config:content:mentions_display_format:username' => "Gebruikersnaam",
 	'config:content:mentions_display_format:display_name' => "Weergavenaam",
+	'config:content:trash_enabled:label' => "Prullenbak activeren",
+	'config:content:trash_enabled:help' => "Als items worden verwijderd gaan deze eerst naar de prullenbak (indien dat ondersteund wordt) voordat ze permanent worden verwijderd. Gebruikers kunnen items uit de prullenbak herstellen.",
+	'config:content:trash_retention:label' => "Aantal dagen voordat items in de prullenbak permanent worden verwijderd",
+	'config:content:trash_retention:help' => "Configureer hier hoeveel dagen een item in de prullenbak blijft. Na de retentie periode zal het item definitief worden verwijderd. Gebruik de waarde 0 om items altijd in de prullenbak te laten zitten.",
 	'config:email' => "E-mail",
 	'config:email_html_part:label' => "Activeer HTML mail",
 	'config:email_html_part:help' => "Uitgaande mail een HTML template worden vorm gegeven",
@@ -1625,14 +1653,8 @@ Indien je deze wijziging niet hebt aangevraagd, neem dan contact op met een behe
 	'account:email:admin:validation_notification' => "Stuur mij een notificatie indien gebruikers zich aanmelden en handmatig gevalideerd moeten worden",
 	'account:email:admin:validation_notification:help' => "Vanwege de instellingen op de site moeten nieuwe gebruikers handmatig gevalideerd worden. Middels deze instelling kun je de notificaties uitschakelen.",
 	
-	'account:validation:pending:title' => "Accounts wachtend op validatie",
+	'account:validation:pending:title' => "Account wacht op validatie",
 	'account:validation:pending:content' => "Je account is succesvol geregistreerd! Voordat je je account kunt gebruiken moet deze echter eerst nog worden gevalideerd door een beheerder van de site. Zodra dit gedaan is ontvang je daarvan een e-mail.",
-	
-	'account:notification:validation:subject' => "Je account op %s is gevalideerd!",
-	'account:notification:validation:body' => "Je account op '%s' is gevalideerd. Je kunt nu je account gebruiken.
-
-Klik hier om naar de website te gaan:
-%s",
 
 /**
  * user default access
@@ -1656,8 +1678,6 @@ Klik hier om naar de website te gaan:
 
 	'generic_comments:add' => "Voeg een reactie toe",
 	'generic_comments:edit' => "Reactie bewerken",
-	'generic_comments:post' => "Plaats reactie",
-	'generic_comments:text' => "Reactie",
 	'generic_comments:latest' => "Laatste reacties",
 	'generic_comment:login_required' => "Je moet zijn aangemeld om een reactie achter te laten.",
 	'generic_comment:posted' => "Je reactie is succesvol geplaatst.",
@@ -1667,10 +1687,8 @@ Klik hier om naar de website te gaan:
 	'generic_comment:notfound' => "Sorry, we konden de reactie niet vinden.",
 	'generic_comment:failure' => "Er is een fout opgetreden tijdens het opslaan van je reactie. Probeer het nogmaals.",
 	'generic_comment:none' => 'Geen reacties',
-	'generic_comment:title' => 'Reactie door %s',
 	'generic_comment:on' => '%s op %s',
 	'generic_comment:by_owner' => 'Reactie door de eigenaar',
-	'generic_comments:latest:posted' => 'plaatste een',
 
 	'generic_comment:notification:subject' => 'Re: %s',
 	'generic_comment:notification:owner:summary' => 'Je hebt een nieuwe reactie op: %s',
@@ -1707,6 +1725,18 @@ Bekijk de volledige reactie hier:
 	'entity:delete:permission_denied' => 'U beschikt niet over de juiste rechten om dit item te verwijderen.',
 	'entity:delete:success' => '%s is verwijderd.',
 	'entity:delete:fail' => '%s kon niet worden verwijderd.',
+
+	'entity:edit:success' => 'De entiteit is succesvol opgeslagen',
+	'entity:edit:group:success' => 'De groep is succesvol opgeslagen',
+	'entity:edit:object:success' => 'Het object is succesvol opgeslagen',
+	'entity:edit:user:success' => 'De gebruiker is succesvol opgeslagen',
+	
+	'entity:restore:item' => 'Item',
+	'entity:restore:item_not_found' => 'Item niet gevonden',
+	'entity:restore:container_permission' => 'U beschikt niet over de juiste rechten om dit item te herstellen naar %s',
+	'entity:restore:permission_denied' => 'U beschikt niet over de juiste rechten om dit item te herstellen',
+	'entity:restore:success' => '%s is hersteld',
+	'entity:restore:fail' => '%s kon niet worden hersteld',
 	
 	'entity:subscribe' => "Volgen",
 	'entity:subscribe:disabled' => "Je standaard notificatie instellingen voorkomen dat je je kunt abonneren op deze content",
@@ -1724,6 +1754,7 @@ Bekijk de volledige reactie hier:
 	'entity:unmute' => "Notificaties deblokkeren",
 	'entity:unmute:success' => "Notificaties voor %s succesvol gedeblokkeerd",
 	'entity:unmute:fail' => "Een fout is opgetreden tijdens het deblokkeren van notificaties van %s",
+
 
 /**
  * Annotations
@@ -1753,7 +1784,6 @@ Bekijk de volledige reactie hier:
  * Diagnostics
  */
 	'diagnostics:report' => 'Diagnostics Report',
-	'diagnostics:description' => 'Het Diagnostic Report kan gebruikt worden om problemen met de installatie van Elgg te analyseren. Elgg ontwikkelaars kunnen verzoeken om dit rapport.',
 	'diagnostics:header' => '========================================================================
 Elgg Diagnostic Report
 Generated %s by %s
@@ -1779,6 +1809,29 @@ Global variables:
 %s
 ------------------------------------------------------------------------',
 	
+/**
+ * Trash
+ */
+	'trash:menu:page' => "Prullenbak",
+	
+	'trash:imprint:actor' => "Verwijderd door: %s",
+	'trash:imprint:type' => "Type: %s",
+	
+	'trash:owner:title' => "Prullenbak",
+	'trash:owner:title_owner' => "%s's prullenbak",
+	'trash:group:title' => "%s's prullenbak",
+	
+	'trash:no_results' => "Geen items gevonden in de prullenbak",
+	
+	'trash:notice:retention' => "Items in de prullenbak zullen na %s dagen worden verwijderd.",
+	
+	'trash:restore:container:owner' => "Het item kan eventueel naar je persoonlijke sectie verplaats worden want de oorspronkelijke groep is ook verwijderd.",
+	'trash:restore:container:choose' => "Aangezien de oorspronkelijke groep bijbehorend aan dit item is verwijderd, kun je kiezen waar je het item wilt herstellen.",
+	'trash:restore:container:group' => "Herstel in een andere groep",
+	'trash:restore:group' => "Zoek een groep",
+	'trash:restore:group:help' => "Zorg er voor dat de geselecteerd groep wel het soort items ondersteunt, anders kan er een foutmelding optreden.",
+	'trash:restore:owner' => "Herstel naar de eigenaar (%s)",
+
 /**
  * Miscellaneous
  */
@@ -1818,7 +1871,6 @@ Global variables:
 /**
  * Cli commands
  */
-	'cli:login:error:unknown' => "Het is niet mogelijk om aan te melden als %s",
 	'cli:login:success:log' => "Aangemeld als %s [guid: %s]",
 	'cli:response:output' => "Antwoord:",
 	'cli:option:as' => "Voer het commando uit namens de gebruiker met de opgegeven gebruikersnaam",
@@ -2064,4 +2116,19 @@ Global variables:
 	
 	'core:upgrade:2023011701:title' => "Verwijder verweesde reacties",
 	'core:upgrade:2023011701:description' => "Er zijn in sommige gevallen reacties op reacties achtergebleven in de database. Deze upgrade zal deze opruimen.",
+	
+	'core:upgrade:2024020101:title' => "Migreer icoon cropping coördinaten",
+	'core:upgrade:2024020101:description' => "Cropping coördinaten worden nu op een uniforme manier opgeslagen. Deze upgrade migreert oude x1, x2, y1 en y2 metadata waardes.",
+
+	'core:upgrade:2024020901:title' => "Verwijder de icontime metadata",
+	'core:upgrade:2024020901:description' => "Verwijderd de onbetrouwbare metadata icontime uit de database",
+
+	'core:upgrade:2024070201:title' => "Migreer de debug configuratie",
+	'core:upgrade:2024070201:description' => "Verander de database waardes ten behoeve van debug logs naar de nieuwe ondersteunde waardes",
+
+	'core:upgrade:2024071001:title' => "Migreer de beheerder notificatie instellingen ten behoeve van validatie",
+	'core:upgrade:2024071001:description' => "Verhuis de opslag van de beheerder notificatie instellingen naar de notificatie instellingen",
+
+	'core:upgrade:2025060201:title' => "Correcte database waardes voor booleans opslaan",
+	'core:upgrade:2025060201:description' => "In de annotations en de metadata tabel werden falsy boolean waardes onjuist opgeslagen",
 );

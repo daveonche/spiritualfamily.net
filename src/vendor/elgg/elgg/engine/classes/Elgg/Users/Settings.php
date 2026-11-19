@@ -66,28 +66,11 @@ class Settings {
 			return false;
 		}
 	
-		$user->setPassword($password);
-		_elgg_services()->persistentLogin->handlePasswordChange($user, $actor);
+		_elgg_services()->accounts->changePassword($user, $password);
 		
 		if (elgg_get_config('security_notify_user_password')) {
 			// notify the user that their password has changed
-			$site = elgg_get_site_entity();
-			
-			$subject = elgg_echo('user:notification:password_change:subject', [], $user->getLanguage());
-			$body = elgg_echo('user:notification:password_change:body', [
-				$user->getDisplayName(),
-				$site->getDisplayName(),
-				elgg_generate_url('account:password:reset'),
-				$site->getURL(),
-			], $user->getLanguage());
-			
-			$params = [
-				'object' => $user,
-				'action' => 'password_change',
-				'apply_muting' => false,
-			];
-			
-			notify_user($user->guid, $site->guid, $subject, $body, $params, ['email']);
+			$user->notify('password_change', $user);
 		}
 	
 		$request->validation()->pass('password', '', elgg_echo('user:password:success'));
@@ -348,28 +331,5 @@ class Settings {
 		}
 		
 		$request->validation()->pass('default_access', $default_access, elgg_echo('user:default_access:success'));
-	}
-	
-	/**
-	 * Save a setting related to admin approval of new users
-	 *
-	 * @param \Elgg\Event $event 'usersettings:save', 'user'
-	 *
-	 * @return void
-	 */
-	public static function setAdminValidationNotification(\Elgg\Event $event) {
-		
-		$user = $event->getUserParam();
-		if (!$user instanceof \ElggUser || !$user->isAdmin()) {
-			return;
-		}
-		
-		$request = $event->getParam('request');
-		if (!$request instanceof \Elgg\Request) {
-			return;
-		}
-		
-		$value = (bool) $request->getParam('admin_validation_notification', true);
-		$user->admin_validation_notification = $value;
 	}
 }

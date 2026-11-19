@@ -27,17 +27,16 @@ class Redis extends Config {
 		}
 		
 		$options = [
-			'preventCacheSlams' => true,
 			'useStaticItemCaching' => true,
 			'itemDetailedDate' => true,
 			'optPrefix' => $namespace,
 		];
 		if (!empty($config->redis_options) && is_array($config->redis_options)) {
-			$options = $config->redis_options;
+			$options = array_merge($options, $config->redis_options);
 		}
 		
 		if (count($config->redis_servers) > 1) {
-			elgg_log('Multiple Redis servers are not supported. Only the first server will be used. Please update the configuration in elgg-config/settings.php', 'warning');
+			elgg_log('Multiple Redis servers are not supported. Only the first server will be used. Please update the configuration in elgg-config/settings.php', \Psr\Log\LogLevel::WARNING);
 		}
 		
 		$server = $config->redis_servers[0];

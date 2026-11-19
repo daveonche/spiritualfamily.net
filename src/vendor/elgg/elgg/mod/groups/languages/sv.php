@@ -65,9 +65,6 @@ return array(
 	'groups:joinrequest' => 'Begär medlemsskap',
 	'groups:join' => 'Gå med i grupp',
 	'groups:leave' => 'Lämna grupp',
-	'groups:invite' => 'Bjud in vänner',
-	'groups:invite:title' => 'Bjud in vänner till den här gruppen',
-	'groups:invite:friends:help' => 'Sök efter en vän med namn eller användarnamn och välj vännen från listan',
 	'groups:invite:resend' => 'Återsänd inbjudningar till redan inbjudna användare',
 	'groups:invite:member' => 'Redan medlem i den här gruppen',
 	'groups:invite:invited' => 'Redan inbjuden till den här gruppen',
@@ -158,4 +155,6 @@ return array(
 	// Notification settings
 	
 	// accessibility
+	'groups:aria:label:group_search' => "Sök efter grupper",
+	'groups:aria:label:search_in_group' => "Sök i den här gruppen",
 );

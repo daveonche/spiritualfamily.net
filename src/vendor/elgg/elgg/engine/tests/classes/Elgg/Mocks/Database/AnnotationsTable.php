@@ -81,7 +81,6 @@ class AnnotationsTable extends DbAnnotations {
 			'value' => $annotation->value,
 			'value_type' => $annotation->value_type,
 			'time_created' => $this->getCurrentTime()->getTimestamp(),
-			'enabled' => $annotation->enabled,
 		];
 		
 		$this->rows[$id] = $row;
@@ -176,11 +175,10 @@ class AnnotationsTable extends DbAnnotations {
 	protected function addQuerySpecs(\stdClass $row) {
 		$this->clearQuerySpecs($row);
 
-		$qb = Select::fromTable('annotations');
+		$qb = Select::fromTable(self::TABLE_NAME);
 		$qb->select('*');
 
-		$where = new AnnotationWhereClause();
-		$where->ids = $row->id;
+		$where = AnnotationWhereClause::factory(['ids' => $row->id]);
 		$qb->addClause($where);
 
 		$this->query_specs[$row->id][] = $this->db->addQuerySpec([
@@ -195,7 +193,7 @@ class AnnotationsTable extends DbAnnotations {
 			},
 		]);
 
-		$qb = Insert::intoTable('annotations');
+		$qb = Insert::intoTable(self::TABLE_NAME);
 		$qb->values([
 			'entity_guid' => $qb->param($row->entity_guid, ELGG_VALUE_INTEGER),
 			'name' => $qb->param($row->name, ELGG_VALUE_STRING),
@@ -212,7 +210,7 @@ class AnnotationsTable extends DbAnnotations {
 			'insert_id' => $row->id,
 		]);
 
-		$qb = Update::table('annotations');
+		$qb = Update::table(self::TABLE_NAME);
 		$qb->set('name', $qb->param($row->name, ELGG_VALUE_STRING))
 			->set('value', $qb->param($row->value, $row->value_type === 'integer' ? ELGG_VALUE_INTEGER : ELGG_VALUE_STRING))
 			->set('value_type', $qb->param($row->value_type, ELGG_VALUE_STRING))
@@ -232,7 +230,7 @@ class AnnotationsTable extends DbAnnotations {
 			},
 		]);
 
-		$qb = Delete::fromTable('annotations');
+		$qb = Delete::fromTable(self::TABLE_NAME);
 		$qb->where($qb->compare('id', '=', $row->id, ELGG_VALUE_INTEGER));
 
 		$this->query_specs[$row->id][] = $this->db->addQuerySpec([

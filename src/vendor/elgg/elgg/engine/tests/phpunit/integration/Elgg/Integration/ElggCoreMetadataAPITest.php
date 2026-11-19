@@ -2,6 +2,8 @@
 
 namespace Elgg\Integration;
 
+use Elgg\Database\MetadataTable;
+use Elgg\Database\QueryBuilder;
 use Elgg\Database\Select;
 use Elgg\Database\Update;
 use Elgg\IntegrationTestCase;
@@ -97,7 +99,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 		$this->object->delete();
 	}
 
-	public function caseSensitivePairsProvider() {
+	public static function caseSensitivePairsProvider() {
 		return [
 			['=', 'CaseSensitive', true, 1],
 			['=', 'CaseSensitive', false, 1],
@@ -178,7 +180,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 		$this->object->delete();
 	}
 
-	public function booleanPairsProvider() {
+	public static function booleanPairsProvider() {
 		return [
 			[true, true, null],
 			[true, 1, null],
@@ -215,7 +217,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 		$e->save();
 
 		for ($i = 0; $i < 30; $i++) {
-			$name = "test_metadata$i";
+			$name = "test_metadata{$i}";
 			$e->$name = rand(0, 10000);
 		}
 
@@ -223,7 +225,9 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 			'guid' => $e->getGUID(),
 			'limit' => false,
 			'wheres' => [
-				"n_table.name LIKE 'test_metadata%'",
+				function (QueryBuilder $qb, $main_alias) {
+					return $qb->compare("{$main_alias}.name", 'like', 'test_metadata%', ELGG_VALUE_STRING);
+				},
 			],
 		];
 
@@ -266,7 +270,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 			$entity->test = $md_values;
 	
 			// check only these md exists
-			$qb = Select::fromTable('metadata');
+			$qb = Select::fromTable(MetadataTable::TABLE_NAME);
 			$qb->select('*');
 			$qb->where($qb->compare('entity_guid', '=', $entity->guid, ELGG_VALUE_INTEGER))
 				->andWhere($qb->compare('name', '=', 'test', ELGG_VALUE_STRING));
@@ -328,7 +332,7 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 			]);
 	
 			foreach ($mds as $md) {
-				$update_metadata = Update::table('metadata');
+				$update_metadata = Update::table(MetadataTable::TABLE_NAME);
 				$update_metadata->set('time_created', $update_metadata->param($time, ELGG_VALUE_TIMESTAMP));
 				$update_metadata->where($update_metadata->compare('id', '=', $md->id, ELGG_VALUE_ID));
 				
@@ -349,13 +353,13 @@ class ElggCoreMetadataAPITest extends IntegrationTestCase {
 		
 		// ignore access bypasses the MD cache, so we try it both ways
 		elgg_call(ELGG_ENFORCE_ACCESS, function() use (&$obj, &$md_values) {
-			_elgg_services()->metadataCache->clear($obj->guid);
+			_elgg_services()->metadataCache->delete($obj->guid);
 			$md_values = $obj->test_md;
 			$this->assertEquals([1, 2, 3], $md_values);
 		});
 		
 		elgg_call(ELGG_IGNORE_ACCESS, function() use (&$obj, &$md_values) {
-			_elgg_services()->metadataCache->clear($obj->guid);
+			_elgg_services()->metadataCache->delete($obj->guid);
 			$md_values = $obj->test_md;
 			$this->assertEquals([1, 2, 3], $md_values);
 	

@@ -54,6 +54,7 @@ return array(
 
 	'ElggEntity:Error:SetSubtype' => 'Utiliser %s à la place du setter magique pour "subtype"',
 	'ElggEntity:Error:SetEnabled' => 'Utiliser %s à la place du setter magique pour "enabled"',
+	'ElggEntity:Error:SetDeleted' => 'Utiliser %s à la place du setter magique pour "enabled"',
 	'ElggUser:Error:SetAdmin' => 'Utiliser %s à la place du setter magique pour "admin"',
 	'ElggUser:Error:SetBanned' => 'Utiliser %s à la place du setter magique pour "banned"',
 
@@ -104,14 +105,23 @@ return array(
 	'BadRequestException:invalid_host_header' => 'La requête contient un entête HOST invalide',
 	'BadRequestException:livesearch:no_query' => 'La recherche instantanée a besoin d\'une requête',
 	'ValidationException' => 'Les données envoyées ne satisfont pas les exigences, veuillez vérifier votre saisie.',
+	'ValidationException:field:required' => 'Le champ %s est requis, aucune valeur fournie',
+	'ValidationException:field:url' => 'Le champ %s ne satisfait pas les exigences d\'une URL, veuillez vérifier votre saisie.',
 	'LogicException:InterfaceNotImplemented' => '%s doit implémenter %s',
+	'ForbiddenException' => 'Vous n\'avez pas les permissions suffisantes pour voir cette page',
+	'GoneException' => 'La ressource demandée n\'est plus disponible',
+	'InternalServerErrorException' => 'Une erreur inconnue est survenue lors du traitement de votre requête',
+	'MethodNotAllowedException' => 'La méthode demandée n\'est pas autorisée pour cette ressource',
+	'NotImplementedException' => 'La méthode demandée n\'est pas implémentée pour cette ressource',
+	'ServiceUnavailableException' => 'Le serveur n\'a pas pu traiter votre requête, veuillez réessayer plus tard',
+	'TooManyRequestsException' => 'Trop de requêtes, veuillez ralentir',
+	'UnauthorizedException' => 'Vous ne disposez pas des autorisations d\'authentification valides pour la ressource cible',
 	
 	'Security:InvalidPasswordCharacterRequirementsException' => "Le mot de passe fourni ne correspond pas aux exigences requises",
 	'Security:InvalidPasswordLengthException' => "Le mot de passe fourni ne correspond pas à l'exigence de longueur minimale de %s caractères",
 	
 	'Entity:Subscriptions:InvalidMethodsException' => '%s demande que $methods soit une chaîne de caractères ou un tableau de chaînes de caractères',
 
-	'viewfailure' => 'Erreur interne dans la vue %s',
 	'changebookmark' => 'Veuillez mettre à jour votre signet pour cette page.',
 	'error:missing_data' => 'Il manquait des données dans votre requête',
 	'save:fail' => 'Erreur lors de l\'enregistrement de vos données. ',
@@ -136,7 +146,7 @@ return array(
 	'upload:error:no_file' => 'Aucun fichier n\'a été sélectionné.',
 	'upload:error:no_tmp_dir' => 'Impossible d\'enregistrer le fichier téléchargé - pas de répertoire temporaire.',
 	'upload:error:cant_write' => 'Impossible d\'enregistrer le fichier téléchargé - écriture impossible.',
-	'upload:error:extension' => 'Impossible d\'enregistrer le fichier téléchargé (extension).',
+	'upload:error:extension' => 'Impossible d\'enregistrer le fichier téléchargé',
 	'upload:error:unknown' => 'Le chargement du fichier a échoué.',
 
 /**
@@ -145,7 +155,7 @@ return array(
 	'table_columns:fromView:admin' => 'Admin',
 	'table_columns:fromView:banned' => 'Banni',
 	'table_columns:fromView:checkbox' => 'Sélectionner',
-	'table_columns:fromView:container' => 'Conteneur (container)',
+	'table_columns:fromView:container' => 'Conteneur',
 	'table_columns:fromView:entity_menu' => 'Menu',
 	'table_columns:fromView:excerpt' => 'Description',
 	'table_columns:fromView:link' => 'Nom/Titre',
@@ -292,7 +302,7 @@ Certains widgets peuvent être ajoutés plusieurs fois.",
  */
 	'link:view' => 'voir le lien',
 	'link:view:all' => 'Voir tout',
-
+	'link:skip_to_main' => 'Aller au contenu principal',
 
 /**
  * River
@@ -336,6 +346,7 @@ Certains widgets peuvent être ajoutés plusieurs fois.",
 	'usersettings:notifications:content_create:description' => 'Paramètres de notification par défaut pour vos propres publications. Ceci peut provoquer des notifications quand d\'autres personnes y réagissent, par exemple en ajoutant un commentaire',
 	'usersettings:notifications:create_comment:description' => "Paramètre de notification par défaut quand vous ajoutez un commentaire, afin de pouvoir suivre la suite de la conversation",
 	'usersettings:notifications:mentions:description' => "Recevez une notification quand vous êtes @mentionné⋅e",
+	'usersettings:notifications:admin_validation_notification:description' => "Recevoir une notification quand un nouvel compte utilisateur doit être validé",
 
 	'usersettings:notifications:timed_muting' => "Désactiver temporairement les notifications",
 	'usersettings:notifications:timed_muting:help' => "Si vous ne souhaitez pas recevoir de notifications pendant une certaine période (par exemple pendant des vacances ou un déplacement), vous pouvez définir une date de début et de fin pour désactiver temporairement toutes les notifications",
@@ -826,7 +837,7 @@ Pour voir le profil du nouvel administrateur :
 %s',
 	
 	'admin:notification:make_admin:user:subject' => 'Vous avez été ajouté comme administrateur du site %s',
-	'admin:notification:make_admin:user:body' => '%s vous a rendu administrateur de %s.
+	'admin:notification:make_admin:user:body' => '%s vous a ajouté le rôle d\'administrateur de %s.
 
 Pour vous rendre sur le site :
 %s',
@@ -859,7 +870,7 @@ Pour vous rendre sur le site :
 %s',
 	
 	'user:notification:password_change:subject' => 'Votre mot de passe a été modifié !',
-	'user:notification:password_change:body' => "Votre mot de passe sur '%s' a été modifié ! Si vous êtes à l'origine de cette modification alors tout va bien, veuillez ne pas tenir compte de ce message.
+	'user:notification:password_change:body' => "Votre mot de passe sur \"%s\" a été modifié ! Si vous êtes à l'origine de cette modification alors tout va bien, veuillez ne pas tenir compte de ce message.
 
 Si vous n'êtes pas à l'origine de cette modification, veuillez réinitialiser votre mot de passe ici :
 %s
@@ -868,7 +879,7 @@ Ou contactez un administrateur du site :
 %s",
 	
 	'admin:notification:unvalidated_users:subject' => "Utilisateurs en attente d'approbation sur %s",
-	'admin:notification:unvalidated_users:body' => "%d utilisateurs de '%s' attendent l'approbation par un administrateur.
+	'admin:notification:unvalidated_users:body' => "%d utilisateurs de \"%s\" attendent l'approbation par un administrateur.
 
 Voir la liste complète des utilisateurs :
 %s",
@@ -882,8 +893,8 @@ Voir la liste complète des utilisateurs :
 	'plugins:settings:save:fail' => "Il y a eu un problème lors de l'enregistrement des paramètres du plugin %s.",
 	'plugins:settings:remove:ok' => "Tous les paramètres du plugin %s ont été supprimés",
 	'plugins:settings:remove:fail' => "Une erreur est survenue lors de la suppression des paramètres du plugin %s",
-	'plugins:usersettings:save:ok' => "Les paramètres utilisateur du plugin %s ont bien été enregistrés.",
-	'plugins:usersettings:save:fail' => "Il y a eu un problème lors de l'enregistrement des paramètres utilisateur du plugin %s.",
+	'plugins:usersettings:save:ok' => "Vos paramètres pour %s ont bien été enregistrés",
+	'plugins:usersettings:save:fail' => "Il y a eu un problème lors de l'enregistrement des paramètres pour %s.",
 	
 	'item:object:plugin' => 'Plugin',
 	'collection:object:plugin' => 'Plugins',
@@ -951,7 +962,7 @@ Voir la liste complète des utilisateurs :
 	'admin:statistics:label:numusers' => "Nombre de comptes utilisateur",
 	'admin:statistics:label:numonline' => "Nombre de membres en ligne",
 	'admin:statistics:label:onlineusers' => "Utilisateurs en ligne en ce moment",
-	'admin:statistics:label:admins'=>"Administrateurs",
+	'admin:statistics:label:admins' => "Administrateurs",
 	'admin:statistics:label:version' => "Version de Elgg",
 	'admin:statistics:label:version:release' => "Version Majeure",
 	'admin:statistics:label:version:version' => "Version de la base de données",
@@ -976,7 +987,7 @@ Voir la liste complète des utilisateurs :
 	'admin:server:label:upload_max_filesize' => 'Taille maximale d\'envoi',
 	'admin:server:warning:post_max_too_small' => '(Remarque : la valeur de post_max_size doit être supérieure à cette valeur pour supporter des envois de cette taille)',
 	'admin:server:label:memcache' => 'Memcache',
-	'admin:server:memcache:inactive' => 'Memcache n\'est pas en place sur ce serveur ou n\'a pas encore été configuré dans la configuration de Elgg.
+	'admin:server:memcache:inactive' => 'Memcache n\'est pas installé sur ce serveur ou n\'a pas encore été configuré dans la configuration de Elgg.
 Pour des performances améliorées, il est recommandé que vous activiez et configuriez memcache (ou redis).',
 
 	'admin:server:label:redis' => 'Redis',
@@ -994,7 +1005,6 @@ Pour des performances améliorées, il est recommandé que vous activiez et conf
 	'admin:server:requirements:rewrite:fail' => "Vérifiez  les règles de réécriture de votre fichier .htaccess",
 	
 	'admin:server:requirements:database:server' => "Serveur de base de données",
-	'admin:server:requirements:database:server:required' => "Elgg requiert MySQL v5.5.3 ou plus pour sa base de données",
 	'admin:server:requirements:database:server:required_version' => "Elgg requiert MySQL v%s ou plus pour sa base de données",
 	'admin:server:requirements:database:client' => "Client de la base de données",
 	'admin:server:requirements:database:client:required' => "Elgg a besoin de pdo_mysql pour se connecter au serveur de base de données",
@@ -1131,6 +1141,7 @@ Pour des performances améliorées, il est recommandé que vous activiez et conf
 	'preview' => "Prévisualiser",
 	'edit' => "Modifier",
 	'delete' => "Supprimer",
+	'trash' => "Corbeille",
 	'accept' => "Accepter",
 	'reject' => "Rejeter",
 	'decline' => "Décliner",
@@ -1258,6 +1269,8 @@ Pour des performances améliorées, il est recommandé que vous activiez et conf
 	'status:unavailable' => 'Indisponible',
 	'status:active' => 'Actif',
 	'status:inactive' => 'Inactif',
+	'status:deleted' => 'Supprimé',
+	'status:trashed' => 'Dans la corbeille',
 
 /**
  * Generic sorts
@@ -1306,6 +1319,9 @@ Pour des performances améliorées, il est recommandé que vous activiez et conf
 
 	'edit:this' => 'Modifier cet élément',
 	'delete:this' => 'Supprimer cet élément',
+	'trash:this' => 'Mettre dans la corbeille',
+	'restore:this' => 'Restaurer ceci',
+	'restore:this:move' => 'Restaurer et déplacer ceci',
 	'comment:this' => 'Commenter cet élément',
 
 /**
@@ -1313,6 +1329,9 @@ Pour des performances améliorées, il est recommandé que vous activiez et conf
  */
 
 	'deleteconfirm' => "Confirmez-vous vouloir supprimer cet élément ?",
+	'trashconfirm' => "Confirmez-vous vouloir mettre cet élément dans la corbeille ?",
+	'restoreconfirm' => "Confirmez-vous vouloir restaurer cet élément ?",
+	'restoreandmoveconfirm' => "Confirmez-vous vouloir restaurer et déplacer cet élément ?",
 	'deleteconfirm:plural' => "Confirmez-vous vouloir supprimer ces éléments ?",
 	'fileexists' => "Un fichier a déjà été chargé. Pour le remplacer, sélectionnez un nouveau fichier ci-dessous",
 	'input:file:upload_limit' => 'La taille maximale de fichier autorisée est %s',
@@ -1483,6 +1502,7 @@ Après connexion, nous vous recommandons de changer votre mot de passe.',
 	'admin:legend:system' => 'Système',
 	'admin:legend:caching' => 'Mise en cache',
 	'admin:legend:content' => 'Contenu',
+	'admin:legend:comments' => 'Commentaires',
 	'admin:legend:content_access' => 'Niveau d\'accès des contenus',
 	'admin:legend:site_access' => 'Accès au site',
 	'admin:legend:debug' => 'Débogage et journalisation',
@@ -1524,6 +1544,10 @@ Après connexion, nous vous recommandons de changer votre mot de passe.',
 	'config:content:mentions_display_format:help' => "Cela décide de la manière dont un utilisateur mentionné sera visible dans votre contenu",
 	'config:content:mentions_display_format:username' => "Identifiant",
 	'config:content:mentions_display_format:display_name' => "Nom affiché",
+	'config:content:trash_enabled:label' => "Activer la corbeille",
+	'config:content:trash_enabled:help' => "Lors de la suppression d'un élément, il peut être déplacé vers la corbeille avant d'être définitivement supprimé. Les éléments supprimés peuvent être restaurés par un utilisateur.",
+	'config:content:trash_retention:label' => "Nombre de jours pendant lesquels le contenu restera dans la corbeille une fois supprimé",
+	'config:content:trash_retention:help' => "Vous pouvez configurer le nombre de jours pendant lesquels les entités supprimées sont stockées dans la corbeille. Après la période de conservation, l'élément dans la corbeille sera définitivement supprimé. Utilisez 0 pour conserver les éléments supprimés indéfiniment.",
 	'config:email' => "E-mail",
 	'config:email_html_part:label' => "Activer les e-mails en HTML",
 	'config:email_html_part:help' => "Les e-mails sortants seront intégrés dans un template HTML",
@@ -1608,7 +1632,7 @@ Si vous êtes à l'origine de cette demande, cliquez sur le lien suivant. Sinon 
 	
 	'account:email:request:success' => "Votre nouvelle adresse e-mail sera enregistrée après confirmation, veuillez vérifier la boîte de réception de '%s' pour plus d'instructions.",
 	'email:request:email:subject' => "Veuillez confirmer votre adresse e-mail",
-	'email:request:email:body' => "Vous avez demandé la modification de votre adresse e-mail sur '%s'.
+	'email:request:email:body' => "Vous avez demandé la modification de votre adresse e-mail sur \"%s\".
 Si vous n'êtes pas à l'origine de cette demande, veuillez ignorer cet e-mail.
 
 Afin de confirmer la modification de l'adresse e-mail, veuillez cliquer sur ce lien :
@@ -1619,14 +1643,14 @@ Veuillez noter que ce lien est valable seulement pendant 1 heure.",
 	'account:email:request:error:no_new_email' => "Aucun changement d'adresse e-mail en attente",
 	
 	'email:confirm:email:old:subject' => "Votre adresse e-mail a été modifiée",
-	'email:confirm:email:old:body' => "Votre adresse e-mail sur '%s' a été modifiée.
-Désormais, vous recevrez les notifications sur '%s'.
+	'email:confirm:email:old:body' => "Votre adresse e-mail sur \"%s\" a été modifiée.
+Désormais, vous recevrez les notifications sur \"%s\".
 
 Si vous n'êtes pas à l'origine de cette modification, veuillez contacter un administrateur du site.
 %s",
 	
 	'email:confirm:email:new:subject' => "Votre adresse e-mail a été modifiée",
-	'email:confirm:email:new:body' => "Votre adresse e-mail sur '%s' a été modifiée.
+	'email:confirm:email:new:body' => "Votre adresse e-mail sur \"%s\" a été modifiée.
 Désormais, vous recevrez les notifications sur cette adresse e-mail.
 
 Si vous n'êtes pas à l'origine de cette modification, veuillez contacter un administrateur du site.
@@ -1637,12 +1661,6 @@ Si vous n'êtes pas à l'origine de cette modification, veuillez contacter un ad
 	
 	'account:validation:pending:title' => "Validation de compte en attente",
 	'account:validation:pending:content' => "Votre compte a bien été créé ! Toutefois, avant de pouvoir l'utiliser, un administrateur doit valider votre compte. Vous recevrez un e-mail quand votre compte aura été validé.",
-	
-	'account:notification:validation:subject' => "Votre compte sur %s a bien été validé !",
-	'account:notification:validation:body' => "Votre compte sur '%s' a été validé. Vous pouvez maintenant utiliser votre compte.
-
-Pour vous rendre sur le site :
-%s",
 
 /**
  * user default access
@@ -1666,8 +1684,6 @@ Pour vous rendre sur le site :
 
 	'generic_comments:add' => "Laisser un commentaire",
 	'generic_comments:edit' => "Modifier le commentaire",
-	'generic_comments:post' => "Publier un commentaire",
-	'generic_comments:text' => "Commentaire",
 	'generic_comments:latest' => "Derniers commentaires",
 	'generic_comment:login_required' => "Vous devez vous identifier pour pouvoir commenter.",
 	'generic_comment:posted' => "Votre commentaire a bien été publié.",
@@ -1677,10 +1693,8 @@ Pour vous rendre sur le site :
 	'generic_comment:notfound' => "Désolé, l'élément recherché n'a pas été trouvé.",
 	'generic_comment:failure' => "Une erreur inattendue s'est produite pendant l'enregistrement du commentaire.",
 	'generic_comment:none' => 'Pas de commentaire',
-	'generic_comment:title' => 'Commentaire de %s',
 	'generic_comment:on' => '%s sur %s',
 	'generic_comment:by_owner' => 'Commentaire du propriétaire',
-	'generic_comments:latest:posted' => 'a publié un',
 
 	'generic_comment:notification:subject' => 'Re: %s',
 	'generic_comment:notification:owner:summary' => 'Vous avez un nouveau commentaire sur : %s',
@@ -1688,15 +1702,15 @@ Pour vous rendre sur le site :
 
 %s
 
-Pour répondre ou voir la publication originale :
+Pour répondre ou voir la publication initiale :
 %s",
 	
 	'generic_comment:notification:user:summary' => 'Nouveau commentaire sur : %s',
-	'generic_comment:notification:user:body' => "Un nouveau commentaire a été fait :
+	'generic_comment:notification:user:body' => "Un nouveau commentaire a été publié :
 
 %s
 
-Pour y répondre ou voir la publication originale :
+Pour y répondre ou voir la publication initiale :
 %s",
 
 	'notification:mentions:object:comment:subject' => '%s vous a mentionné dans un commentaire',
@@ -1717,6 +1731,18 @@ Pour voir le commentaire complet, cliquez sur le lien :
 	'entity:delete:permission_denied' => 'Vous n\'avez pas les permissions nécessaires pour supprimer cet objet.',
 	'entity:delete:success' => 'L\'entité %s a été supprimée',
 	'entity:delete:fail' => 'L\'entité %s n\'a pas pu être supprimée',
+
+	'entity:edit:success' => 'L\'entité a bien été sauvegardée',
+	'entity:edit:group:success' => 'Le groupe a bien été sauvegardé',
+	'entity:edit:object:success' => 'L\'objet a bien été sauvegardé',
+	'entity:edit:user:success' => 'L\'utilisateur a bien été sauvegardé',
+	
+	'entity:restore:item' => 'Élément',
+	'entity:restore:item_not_found' => 'Élément non trouvé',
+	'entity:restore:container_permission' => 'Vous n\'avez pas les permissions nécessaires pour restaurer cet élément vers %s',
+	'entity:restore:permission_denied' => 'Vous n\'avez pas les permissions nécessaires pour restaurer cet élément.',
+	'entity:restore:success' => '%s a été restauré',
+	'entity:restore:fail' => '%s n\'a pas pu être restauré',
 	
 	'entity:subscribe' => "S'abonner",
 	'entity:subscribe:disabled' => "Vos paramètres de notification par défaut vous empêchent de vous abonner à ce contenu",
@@ -1734,6 +1760,7 @@ Pour voir le commentaire complet, cliquez sur le lien :
 	'entity:unmute' => "Réactiver les notifications",
 	'entity:unmute:success' => "Vous avez bien réactivé les notifications de %s",
 	'entity:unmute:fail' => "Une erreur est survenue lors de la réactivation des notifications de %s",
+
 
 /**
  * Annotations
@@ -1763,10 +1790,8 @@ Pour voir le commentaire complet, cliquez sur le lien :
  * Diagnostics
  */
 	'diagnostics:report' => 'Rapport de diagnostic',
-	'diagnostics:description' => 'Le rapport de diagnostic suivant peut être utile pour diagnostiquer des problèmes avec Elgg. Les développeurs de Elgg peuvent vous demander de le joindre à un rapport de bogue.',
 	'diagnostics:header' => '========================================================================
-Rapport de diagnostic Elgg
-Généré %s par %s
+Rapport de Diagnostic Elgg Généré %s par %s
 ========================================================================
 
 ',
@@ -1779,16 +1804,39 @@ Informations PHP :
 %s
 ------------------------------------------------------------------------',
 	'diagnostics:report:md5' => '
-Fichiers installés et sommes de vérification :
+Fichiers installés et sommes de contrôles :
 
 %s
 ------------------------------------------------------------------------',
 	'diagnostics:report:globals' => '
-Variables Globales :
+Variables globales :
 
 %s
 ------------------------------------------------------------------------',
 	
+/**
+ * Trash
+ */
+	'trash:menu:page' => "Corbeille",
+	
+	'trash:imprint:actor' => "Supprimé par : %s",
+	'trash:imprint:type' => "Type : %s",
+	
+	'trash:owner:title' => "Corbeille",
+	'trash:owner:title_owner' => "Corbeille de %s",
+	'trash:group:title' => "Corbeille de %s",
+	
+	'trash:no_results' => "Aucun élément trouvé dans la corbeille",
+	
+	'trash:notice:retention' => "Les éléments placés dans la corbeille seront supprimés automatiquement au bout de %s jours.",
+	
+	'trash:restore:container:owner' => "Vous pouvez restaurer cet élément supprimé dans votre espace personnel puisque le groupe d'origine a également été supprimé.",
+	'trash:restore:container:choose' => "Le groupe d'origine de cet élément ayant été supprimé, vous pouvez choisir où restaurer l'élément.",
+	'trash:restore:container:group' => "Restaurer dans un autre groupe",
+	'trash:restore:group' => "Rechercher un groupe",
+	'trash:restore:group:help' => "Assurez-vous que le groupe sélectionné dispose de la fonctionnalité active pour l'élément, sinon une erreur pourrait se produire.",
+	'trash:restore:owner' => "Restaurer vers le propriétaire (%s)",
+
 /**
  * Miscellaneous
  */
@@ -1828,7 +1876,6 @@ Variables Globales :
 /**
  * Cli commands
  */
-	'cli:login:error:unknown' => "Impossible de se connecter en tant que %s",
 	'cli:login:success:log' => "Connecté en tant que %s [guid : %s]",
 	'cli:response:output' => "Réponse :",
 	'cli:option:as' => "Exécuter la commande au nom d'un utilisateur avec l'identifiant indiqué",
@@ -1937,7 +1984,7 @@ Variables Globales :
 	"fr" => "Français",
 	"fy" => "Frison",
 	"ga" => "Irlandais",
-	"gd" => "Écossais",
+	"gd" => "(Écossais) Gaélique",
 	"gl" => "Galicien",
 	"gn" => "Guarani",
 	"gu" => "Gujarâtî",
@@ -1949,7 +1996,7 @@ Variables Globales :
 	"hy" => "Arménien",
 	"ia" => "Interlingua",
 	"id" => "Indonésien",
-	"ie" => "Interlingue (ex Occidental)",
+	"ie" => "Interlingue",
 	"ik" => "Inupiaq",
 	"is" => "Islandais",
 	"it" => "Italien",
@@ -2074,4 +2121,19 @@ Variables Globales :
 	
 	'core:upgrade:2023011701:title' => "Supprimer les commentaires de fils de discussion orphelins",
 	'core:upgrade:2023011701:description' => "En raison d'une erreur dans la façon dont les commentaires des fils de discussion ont été supprimés, il y avait une chance de créer des commentaires orphelins, cette mise à jour supprimera ces orphelins.",
+	
+	'core:upgrade:2024020101:title' => "Migrer les coordonnées de recadrage des icônes",
+	'core:upgrade:2024020101:description' => "Les coordonnées de recadrage sont stockées de manière uniforme, cette mise à niveau migre les anciennes valeurs de métadonnées x1, x2, y1 et y2",
+
+	'core:upgrade:2024020901:title' => "Supprimer la métadonnée icontime",
+	'core:upgrade:2024020901:description' => "Supprimez la métadonnée peu fiable icontime de la base de données ",
+
+	'core:upgrade:2024070201:title' => "Migrer la configuration de débogage",
+	'core:upgrade:2024070201:description' => "Modifie la valeur de configuration de la base de données pour la journalisation de débogage vers une valeur prise en charge",
+
+	'core:upgrade:2024071001:title' => "Migre les préférences de notification de validation de l'administrateur",
+	'core:upgrade:2024071001:description' => "Déplace le stockage de la préférence de notification de l'administrateur vers les paramètres de notifications",
+
+	'core:upgrade:2025060201:title' => "Stocke la valeur correcte de la base de données pour les valeurs booléennes",
+	'core:upgrade:2025060201:description' => "Dans la table des annotations et des métadonnées, la valeur d'une valeur booléenne FAUX a été stockée de manière incorrecte",
 );

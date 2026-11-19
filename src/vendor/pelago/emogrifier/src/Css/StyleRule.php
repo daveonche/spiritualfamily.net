@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pelago\Emogrifier\Css;
 
+use Sabberworm\CSS\OutputFormat;
 use Sabberworm\CSS\Property\Selector;
 use Sabberworm\CSS\RuleSet\DeclarationBlock;
 
@@ -12,7 +13,7 @@ use Sabberworm\CSS\RuleSet\DeclarationBlock;
  *
  * @internal
  */
-class StyleRule
+final class StyleRule
 {
     /**
      * @var DeclarationBlock
@@ -43,7 +44,7 @@ class StyleRule
         $selectors = $this->declarationBlock->getSelectors();
         return \array_map(
             static function (Selector $selector): string {
-                return (string)$selector;
+                return $selector->getSelector();
             },
             $selectors
         );
@@ -54,7 +55,14 @@ class StyleRule
      */
     public function getDeclarationAsText(): string
     {
-        return \implode(' ', $this->declarationBlock->getRules());
+        $rules = $this->declarationBlock->getRules();
+        $renderedRules = [];
+        $outputFormat = OutputFormat::create();
+        foreach ($rules as $rule) {
+            $renderedRules[] = $rule->render($outputFormat);
+        }
+
+        return \implode(' ', $renderedRules);
     }
 
     /**

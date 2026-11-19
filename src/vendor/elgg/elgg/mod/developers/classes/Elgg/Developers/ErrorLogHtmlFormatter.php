@@ -4,6 +4,7 @@ namespace Elgg\Developers;
 
 use Elgg\Exceptions\DatabaseException;
 use Monolog\Formatter\HtmlFormatter;
+use Monolog\LogRecord;
 
 /**
  * HTML error log formatter
@@ -25,7 +26,7 @@ class ErrorLogHtmlFormatter extends HtmlFormatter {
 			$td = elgg_format_element('pre', [], htmlspecialchars($td, ENT_NOQUOTES, 'UTF-8'));
 		}
 
-		return "<tr class=\"developers-error-log-row\"><th>$th:</th><td>$td</td></tr>";
+		return "<tr><th>{$th}:</th><td>{$td}</td></tr>";
 	}
 
 	/**
@@ -35,60 +36,53 @@ class ErrorLogHtmlFormatter extends HtmlFormatter {
 	 *
 	 * @return mixed The formatted record
 	 */
-	public function format(array $record): string {
+	public function format(LogRecord $record): string {
 		
 		if (elgg_get_viewtype() !== 'default') {
 			// prevent 'view not found' deadloops in other viewtypes (eg failsafe)
 			return parent::format($record);
 		}
 		
-		$context = elgg_extract('context', $record, []);
+		$context = $record->context;
 		$exception = elgg_extract('exception', $context);
 		
-		$level = strtolower(\Elgg\Logger::getLevelName($record['level']));
+		$level = strtolower($record->level->getName());
 		
 		$message_vars = [];
 		$message_vars['title'] = $level; // help prevent elgg_echo() missing language key recursion
 		
+		$datetime = $record->datetime;
+		$record_message = $record->message;
 		if ($exception instanceof \Throwable) {
-			$timestamp = isset($exception->timestamp) ? (int) $exception->timestamp : time();
-
-			$dt = new \DateTime();
-			$dt->setTimestamp($timestamp);
-			$record['datetime'] = $dt;
-
+			$datetime = new \DateTime();
+			
 			$eol = PHP_EOL;
+			$timestamp = $datetime->getTimestamp();
 			$message = "Exception at time {$timestamp}:{$eol}{$exception}{$eol}";
-			$record['message'] = preg_replace('~\R~u', $eol, $message);
+			$record_message = preg_replace('~\R~u', $eol, $message);
 
 			if ($exception instanceof DatabaseException) {
-				$record['context']['sql'] = $exception->getQuery();
-				$record['context']['params'] = $exception->getParameters();
+				$context['sql'] = $exception->getQuery();
+				$context['params'] = $exception->getParameters();
 			}
 
-			$message_vars['title'] = "EXCEPTION $timestamp";
+			$message_vars['title'] = "EXCEPTION {$timestamp}";
 		}
 		
-		$output = '<table class="elgg-table elgg-table-alt">';
+		$message_vars['title'] .= ' - ' . $datetime->format($this->dateFormat);
+		$message_vars['menu'] = $record->channel;
+		
+		$rows = $this->addRow('Message', (string) $record_message);
 
-		$output .= $this->addRow('Message', (string) $record['message']);
-		$output .= $this->addRow('Time', $record['datetime']->format($this->dateFormat));
-		$output .= $this->addRow('Channel', $record['channel']);
-
-		if ($record['context']) {
-			foreach ($record['context'] as $key => $value) {
-				$output .= $this->addRow($key, $this->convertToString($value));
-			}
+		foreach ($context as $key => $value) {
+			$rows .= $this->addRow($key, $this->convertToString($value));
 		}
 		
-		if ($record['extra']) {
-			foreach ($record['extra'] as $key => $value) {
-				$output .= $this->addRow($key, $this->convertToString($value));
-			}
+		foreach ($record->extra as $key => $value) {
+			$rows .= $this->addRow($key, $this->convertToString($value));
 		}
 		
-		$output .= '</table>';
-		
-		return elgg_view_message($level, $output, $message_vars);
+		$body = elgg_format_element('table', ['class' => ['elgg-table', 'elgg-table-alt']], $rows);
+		return elgg_view_message($level, $body, $message_vars);
 	}
 }

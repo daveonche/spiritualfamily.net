@@ -7,8 +7,8 @@ use Elgg\Http\OkResponse;
 use Elgg\Http\ResponseBuilder;
 use Elgg\Request;
 use Elgg\Traits\TimeUsing;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Controller to handle /serve-icon requests
@@ -47,6 +47,7 @@ class ServeIcon {
 		
 		$thumbnail = $entity->getIcon($size);
 		if (!$thumbnail->exists()) {
+			// @todo replace this with a PageNotFoundException in 7.0
 			throw new EntityNotFoundException('Icon does not exist');
 		}
 		
@@ -82,7 +83,7 @@ class ServeIcon {
 			->setExpires($this->getCurrentTime('+1 day'))
 			->setMaxAge(86400);
 		
-		if (!$response->headers->hasCacheControlDirective('no-cache')) {
+		if (!empty($response->headers->getCookies()) && !$response->headers->hasCacheControlDirective('no-cache')) {
 			$response->headers->addCacheControlDirective('no-cache', 'Set-Cookie');
 		}
 		

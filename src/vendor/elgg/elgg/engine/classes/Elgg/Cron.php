@@ -34,19 +34,13 @@ class Cron {
 		'yearly' => '0 0 1 1 *',
 	];
 
-	protected EventsService $events;
-
-	protected Translator $translator;
-
 	/**
 	 * Constructor
 	 *
 	 * @param EventsService $events     Events service
 	 * @param Translator    $translator Translator service
 	 */
-	public function __construct(EventsService $events, Translator $translator) {
-		$this->events = $events;
-		$this->translator = $translator;
+	public function __construct(protected EventsService $events, protected Translator $translator) {
 	}
 
 	/**
@@ -58,7 +52,7 @@ class Cron {
 	 * @return Job[]
 	 * @throws CronException
 	 */
-	public function run(array $intervals = null, bool $force = false): array {
+	public function run(?array $intervals = null, bool $force = false): array {
 		if (!isset($intervals)) {
 			$intervals = array_keys($this->default_intervals);
 		}
@@ -67,6 +61,7 @@ class Cron {
 		
 		$scheduler = new Scheduler();
 		$time = $this->getCurrentTime();
+		$immutable = \DateTimeImmutable::createFromInterface($time);
 
 		foreach ($intervals as $interval) {
 			if (!array_key_exists($interval, $allowed_intervals)) {
@@ -74,7 +69,7 @@ class Cron {
 			}
 
 			$cron_interval = $force ? $allowed_intervals['minute'] : $allowed_intervals[$interval];
-			$filename = $this->getLogFilename($interval, $time);
+			$filename = $this->getLogFilename($interval, $immutable);
 			
 			$cron_logger = \Elgg\Logger\Cron::factory([
 				'interval' => $interval,
@@ -82,12 +77,12 @@ class Cron {
 			]);
 			
 			$scheduler
-				->call(function () use ($interval, $time, $cron_logger, $filename) {
-					return $this->execute($interval, $cron_logger, $filename, $time);
+				->call(function () use ($interval, $immutable, $cron_logger, $filename) {
+					return $this->execute($interval, $cron_logger, $filename, $immutable);
 				})
 				->at($cron_interval)
-				->before(function () use ($interval, $time, $cron_logger) {
-					$this->before($interval, $cron_logger, $time);
+				->before(function () use ($interval, $immutable, $cron_logger) {
+					$this->before($interval, $cron_logger, $immutable);
 				})
 				->then(function ($output) use ($interval, $cron_logger) {
 					$this->after($output, $interval, $cron_logger);
@@ -100,17 +95,13 @@ class Cron {
 	/**
 	 * Execute commands before cron interval is run
 	 *
-	 * @param string            $interval    Interval name
-	 * @param \Elgg\Logger\Cron $cron_logger Cron logger
-	 * @param null|\DateTime    $time        Time of the cron initialization (default: current service time)
+	 * @param string             $interval    Interval name
+	 * @param \Elgg\Logger\Cron  $cron_logger Cron logger
+	 * @param \DateTimeImmutable $time        Time of the cron initialization
 	 *
 	 * @return void
 	 */
-	protected function before(string $interval, \Elgg\Logger\Cron $cron_logger, \DateTime $time = null): void {
-		if (!isset($time)) {
-			$time = $this->getCurrentTime();
-		}
-
+	protected function before(string $interval, \Elgg\Logger\Cron $cron_logger, \DateTimeImmutable $time): void {
 		try {
 			$this->events->triggerBefore('cron', $interval, $time);
 		} catch (\Throwable $t) {
@@ -129,21 +120,15 @@ class Cron {
 	/**
 	 * Execute handlers attached to a specific cron interval
 	 *
-	 * @param string            $interval    Cron interval to execute
-	 * @param \Elgg\Logger\Cron $cron_logger Cron logger
-	 * @param string            $filename    Filename of the cron log
-	 * @param null|\DateTime    $time        Time of cron initialization (default: current service time)
+	 * @param string             $interval    Cron interval to execute
+	 * @param \Elgg\Logger\Cron  $cron_logger Cron logger
+	 * @param string             $filename    Filename of the cron log
+	 * @param \DateTimeImmutable $time        Time of cron initialization
 	 *
 	 * @return string
 	 */
-	protected function execute(string $interval, \Elgg\Logger\Cron $cron_logger, string $filename, \DateTime $time = null): string {
-		if (!isset($time)) {
-			$time = $this->getCurrentTime();
-		}
-		
+	protected function execute(string $interval, \Elgg\Logger\Cron $cron_logger, string $filename, \DateTimeImmutable $time): string {
 		try {
-			ob_start();
-			
 			$begin_callback = function (array $params) use ($cron_logger) {
 				$readable_callable = (string) elgg_extract('readable_callable', $params);
 				
@@ -156,37 +141,17 @@ class Cron {
 				$cron_logger->notice("Finished {$readable_callable}");
 			};
 			
-			$old_stdout = $this->events->triggerResults('cron', $interval, [
+			// for BC this needs to be a triggerResults
+			$this->events->triggerResults('cron', $interval, [
 				'time' => $time->getTimestamp(),
 				'dt' => $time,
 				'logger' => $cron_logger,
-			], '', [
+			], null, [
 				EventsService::OPTION_BEGIN_CALLBACK => $begin_callback,
 				EventsService::OPTION_END_CALLBACK => $end_callback,
+				EventsService::OPTION_CONTINUE_ON_EXCEPTION => true,
 			]);
-			
-			$ob_output = ob_get_clean();
-			
-			if (!empty($ob_output)) {
-				elgg_deprecated_notice('Direct output (echo, print) in a CRON event will be removed, use the provided "logger"', '5.1');
-				
-				$cron_logger->notice($ob_output, ['ob_output']);
-			}
-			
-			if (!empty($old_stdout)) {
-				elgg_deprecated_notice('Output in a CRON event result will be removed, use the provided "logger"', '5.1');
-				
-				$cron_logger->notice($old_stdout, ['event_result']);
-			}
 		} catch (\Throwable $t) {
-			$ob_output = ob_get_clean();
-			
-			if (!empty($ob_output)) {
-				elgg_deprecated_notice('Direct output (echo, print) in a CRON event will be removed, use the provided "logger"', '5.1');
-				
-				$cron_logger->notice($ob_output, ['ob_output', 'throwable']);
-			}
-			
 			$this->getLogger()->error($t);
 		}
 
@@ -249,7 +214,7 @@ class Cron {
 		$files = [];
 		/* @var $file \DirectoryIterator */
 		foreach ($dh as $file) {
-			if ($file->isDot() || !$file->isFile()) {
+			if ($file->isDot() || !$file->isFile() || $file->getExtension() !== 'log') {
 				continue;
 			}
 			
@@ -326,16 +291,12 @@ class Cron {
 	/**
 	 * Get a filename to log in
 	 *
-	 * @param string         $interval cron interval to log
-	 * @param \DateTime|null $time     start time of the cron
+	 * @param string             $interval cron interval to log
+	 * @param \DateTimeInterface $time     start time of the cron
 	 *
 	 * @return string
 	 */
-	protected function getLogFilename(string $interval, \DateTime $time = null): string {
-		if (!isset($time)) {
-			$time = $this->getCurrentTime();
-		}
-		
+	protected function getLogFilename(string $interval, \DateTimeInterface $time): string {
 		$date = $time->format(\DateTimeInterface::ATOM);
 		$date = str_replace('+', 'p', $date);
 		$date = preg_replace('/[^a-zA-Z0-9_-]+/', '-', $date);

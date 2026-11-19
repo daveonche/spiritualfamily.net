@@ -104,7 +104,7 @@ class ComposerUnitTest extends UnitTestCase {
 		$this->assertTrue($composer->checkConstraints($version_input, $version_constraint));
 	}
 	
-	public function validVersionProvider(): array {
+	public static function validVersionProvider(): array {
 		return [
 			['1.0.0', '*'],
 			['1.2.0', '^1.0'],
@@ -118,10 +118,12 @@ class ComposerUnitTest extends UnitTestCase {
 	public function testCheckConstraintsInvalid($version_input, $version_constraint) {
 		$composer = $this->getComposer();
 		
+		_elgg_services()->logger->disable();
 		$this->assertFalse($composer->checkConstraints($version_input, $version_constraint));
+		_elgg_services()->logger->enable();
 	}
 	
-	public function invalidVersionProvider(): array {
+	public static function invalidVersionProvider(): array {
 		return [
 			['1.2.0', '1.0'],
 			['2.0.0', '<2.0'],
@@ -137,11 +139,11 @@ class ComposerUnitTest extends UnitTestCase {
 	/**
 	 * Get the composer reader
 	 *
-	 * @param \ElggPlugin $plugin plugin to read
+	 * @param null|\ElggPlugin $plugin plugin to read
 	 *
 	 * @return \Elgg\Plugin\Composer
 	 */
-	protected function getComposer(\ElggPlugin $plugin = null) {
+	protected function getComposer(?\ElggPlugin $plugin = null) {
 		if (!$plugin instanceof \ElggPlugin) {
 			$plugin = $this->plugin;
 		}

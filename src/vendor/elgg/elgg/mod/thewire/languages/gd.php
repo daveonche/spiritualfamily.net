@@ -6,7 +6,6 @@
  */
 
 return array(
-
 	/**
 	 * Menu items and titles
 	 */
@@ -14,9 +13,11 @@ return array(
 
 	'item:object:thewire' => "Brath-uèir",
 	'collection:object:thewire' => 'Brathan-uèir',
+	
 	'collection:object:thewire:all' => "Brathan-uèir gu lèir",
 	'collection:object:thewire:owner' => "Brathan-uèir le %s",
 	'collection:object:thewire:friends' => "Brathan-uèir mo chàirdean",
+	
 	'notification:object:thewire:create' => "Leig fios nuair a thèid brath-uèir a chruthachadh",
 	'notifications:mute:object:thewire' => "mu dheidhinn a' bhrath-ùeir '%s'",
 	
@@ -24,7 +25,7 @@ return array(
 	'thewire:thread' => "Snàth",
 	'thewire:charleft' => "caractaran air fhàgail",
 	'thewire:tags' => "Brathan-uèir leis an taga '%s'",
-	'thewire:noposts' => "Gun brath-uèir fhathast",
+	'thewire:noposts' => "Gun brath-uèir fhathast", // @todo remove in Elgg 7.0
 
 	'thewire:by' => 'Brath-uèir le %s',
 
@@ -48,10 +49,8 @@ return array(
 	 * Status messages
 	 */
 	'thewire:posted' => "Chaidh am brath agad a phostadh ris an uèir gu soirbheachail.",
-	'thewire:deleted' => "Chaidh am brath-uèir a sguabadh às gu soirbheachail.",
 	'thewire:blank' => "Tha sinn duilich ach feumaidh tu teacsa a chur a-steach mus urrainn dhuinn seo a phostadh.",
 	'thewire:notsaved' => "Tha sinn duilich. Cha b' urrainn dhuinn am brath-uèir seo a shàbhaladh.",
-	'thewire:notdeleted' => "Tha sinn duilich. Cha b' urrainn dhuinn am brath-uèir seo a sguabadh às.",
 
 	/**
 	 * Notifications
@@ -67,4 +66,8 @@ return array(
 	 */
 	'thewire:settings:limit' => "An àireamh as motha de charactaran a tha ceadaichte ann am brathan-uèir",
 	'thewire:settings:limit:none' => "Neo-chrìochnaichte",
+	
+	/**
+	 * Exceptions
+	 */
 );

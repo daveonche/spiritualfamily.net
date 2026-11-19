@@ -9,9 +9,7 @@ use Elgg\Database\Seeds\Seed;
 
 $seeders = elgg_extract('data', $vars);
 if (empty($seeders)) {
-	echo elgg_view('page/components/no_results', [
-		'no_results' => true,
-	]);
+	echo elgg_view_no_results();
 }
 
 $header = elgg_format_element('tr', [], implode(PHP_EOL, [
@@ -23,7 +21,7 @@ $header = elgg_format_element('thead', [], $header);
 
 $rows = [];
 
-elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES, function() use ($seeders, &$rows) {
+elgg_call(ELGG_IGNORE_ACCESS | ELGG_SHOW_DISABLED_ENTITIES | ELGG_SHOW_DELETED_ENTITIES, function() use ($seeders, &$rows) {
 	foreach ($seeders as $seeder) {
 		$row = [];
 		/* @var $seed Seed */

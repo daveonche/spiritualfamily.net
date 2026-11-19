@@ -15,7 +15,7 @@ try {
 }
 
 if (empty($blogs) || !is_array($blogs)) {
-	echo elgg_view('page/components/no_results', ['no_results' => elgg_echo('admin:widget:elgg_blog:no_results')]);
+	echo elgg_view_no_results(elgg_echo('admin:widget:elgg_blog:no_results'));
 	return;
 }
 
@@ -23,7 +23,7 @@ $blogs = array_slice($blogs, 0, 5);
 
 $list_items = '';
 foreach ($blogs as $blog) {
-	$title = elgg_format_element('div', ['class' => 'elgg-listing-summary-title'], elgg_format_element('h3', [], elgg_view_url($blog->url, $blog->title, ['target' => '_blank'])));
+	$title = elgg_format_element('div', ['class' => 'elgg-listing-summary-title'], elgg_view_url($blog->url, $blog->title, ['target' => '_blank']));
 	
 	$time = elgg_view('object/elements/imprint/element', [
 		'icon_name' => 'history',

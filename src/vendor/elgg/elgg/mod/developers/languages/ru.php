@@ -27,16 +27,12 @@ return array(
 	'developers:label:debug_level' => "Уровень отладки",
 	'developers:help:debug_level' => "Эта опция управляет количеством информации попадающей в логи. Смотрите документацию по функции elgg_log() для большей информации.",
 	'developers:label:display_errors' => 'Отображать критические ошибки PHP',
-	'developers:help:display_errors' => "По умолчанию Elgg в .htaccess файле подавляет вывод критических ошибок.",
 	'developers:label:screen_log' => "Отладка на экран",
-	'developers:help:screen_log' => "Вывод функций elgg_log() и elgg_dump()и подсчет запросов к БД на страницу.",
 	'developers:show_strings:default' => "Нормальный перевод",
 	'developers:show_strings:key_append' => "Ключ перевода добавлен",
 	'developers:show_strings:key_only' => "Показать только ключ перевода",
 	'developers:label:show_strings' => "Показывать ключи перевода",
 	'developers:help:show_strings' => "Вывод ключей для перевода используемых в функции elgg_echo() вместо самого перевода.",
-	'developers:label:show_modules' => "Показать модули AMD, загруженные в консоль",
-	'developers:help:show_modules' => "Передает загруженные модули и значения в вашу консоль JavaScript.",
 	'developers:label:wrap_views' => "Оборачивать views",
 	'developers:help:wrap_views' => "Это оборачивает почти каждое представление комментариями HTML. Полезно для поиска представления, создающего конкретный HTML.
 									Это может привести к поломке представлений, отличных от HTML, в типе представления по умолчанию.",
@@ -62,7 +58,6 @@ return array(
 	// entity explorer
 	'developers:entity_explorer:help' => 'Просмотр информации об объектах и выполнение некоторых основных действий над ними.',
 	'developers:entity_explorer:guid:label' => 'Введите guid объекта для проверки',
-	'developers:entity_explorer:info' => 'Информация об объекте',
 	'developers:entity_explorer:info:attributes' => 'Атрибуты',
 	'developers:entity_explorer:info:metadata' => 'Метаданные',
 	'developers:entity_explorer:info:relationships' => 'Отношения',
@@ -73,10 +68,14 @@ return array(
 	'developers:entity_explorer:view_entity' => 'Посмотреть этот объект на сайте',
 	
 	// inspection
-	'developers:inspect:help' => 'Проверить конфигурацию фреймворка Elgg',
 	'developers:inspect:actions' => 'Действия',
 	'developers:inspect:events' => 'События',
 	'developers:inspect:menus' => 'Меню',
+	'developers:inspect:notifications' => 'Уведомления',
+	'developers:inspect:notifications:type' => 'Тип',
+	'developers:inspect:notifications:subtype' => 'Подтип',
+	'developers:inspect:notifications:action' => 'Действие',
+	'developers:inspect:notifications:handler' => 'Обработчик',
 	'developers:inspect:priority' => 'Приоритет',
 	'developers:inspect:seeders' => 'Seeders',
 	'developers:inspect:simplecache' => 'Простой кэш',
@@ -95,7 +94,6 @@ return array(
 	'developers:inspect:handler' => 'Обработчик',
 	'developers:inspect:controller' => 'Контроллер',
 	'developers:inspect:file' => 'Файл',
-	'developers:inspect:middleware' => 'Файл',
 	'developers:inspect:handler_type' => 'Обрабатывается',
 	'developers:inspect:services' => 'Сервисы',
 	'developers:inspect:service:name' => 'Наименование',
@@ -108,8 +106,6 @@ return array(
 	'developers:log_queries' => "Запросы к БД: %s",
 	'developers:boot_cache_rebuilt' => "Загрузочный кеш был перестроен для этого запроса",
 	'developers:elapsed_time' => "Прошедшее время (сек)",
-
-	'developers:amd' => 'AMD',
 
 	'admin:develop_tools:error_log' => 'Журнал ошибок',
 	'developers:logs:empty' => 'Журнал ошибок пуст',

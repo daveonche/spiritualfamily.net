@@ -46,7 +46,6 @@ $picker = elgg_format_element('input', [
 	'type' => 'text',
 	'class' => [
 		'elgg-input-entity-picker',
-		'elgg-input-user-picker', // relying on this class is deprecated in Elgg 5.1
 	],
 	'size' => 30,
 	'id' => elgg_extract('id', $vars),
@@ -73,14 +72,13 @@ foreach ($guids as $guid) {
 $picker .= elgg_format_element('ul', ['class' => [
 	'elgg-list',
 	'elgg-entity-picker-list',
-	'elgg-user-picker-list', // relying on this class is deprecated in Elgg 5.1
 ]], $items);
 
 echo elgg_format_element('div', $wrapper_options, $picker);
 
 ?>
 <script>
-	require(['input/entitypicker'], function (entitypicker) {
-		entitypicker.setup('.elgg-entity-picker[data-name="' + <?= json_encode($name) ?> + '"]');
+	import('input/entitypicker').then((entitypicker) => {
+		entitypicker.default.setup('.elgg-entity-picker[data-name="' + <?= json_encode($name) ?> + '"]');
 	});
 </script>

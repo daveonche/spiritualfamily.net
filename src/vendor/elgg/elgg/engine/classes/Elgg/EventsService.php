@@ -26,38 +26,29 @@ class EventsService {
 	const OPTION_TIMER_KEYS = 'timer_keys';
 	const OPTION_BEGIN_CALLBACK = 'begin_callback';
 	const OPTION_END_CALLBACK = 'end_callback';
+	const OPTION_CONTINUE_ON_EXCEPTION = 'continue_on_exception';
 
-	/**
-	 * @var HandlersService
-	 */
-	protected $handlers;
+	protected int $next_index = 0;
 	
-	/**
-	 * @var int
-	 */
-	protected $next_index = 0;
+	protected array $ordered_handlers_cache = [];
 	
 	/**
 	 * @var array [name][type][] = registration
 	 */
-	protected $registrations = [];
+	protected array $registrations = [];
 	
-	/**
-	 * @var array
-	 */
-	protected $backups = [];
+	protected array $backups = [];
 
 	/**
 	 * Constructor
 	 *
 	 * @param HandlersService $handlers Handlers
 	 */
-	public function __construct(HandlersService $handlers) {
-		$this->handlers = $handlers;
+	public function __construct(protected HandlersService $handlers) {
 	}
 
 	/**
-	 * Triggers an Elgg event
+	 * Trigger an Elgg event
 	 *
 	 * @param string $name    The event name
 	 * @param string $type    The event type
@@ -69,6 +60,7 @@ class EventsService {
 	 * @see elgg_trigger_before_event()
 	 *
 	 * @return bool
+	 * @throws \Throwable
 	 */
 	public function trigger(string $name, string $type, $object = null, array $options = []): bool {
 		$options = array_merge([
@@ -99,14 +91,25 @@ class EventsService {
 			],
 		];
 		foreach ($handlers as $handler) {
-			list($success, $return, $event) = $this->callHandler($handler, $event, $event_args, $options);
-
-			if (!$success) {
-				continue;
-			}
-
-			if (!empty($options[self::OPTION_STOPPABLE]) && ($return === false)) {
-				return false;
+			try {
+				list($success, $return, $event) = $this->callHandler($handler, $event, $event_args, $options);
+				
+				if (!$success) {
+					continue;
+				}
+				
+				if (!empty($options[self::OPTION_STOPPABLE]) && ($return === false)) {
+					return false;
+				}
+			} catch (\Throwable $t) {
+				if (!empty($options[self::OPTION_CONTINUE_ON_EXCEPTION])) {
+					$handler_string = $this->handlers->describeCallable($handler);
+					
+					$this->getLogger()->error("Callback '{$handler_string}' for the event '{$name}', '{$type}' caused an exception: {$t->getMessage()}");
+					continue;
+				}
+				
+				throw $t;
 			}
 		}
 
@@ -114,7 +117,7 @@ class EventsService {
 	}
 	
 	/**
-	 * Triggers a event that is allowed to return a mixed result
+	 * Trigger an event allowed to return a mixed result
 	 *
 	 * @param string $name    The name of the event
 	 * @param string $type    The type of the event
@@ -125,6 +128,7 @@ class EventsService {
 	 * @return mixed
 	 *
 	 * @see elgg_trigger_event_results()
+	 * @throws \Throwable
 	 */
 	public function triggerResults(string $name, string $type, array $params = [], $value = null, array $options = []) {
 		// This starts as a string, but if a handler type-hints an object we convert it on-demand inside
@@ -133,17 +137,28 @@ class EventsService {
 		/* @var $event Event|string */
 		$event = 'event';
 		foreach ($this->getOrderedHandlers($name, $type) as $handler) {
-			$event_args = [$name, $type, $value, $params];
-			
-			list($success, $return, $event) = $this->callHandler($handler, $event, $event_args, $options);
-			
-			if (!$success) {
-				continue;
-			}
-			
-			if ($return !== null) {
-				$value = $return;
-				$event->setValue($value);
+			try {
+				$event_args = [$name, $type, $value, $params];
+				
+				list($success, $return, $event) = $this->callHandler($handler, $event, $event_args, $options);
+				
+				if (!$success) {
+					continue;
+				}
+				
+				if ($return !== null) {
+					$value = $return;
+					$event->setValue($value);
+				}
+			} catch (\Throwable $t) {
+				if (!empty($options[self::OPTION_CONTINUE_ON_EXCEPTION])) {
+					$handler_string = $this->handlers->describeCallable($handler);
+					
+					$this->getLogger()->error("Callback '{$handler_string}' for the event '{$name}', '{$type}' caused an exception: {$t->getMessage()}");
+					continue;
+				}
+				
+				throw $t;
 			}
 		}
 		
@@ -203,15 +218,15 @@ class EventsService {
 	 * Allows running a callable on successful <event> before <event>:after is triggered
 	 * Returns the result of the callable or bool
 	 *
-	 * @param string   $name     The event name
-	 * @param string   $type     The event type
-	 * @param mixed    $object   The object involved in the event
-	 * @param callable $callable Callable to run on successful event, before event:after
-	 * @param array    $options  (internal) options for triggering the event
+	 * @param string        $name     The event name
+	 * @param string        $type     The event type
+	 * @param mixed         $object   The object involved in the event
+	 * @param null|callable $callable Callable to run on successful event, before event:after
+	 * @param array         $options  (internal) options for triggering the event
 	 *
 	 * @return bool
 	 */
-	public function triggerSequence(string $name, string $type, $object = null, callable $callable = null, array $options = []): bool {
+	public function triggerSequence(string $name, string $type, $object = null, ?callable $callable = null, array $options = []): bool {
 		// generate a unique ID to identify this sequence
 		$options['_elgg_sequence_id'] = uniqid("{$name}{$type}", true);
 		
@@ -228,26 +243,28 @@ class EventsService {
 			$result = call_user_func($callable, $object);
 		}
 
-		$this->triggerAfter($name, $type, $object, $options);
+		if ($result !== false) {
+			$this->triggerAfter($name, $type, $object, $options);
+		}
 
 		return $result;
 	}
 
 	/**
-	 * Trigger an sequence of <event>:before, <event>, and <event>:after handlers.
+	 * Trigger a sequence of <event>:before, <event>, and <event>:after handlers.
 	 * Allows <event>:before to terminate the sequence by returning false from a handler
 	 * Allows running a callable on successful <event> before <event>:after is triggered
 	 *
-	 * @param string   $name     The event name
-	 * @param string   $type     The event type
-	 * @param mixed    $params   Supplied params for the event
-	 * @param mixed    $value    The value of the event, this can be altered by registered callbacks
-	 * @param callable $callable Callable to run on successful event, before event:after
-	 * @param array    $options  (internal) options for triggering the event
+	 * @param string        $name     The event name
+	 * @param string        $type     The event type
+	 * @param mixed         $params   Supplied params for the event
+	 * @param mixed         $value    The value of the event, this can be altered by registered callbacks
+	 * @param null|callable $callable Callable to run on successful event, before event:after
+	 * @param array         $options  (internal) options for triggering the event
 	 *
 	 * @return mixed
 	 */
-	public function triggerResultsSequence(string $name, string $type, array $params = [], $value = null, callable $callable = null, array $options = []) {
+	public function triggerResultsSequence(string $name, string $type, array $params = [], $value = null, ?callable $callable = null, array $options = []) {
 		// generate a unique ID to identify this sequence
 		$unique_id = uniqid("{$name}{$type}results", true);
 		$options['_elgg_sequence_id'] = $unique_id;
@@ -266,7 +283,9 @@ class EventsService {
 			$result = call_user_func($callable, $params);
 		}
 
-		$this->triggerAfter($name, $type, $params, $options);
+		if ($result !== false) {
+			$this->triggerAfter($name, $type, $params, $options);
+		}
 
 		return $result;
 	}
@@ -332,23 +351,20 @@ class EventsService {
 			return false;
 		}
 		
-		if (($name == 'view' || $name == 'view_vars') && $type !== 'all') {
-			$type = ViewsService::canonicalizeViewName($type);
-		}
-				
-		$services = _elgg_services();
 		if (in_array($this->getLogger()->getLevel(false), [LogLevel::WARNING, LogLevel::NOTICE, LogLevel::INFO, LogLevel::DEBUG])) {
-			if (!$services->handlers->isCallable($callback)) {
-				$this->getLogger()->warning('Handler: ' . $services->handlers->describeCallable($callback) . ' is not callable');
+			if (!$this->handlers->isCallable($callback)) {
+				$this->getLogger()->warning('Handler: ' . $this->handlers->describeCallable($callback) . ' is not callable');
 			}
 		}
 		
-		$this->registrations[$name][$type][] = [
+		$this->registrations[$name][$type]["{$priority}_{$this->next_index}"] = [
 			self::REG_KEY_PRIORITY => $priority,
 			self::REG_KEY_INDEX => $this->next_index,
 			self::REG_KEY_HANDLER => $callback,
 		];
 		$this->next_index++;
+		
+		unset($this->ordered_handlers_cache);
 		
 		return true;
 	}
@@ -364,10 +380,6 @@ class EventsService {
 	 * @return void
 	 */
 	public function unregisterHandler(string $name, string $type, $callback): void {
-		if (($name === 'view' || $name === 'view_vars') && $type !== 'all') {
-			$type = ViewsService::canonicalizeViewName($type);
-		}
-		
 		if (empty($this->registrations[$name][$type])) {
 			return;
 		}
@@ -384,6 +396,8 @@ class EventsService {
 			}
 			
 			unset($this->registrations[$name][$type][$i]);
+			unset($this->ordered_handlers_cache);
+			
 			return;
 		}
 	}
@@ -398,6 +412,7 @@ class EventsService {
 	 */
 	public function clearHandlers(string $name, string $type): void {
 		unset($this->registrations[$name][$type]);
+		unset($this->ordered_handlers_cache);
 	}
 	
 	/**
@@ -453,46 +468,40 @@ class EventsService {
 	public function getOrderedHandlers(string $name, string $type): array {
 		$registrations = [];
 		
+		if (isset($this->ordered_handlers_cache[$name . $type])) {
+			return $this->ordered_handlers_cache[$name . $type];
+		}
+		
 		if (!empty($this->registrations[$name][$type])) {
 			if ($name !== 'all' && $type !== 'all') {
-				array_splice($registrations, count($registrations), 0, $this->registrations[$name][$type]);
+				$registrations = $this->registrations[$name][$type];
 			}
 		}
 		
 		if (!empty($this->registrations['all'][$type])) {
 			if ($type !== 'all') {
-				array_splice($registrations, count($registrations), 0, $this->registrations['all'][$type]);
+				$registrations += $this->registrations['all'][$type];
 			}
 		}
 		
 		if (!empty($this->registrations[$name]['all'])) {
 			if ($name !== 'all') {
-				array_splice($registrations, count($registrations), 0, $this->registrations[$name]['all']);
+				$registrations += $this->registrations[$name]['all'];
 			}
 		}
 		
 		if (!empty($this->registrations['all']['all'])) {
-			array_splice($registrations, count($registrations), 0, $this->registrations['all']['all']);
+			$registrations += $this->registrations['all']['all'];
 		}
 		
-		usort($registrations, function ($a, $b) {
-			// priority first
-			if ($a[self::REG_KEY_PRIORITY] < $b[self::REG_KEY_PRIORITY]) {
-				return -1;
-			}
-			
-			if ($a[self::REG_KEY_PRIORITY] > $b[self::REG_KEY_PRIORITY]) {
-				return 1;
-			}
-			
-			// then insertion order
-			return ($a[self::REG_KEY_INDEX] < $b[self::REG_KEY_INDEX]) ? -1 : 1;
-		});
+		ksort($registrations, SORT_NATURAL);
 			
 		$handlers = [];
 		foreach ($registrations as $registration) {
 			$handlers[] = $registration[self::REG_KEY_HANDLER];
 		}
+		
+		$this->ordered_handlers_cache[$name . $type] = $handlers;
 		
 		return $handlers;
 	}
@@ -537,6 +546,7 @@ class EventsService {
 	public function backup(): void {
 		$this->backups[] = $this->registrations;
 		$this->registrations = [];
+		unset($this->ordered_handlers_cache);
 	}
 	
 	/**
@@ -549,6 +559,8 @@ class EventsService {
 		if (is_array($backup)) {
 			$this->registrations = $backup;
 		}
+		
+		unset($this->ordered_handlers_cache);
 	}
 	
 	/**

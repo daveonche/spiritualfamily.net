@@ -24,7 +24,7 @@ class Bootstrap extends DefaultPluginBootstrap {
 	 *
 	 * @return void
 	 */
-	protected function processSettings() {
+	protected function processSettings(): void {
 		$elgg = $this->elgg();
 		$events = $elgg->events;
 		
@@ -63,7 +63,7 @@ class Bootstrap extends DefaultPluginBootstrap {
 
 					// prevent logs from showing up in html mails
 					if (elgg_extract('email', $vars) instanceof \Elgg\Email) {
-						return;
+						return null;
 					}
 					
 					$handler->close();
@@ -108,10 +108,6 @@ class Bootstrap extends DefaultPluginBootstrap {
 			elgg()->set('translator', $translator);
 		}
 	
-		if (!empty($settings['show_modules'])) {
-			elgg_require_js('developers/amd_monitor');
-		}
-	
 		if (!empty($settings['wrap_views'])) {
 			$events->registerHandler('view', 'all', __NAMESPACE__ . '\ViewWrapperHandler', 600);
 		}
@@ -132,7 +128,7 @@ class Bootstrap extends DefaultPluginBootstrap {
 			$handler = new \Monolog\Handler\RotatingFileHandler(
 				elgg_sanitize_path(elgg_get_data_path() . 'logs/html/errors.html', false),
 				elgg_extract('error_log_max_files', $settings, 60),
-				\Monolog\Logger::ERROR
+				\Monolog\Level::Error
 			);
 	
 			$formatter = new \Elgg\Developers\ErrorLogHtmlFormatter();

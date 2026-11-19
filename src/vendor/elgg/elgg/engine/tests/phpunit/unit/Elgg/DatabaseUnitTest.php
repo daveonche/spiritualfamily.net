@@ -10,38 +10,35 @@ class DatabaseUnitTest extends \Elgg\UnitTestCase {
 	public function testFingerprintingOfCallbacks() {
 		$db = $this->getDbMock();
 		
-		$reflection_method = new \ReflectionMethod($db, 'fingerprintCallback');
-		$reflection_method->setAccessible(true);
-		
 		$prints = [];
 		$uniques = 0;
 
-		$prints[$reflection_method->invoke($db, 'foo')] = true;
+		$prints[$this->invokeInaccessableMethod($db, 'fingerprintCallback', 'foo')] = true;
 		$uniques++;
 
-		$prints[$reflection_method->invoke($db, 'foo::bar')] = true;
-		$prints[$reflection_method->invoke($db, [
+		$prints[$this->invokeInaccessableMethod($db, 'fingerprintCallback', 'foo::bar')] = true;
+		$prints[$this->invokeInaccessableMethod($db, 'fingerprintCallback', [
 			'foo',
 			'bar'
 		])] = true;
 		$uniques++;
 
 		$obj1 = new DatabaseTestObj();
-		$prints[$reflection_method->invoke($db, [
+		$prints[$this->invokeInaccessableMethod($db, 'fingerprintCallback', [
 			$obj1,
 			'__invoke'
 		])] = true;
-		$prints[$reflection_method->invoke($db, $obj1)] = true;
+		$prints[$this->invokeInaccessableMethod($db, 'fingerprintCallback', $obj1)] = true;
 		$uniques++;
 
 		$obj2 = new DatabaseTestObj();
-		$prints[$reflection_method->invoke($db, [
+		$prints[$this->invokeInaccessableMethod($db, 'fingerprintCallback', [
 			$obj2,
 			'__invoke'
 		])] = true;
 		$uniques++;
 
-		$this->assertEquals($uniques, count($prints));
+		$this->assertCount($uniques, $prints);
 	}
 
 	public function testInvalidCallbacksThrow() {
@@ -49,7 +46,7 @@ class DatabaseUnitTest extends \Elgg\UnitTestCase {
 		
 		$this->expectException(\RuntimeException::class);
 		$this->expectExceptionMessage('$callback must be a callable function. Given blorg!');
-		$db->getData(\Elgg\Database\Select::fromTable('foo'), 'blorg!');
+		$db->getData(\Elgg\Database\Select::fromTable('foo')->select('*'), 'blorg!');
 	}
 	
 	/**

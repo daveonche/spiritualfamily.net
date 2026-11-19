@@ -3,7 +3,14 @@
 namespace Elgg\GarbageCollector;
 
 use Elgg\Application\Database;
+use Elgg\Database\AccessCollections;
+use Elgg\Database\AnnotationsTable;
+use Elgg\Database\DbConfig;
+use Elgg\Database\DelayedEmailQueueTable;
 use Elgg\Database\Delete;
+use Elgg\Database\EntityTable;
+use Elgg\Database\MetadataTable;
+use Elgg\Database\RelationshipsTable;
 use Elgg\I18n\Translator;
 use Elgg\Traits\Di\ServiceFacade;
 use Elgg\Traits\Loggable;
@@ -86,7 +93,7 @@ class GarbageCollector {
 			];
 			
 			if ($use_logger) {
-				$this->getLogger()->notice($this->translator->translate('garbagecollector:optimize', [$table]) . ' ' . $result ? 'OK' : 'FAILED');
+				$this->getLogger()->notice($this->translator->translate('garbagecollector:optimize', [$table]) . ': ' . ($result ? 'OK' : 'FAILED'));
 			}
 		}
 		
@@ -145,7 +152,7 @@ class GarbageCollector {
 		}
 
 		$table_prefix = $this->db->prefix;
-		$result = $this->db->getConnection('read')->executeQuery("SHOW TABLES LIKE '{$table_prefix}%'");
+		$result = $this->db->getConnection(DbConfig::READ)->executeQuery("SHOW TABLES LIKE '{$table_prefix}%'");
 
 		$this->tables = [];
 
@@ -171,8 +178,8 @@ class GarbageCollector {
 	 * @return int
 	 */
 	protected function optimizeTable(string $table): int {
-		$result = $this->db->getConnection('write')->executeQuery("OPTIMIZE TABLE {$table}");
-		return $result->rowCount();
+		$result = $this->db->getConnection(DbConfig::WRITE)->executeQuery("OPTIMIZE TABLE {$table}");
+		return (int) $result->rowCount();
 	}
 	
 	/**
@@ -184,15 +191,15 @@ class GarbageCollector {
 	 * @return void
 	 */
 	protected function cleanupAccessCollections(): void {
-		$delete = Delete::fromTable('access_collections');
+		$delete = Delete::fromTable(AccessCollections::TABLE_NAME);
 		
-		$owner_sub = $delete->subquery('entities');
+		$owner_sub = $delete->subquery(EntityTable::TABLE_NAME);
 		$owner_sub->select('guid');
 		
-		$entities_access_id_sub = $delete->subquery('entities');
+		$entities_access_id_sub = $delete->subquery(EntityTable::TABLE_NAME);
 		$entities_access_id_sub->select('DISTINCT access_id');
 		
-		$annotations_access_id_sub = $delete->subquery('annotations');
+		$annotations_access_id_sub = $delete->subquery(AnnotationsTable::TABLE_NAME);
 		$annotations_access_id_sub->select('DISTINCT access_id');
 		
 		$delete->where($delete->merge([
@@ -212,12 +219,12 @@ class GarbageCollector {
 	 * @return void
 	 */
 	protected function cleanupAccessCollectionMembership(): void {
-		$delete = Delete::fromTable('access_collection_membership');
+		$delete = Delete::fromTable(AccessCollections::MEMBERSHIP_TABLE_NAME);
 		
-		$user_sub = $delete->subquery('entities');
+		$user_sub = $delete->subquery(EntityTable::TABLE_NAME);
 		$user_sub->select('guid');
 		
-		$access_collection_sub = $delete->subquery('access_collections');
+		$access_collection_sub = $delete->subquery(AccessCollections::TABLE_NAME);
 		$access_collection_sub->select('id');
 		
 		$delete->where($delete->merge([
@@ -235,9 +242,9 @@ class GarbageCollector {
 	 * @return void
 	 */
 	protected function cleanupAnnotations(): void {
-		$delete = Delete::fromTable('annotations');
+		$delete = Delete::fromTable(AnnotationsTable::TABLE_NAME);
 		
-		$entity_sub = $delete->subquery('entities');
+		$entity_sub = $delete->subquery(EntityTable::TABLE_NAME);
 		$entity_sub->select('guid');
 		
 		$delete->where($delete->compare('entity_guid', 'not in', $entity_sub->getSQL()));
@@ -252,9 +259,9 @@ class GarbageCollector {
 	 * @return void
 	 */
 	protected function cleanupDelayedEmailQueue(): void {
-		$delete = Delete::fromTable('delayed_email_queue');
+		$delete = Delete::fromTable(DelayedEmailQueueTable::TABLE_NAME);
 		
-		$entity_sub = $delete->subquery('entities');
+		$entity_sub = $delete->subquery(EntityTable::TABLE_NAME);
 		$entity_sub->select('guid');
 		
 		$delete->where($delete->compare('recipient_guid', 'not in', $entity_sub->getSQL()));
@@ -270,9 +277,9 @@ class GarbageCollector {
 	 * @return void
 	 */
 	protected function cleanupEntityRelationships(): void {
-		$delete = Delete::fromTable('entity_relationships');
+		$delete = Delete::fromTable(RelationshipsTable::TABLE_NAME);
 		
-		$guid_sub = $delete->subquery('entities');
+		$guid_sub = $delete->subquery(EntityTable::TABLE_NAME);
 		$guid_sub->select('guid');
 		
 		$delete->where($delete->merge([
@@ -290,9 +297,9 @@ class GarbageCollector {
 	 * @return void
 	 */
 	protected function cleanupMetadata(): void {
-		$delete = Delete::fromTable('metadata');
+		$delete = Delete::fromTable(MetadataTable::TABLE_NAME);
 		
-		$entity_guid_sub = $delete->subquery('entities');
+		$entity_guid_sub = $delete->subquery(EntityTable::TABLE_NAME);
 		$entity_guid_sub->select('guid');
 		
 		$delete->where($delete->compare('entity_guid', 'not in', $entity_guid_sub->getSQL()));

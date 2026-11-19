@@ -38,7 +38,7 @@ class InternalContainer extends \Elgg\Di\InternalContainer{
 		$container->set('metadataTable', \DI\autowire(\Elgg\Mocks\Database\MetadataTable::class));
 		$container->set('annotationsTable', \DI\autowire(\Elgg\Mocks\Database\AnnotationsTable::class));
 		$container->set('relationshipsTable', \DI\autowire(\Elgg\Mocks\Database\RelationshipsTable::class));
-		$container->set('accessCollections', \DI\autowire(\Elgg\Mocks\Database\AccessCollections::class)->constructorParameter('cache', \DI\get('accessCache')));
+		$container->set('accessCollections', \DI\autowire(\Elgg\Mocks\Database\AccessCollections::class));
 		$container->set('configTable', \DI\autowire(\Elgg\Mocks\Database\ConfigTable::class));
 		$container->set('users_remember_me_cookies_table', \DI\autowire(\Elgg\Mocks\Database\UsersRememberMeCookiesTable::class));
 
@@ -48,7 +48,7 @@ class InternalContainer extends \Elgg\Di\InternalContainer{
 
 		$container->set('plugins', function (ContainerInterface $c) {
 			return new \Elgg\Mocks\Database\Plugins(
-				$c->dataCache->plugins,
+				$c->pluginsCache,
 				$c->db,
 				$c->session_manager,
 				$c->events,
@@ -56,6 +56,7 @@ class InternalContainer extends \Elgg\Di\InternalContainer{
 				$c->views,
 				$c->config,
 				$c->system_messages,
+				$c->invoker,
 				$c->request
 			);
 		});

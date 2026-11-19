@@ -2,9 +2,12 @@
 
 // The suggestions list (dropdown) is appended to the document's body so the CSS variables should be defined at root-level
 :root {
+
     --tagify-dd-color-primary: rgb(53,149,246); // should be same as "$tags-focus-border-color"
+    --tagify-dd-text-color: black;
     --tagify-dd-bg-color: white;
     --tagify-dd-item-pad: .3em .5em; // should be same as $tag-pad (below)
+    --tagify-dd-max-height: 300px;
 }
 
 .tagify{
@@ -16,7 +19,7 @@
     $tagMargin               : 5px !default;
     $tag-pad                 : .3em .5em !default;
     $tag-min-width           : 1ch !default;
-    $tag-max-width           : auto !default;
+    $tag-max-width           : 100% !default;
     $tag-text-color          : black !default;
     $tag-text-color--edit    : black !default;
     $tag-bg                  : #E5E5E5 !default;
@@ -27,7 +30,7 @@
     $tag-remove-btn-bg--hover: darken($tag-remove, 8) !default;
     $tag-invalid-color       : $tag-remove !default;
     $tag-invalid-bg          : rgba($tag-remove, .5) !default;
-    $tag-inset-shadow-size   : 1.1em !default;
+    $tag-inset-shadow-size   : 1.2em !default;
     $tag-hide-transition     : .3s !default;
     $placeholder-color       : rgba($tag-text-color, .4) !default;
     $placeholder-color-focus : rgba($tag-text-color, .25) !default;
@@ -40,6 +43,7 @@
     --tags-border-color        : #{$tags-border-color};
     --tags-hover-border-color  : #{$tags-hover-border-color};
     --tags-focus-border-color  : #{$tags-focus-border-color};
+
     --tag-border-radius        : 3px;
     --tag-bg                   : #{$tag-bg};
     --tag-hover                : #{$tag-hover};
@@ -49,14 +53,16 @@
     --tag-inset-shadow-size    : #{$tag-inset-shadow-size};
     --tag-invalid-color        : #{$tag-invalid-color};
     --tag-invalid-bg           : #{$tag-invalid-bg};
+    --tag--min-width           : #{$tag-min-width};
+    --tag--max-width           : #{$tag-max-width};
+    --tag-hide-transition      : #{$tag-hide-transition};
+
     --tag-remove-bg            : #{rgba($tag-remove, .3)};
     --tag-remove-btn-color     : #{$tag-remove-btn-color};
     --tag-remove-btn-bg        : #{$tag-remove-btn-bg};
     --tag-remove-btn-bg--hover : #{$tag-remove-btn-bg--hover};
+
     --input-color              : #{$input-color};
-    --tag--min-width           : #{$tag-min-width};
-    --tag--max-width           : #{$tag-max-width};
-    --tag-hide-transition      : #{$tag-hide-transition};
     --placeholder-color        : #{$placeholder-color};
     --placeholder-color-focus  : #{$placeholder-color-focus};
     --loader-size              : .8em;
@@ -126,15 +132,19 @@
 
     display       : inline-flex;
     align-items   : flex-start;
+    align-content : baseline;
     flex-wrap     : wrap;
     border        : 1px solid var(--tags-border-color);
     padding       : 0;
     line-height   : 0;
-    cursor        : text;
     outline       : none;
     position      : relative;
     box-sizing    : border-box;
     transition    : .1s;
+
+    &:has([contenteditable='true']) {
+        cursor: text;
+    }
 
     &:hover:not(.tagify--focus):not(.tagify--invalid){
         --tags-border-color : var(--tags-hover-border-color);
@@ -145,6 +155,14 @@
         filter: saturate(0);
         opacity: .5;
         pointer-events: none;
+
+        &#{$self}--empty{
+            > #{$self}__input{
+                &::before{
+                    position: relative;
+                }
+            }
+        }
     }
 
     // Global "read-only" mode (no input button)
@@ -153,7 +171,7 @@
             pointer-events: none;
         }
 
-        &:not(#{$self}--mix):not(#{$self}--select){
+        &:not(#{$self}--mix):not(#{$self}--select):not(#{$self}--empty){
             cursor: default;
             > #{$self}__input{
                 visibility: hidden;
@@ -170,7 +188,6 @@
         }
 
         #{ $self }__tag__removeBtn{ display:none; }
-
     }
 
     &--loading{
@@ -200,17 +217,21 @@
     }
 
     &__tag{
-        display    : inline-flex;
-        align-items: center;
-        margin     : $tagMargin 0 $tagMargin $tagMargin;
-        position   : relative;
-        z-index    : 1;
-        outline    : none;
-        line-height: normal;
-        cursor     : default;
-        transition : .13s ease-out;
+        display      : inline-flex;
+        align-items  : center;
+        max-width    : var(--tag--max-width);
+        margin-inline: $tagMargin 0;
+        margin-block : $tagMargin;
+        position     : relative;
+        z-index      : 1;
+        outline      : none;
+        line-height  : normal;
+        cursor       : default;
+        transition   : .13s ease-out;
 
         > div{  // :not([contenteditable])
+            display        : flex;
+            flex           : 1;
             vertical-align : top;
             box-sizing     : border-box;
             max-width      : 100%;
@@ -234,6 +255,7 @@
 
 
                 &[contenteditable]{
+                    display: block; // solves similar issue to this: https://stackoverflow.com/q/34354085/104380 (but with <span> because of its default `inline-block` display)
                     outline: none;
                     user-select: text;
                     cursor: text;
@@ -241,6 +263,10 @@
                     margin: -2px;
                     padding: 2px;
                     max-width: 350px;
+                }
+
+                &:only-child{
+                    width: 100%;
                 }
             }
 
@@ -339,11 +365,8 @@
 
             > #{$self}__tag__removeBtn{
                 pointer-events: none;
-
-                &::after{
-                    opacity: 0;
-                    transform: translateX(100%) translateX(5px);
-                }
+                opacity: 0;
+                transform: translateX(100%) translateX(5px);
             }
 
             &.tagify--invalid{
@@ -370,8 +393,7 @@
 
             width          : $size;
             height         : $size;
-            margin-right   : math.div($size,3);
-            margin-left    : auto;
+            margin-inline  : auto math.div($size,3);
 
             overflow       : hidden;
             transition     : .2s ease-out;
@@ -411,24 +433,22 @@
         $placeholder-width : 110px;
         flex-grow: 1;
         display: inline-block;
-        min-width: $placeholder-width;
         margin: $tagMargin;
         padding: var(--tag-pad);
         line-height: normal;
+        min-width: $placeholder-width;
+        min-height: 1.5lh;
         position: relative;
         white-space: pre-wrap; // #160 Line break (\n) as delimeter
         color: var(--input-color);
         box-sizing: inherit;
+        overflow: hidden;
 
         &:empty{
             @include firefox {
               // clicking twice on the input (not fast) disallows typing (bug) only when the input has "display:flex".
               // disabled the below rule for the above reason:
               //  display: flex; // https://bugzilla.mozilla.org/show_bug.cgi?id=904846#c45
-            }
-
-            &::before{
-                position: static;
             }
         }
 
@@ -470,15 +490,18 @@
 
         &::before{
             content: attr(data-placeholder);
-            height: 1em;
-            line-height: 1em;
+            width: 100%;
+            height: 100%;
             margin: auto 0;
             z-index: 1;
             color: var(--placeholder-color);
             white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
             pointer-events: none;
             opacity: 0;
             position: absolute;
+
         }
         /* Seems firefox newer versions don't need this any more
         @supports ( -moz-appearance:none ){
@@ -539,6 +562,8 @@
     }
 
     &--select{
+        cursor: default;
+
         &::after{
             $size: 16px;
 
@@ -560,21 +585,31 @@
             &::after{
                 transform: translate(-150%, -50%) rotate(270deg) scaleY(1.2);
             }
-        }
 
-        #{$self}__tag{
-            position: absolute;
-            top: 0;
-            right: 1.8em;
-            bottom: 0;
-
-            div{
-                display: none;
+            #{$self}__tag__removeBtn{
+                pointer-events: none;
+                opacity: 0;
+                transform: translateX(100%) translateX(5px);
             }
         }
 
-        #{$self}__input{
-            width: 100%;
+        #{$self}__tag{
+            flex: 1;
+            max-width: none;
+            margin-inline-end: 2em;
+            margin-block: 0;
+            padding-block: $tagMargin;
+            cursor: text;
+
+            div{
+                &::before {
+                    display: none;
+                }
+            }
+
+            + #{$self}__input{
+                display: none;
+            }
         }
     }
 
@@ -582,6 +617,7 @@
         #{ $self }__input{
             &::before{
                 @include placeholder;
+                // position: static;
                 display: inline-block;
                 width: auto;
 
@@ -602,15 +638,21 @@
     }
 
     // Since the dropdown is an external element, which is positioned directly on the body element
-    // it cannot ingerit the CSS variables applied on the ".Tagify" element
+    // it cannot inherit the CSS variables applied on the ".Tagify" element
     &__dropdown{
         $dropdown: &;
-        $trans: .25s cubic-bezier(0,1,.5,1);
+        $trans: .3s;
+        $trans-curve: cubic-bezier(.5, 0, .3, 1);
 
         position: absolute;
         z-index: 9999;
-        transform: translateY(1px);
+        transform: translateY(-1px);
+        border-top: 1px solid var(--tagify-dd-color-primary);
         overflow: hidden;
+
+        &[dir='rtl'] {
+            transform: translate(-100%, -1px);
+        }
 
         &[placement="top"]{
             margin-top: 0;
@@ -622,7 +664,7 @@
             }
         }
 
-        // when the dropdown shows next to the caret while typing
+        // when the dropdown is shown next to the caret while typing
         &[position="text"]{
             box-shadow: 0 0 0 3px rgba(var(--tagify-dd-color-primary), .1);
             font-size: .9em;
@@ -633,17 +675,23 @@
         }
 
         &__wrapper{
-            max-height: 300px;
-            overflow: auto;
+            scroll-behavior: auto; // keep up/down arrow pressed to see the effect without this
+            max-height: var(--tagify-dd-max-height);
+            overflow: hidden;
             overflow-x: hidden;
+            color: var(--tagify-dd-text-color);
             background: var(--tagify-dd-bg-color);
             border: 1px solid;
             border-color: var(--tagify-dd-color-primary);
             border-bottom-width: 1.5px; // fixes - https://bugs.chromium.org/p/chromium/issues/detail?id=1147523
             border-top-width: 0;
             box-shadow: 0 2px 4px -2px rgba(black,.2);
-            // box-sizing: border-box;
-            transition: $trans;
+            transition: $trans $trans-curve, transform math.div($trans, 2);
+            animation: dd-wrapper-show 0s $trans forwards;
+        }
+
+        @keyframes dd-wrapper-show {
+            to { overflow-y: auto; }
         }
 
         &__header{
@@ -686,6 +734,8 @@
             outline: none;
             max-height: 60px;
             max-width: 100%;
+            line-height: normal;
+            position: relative;
 
             &--active{
                 background: var(--tagify-dd-color-primary);
@@ -712,6 +762,21 @@
                     transition: inherit;
                 }
             }
+
+            &--selected{
+                &::before{
+                    content: "✓"; // checkmark
+                    font-family: monospace;
+                    position: absolute;
+                    inset-inline-start: 6px;
+                    text-indent: 0;
+                    line-height: 1.1;
+                }
+            }
+        }
+
+        &:has(.tagify__dropdown__item--selected) .tagify__dropdown__item {
+            text-indent: 1em;
         }
     }
 }

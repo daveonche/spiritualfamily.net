@@ -6,15 +6,15 @@ use Elgg\Actions\RegistrationIntegrationTestCase;
 
 class ActionsRegistrationIntegrationTest extends RegistrationIntegrationTestCase {
 	
-	protected function registerPluginActions(\ElggPlugin $plugin) {
+	protected static function registerPluginActions(\ElggPlugin $plugin) {
 		$plugin->register();
 		$plugin->boot();
 		$plugin->init();
 		$plugin->getBootstrap()->ready();
 	}
 	
-	public function actionsProvider(): array {
-		$this->createApplication([
+	public static function actionsProvider(): array {
+		self::createApplication([
 			'isolate' => true,
 		]);
 		
@@ -26,12 +26,17 @@ class ActionsRegistrationIntegrationTest extends RegistrationIntegrationTestCase
 			_elgg_services()->reset('routes');
 			_elgg_services()->reset('routeCollection');
 			
-			$this->registerPluginActions($plugin);
+			self::registerPluginActions($plugin);
 			
 			$actions = _elgg_services()->actions->getAllActions();
 			foreach ($actions as $name => $params) {
 				$result[] = [$name, $params['access'], $plugin, $plugin->getID()];
 			}
+		}
+		
+		if (empty($result)) {
+			// hack so test can check if there are no actions provided
+			$result[] = [null, null];
 		}
 		
 		return $result;
@@ -40,7 +45,11 @@ class ActionsRegistrationIntegrationTest extends RegistrationIntegrationTestCase
 	/**
 	 * @dataProvider actionsProvider
 	 */
-	public function testCanRequestActionWithoutParameters($name, $access, \ElggPlugin $plugin = null) {
+	public function testCanRequestActionWithoutParameters($name, $access, ?\ElggPlugin $plugin = null) {
+		if (!isset($name)) {
+			$this->markTestSkipped('no plugin actions to test');
+		}
+		
 		$this->registerPluginActions($plugin);
 		
 		parent::testCanRequestActionWithoutParameters($name, $access);
@@ -49,7 +58,11 @@ class ActionsRegistrationIntegrationTest extends RegistrationIntegrationTestCase
 	/**
 	 * @dataProvider actionsProvider
 	 */
-	public function testCanRequestActionWithoutParametersViaAjax($name, $access, \ElggPlugin $plugin = null) {
+	public function testCanRequestActionWithoutParametersViaAjax($name, $access, ?\ElggPlugin $plugin = null) {
+		if (!isset($name)) {
+			$this->markTestSkipped('no plugin actions to test');
+		}
+		
 		$this->registerPluginActions($plugin);
 		
 		parent::testCanRequestActionWithoutParametersViaAjax($name, $access);

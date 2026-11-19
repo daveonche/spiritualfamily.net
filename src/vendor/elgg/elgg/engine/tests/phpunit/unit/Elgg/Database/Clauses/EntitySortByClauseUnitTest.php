@@ -2,6 +2,7 @@
 
 namespace Elgg\Database\Clauses;
 
+use Elgg\Database\EntityTable;
 use Elgg\Database\QueryBuilder;
 use Elgg\Database\Select;
 use Elgg\Exceptions\DomainException;
@@ -15,18 +16,20 @@ class EntitySortByClauseUnitTest extends UnitTestCase {
 	protected $qb;
 
 	public function up() {
-		$this->qb = Select::fromTable('entities', 'alias');
+		$this->qb = Select::fromTable(EntityTable::TABLE_NAME, 'alias');
+		$this->qb->select('*');
 	}
 
 	public function testBuildAttributeSortByClause() {
 
-		$this->qb->orderBy('alias.guid', 'asc');
+		$this->qb->orderBy("{$this->qb->getTableAlias()}.guid", 'asc');
 
 		$query = new EntitySortByClause();
 		$query->property = 'guid';
 		$query->direction = 'asc';
 
-		$qb = Select::fromTable('entities', 'alias');
+		$qb = Select::fromTable(EntityTable::TABLE_NAME, 'alias');
+		$qb->select('*');
 		$qb->addClause($query);
 
 		$this->assertEquals($this->qb->getSQL(), $qb->getSQL());
@@ -35,14 +38,15 @@ class EntitySortByClauseUnitTest extends UnitTestCase {
 
 	public function testBuildSignedAttributeSortByClause() {
 
-		$this->qb->orderBy('CAST(alias.guid AS SIGNED)', 'asc');
+		$this->qb->orderBy("CAST({$this->qb->getTableAlias()}.guid AS SIGNED)", 'asc');
 
 		$query = new EntitySortByClause();
 		$query->property = 'guid';
 		$query->direction = 'asc';
 		$query->signed = true;
 
-		$qb = Select::fromTable('entities', 'alias');
+		$qb = Select::fromTable(EntityTable::TABLE_NAME, 'alias');
+		$qb->select('*');
 		$qb->addClause($query);
 
 		$this->assertEquals($this->qb->getSQL(), $qb->getSQL());
@@ -51,14 +55,15 @@ class EntitySortByClauseUnitTest extends UnitTestCase {
 
 	public function testBuildMetadataSortByClause() {
 
-		$alias = $this->qb->joinMetadataTable('alias', 'guid', 'foo');
-		$this->qb->orderBy("$alias.value", 'asc');
+		$alias = $this->qb->joinMetadataTable($this->qb->getTableAlias(), 'guid', 'foo');
+		$this->qb->orderBy("{$alias}.value", 'asc');
 
 		$query = new EntitySortByClause();
 		$query->property = 'foo';
 		$query->direction = 'asc';
 
-		$qb = Select::fromTable('entities', 'alias');
+		$qb = Select::fromTable(EntityTable::TABLE_NAME, 'alias');
+		$qb->select('*');
 		$qb->addClause($query);
 
 		$this->assertEquals($this->qb->getSQL(), $qb->getSQL());
@@ -67,15 +72,16 @@ class EntitySortByClauseUnitTest extends UnitTestCase {
 
 	public function testBuildSignedMetadataSortByClause() {
 
-		$alias = $this->qb->joinMetadataTable('alias', 'guid', 'foo');
-		$this->qb->orderBy("CAST($alias.value AS SIGNED)", 'asc');
+		$alias = $this->qb->joinMetadataTable($this->qb->getTableAlias(), 'guid', 'foo');
+		$this->qb->orderBy("CAST({$alias}.value AS SIGNED)", 'asc');
 
 		$query = new EntitySortByClause();
 		$query->property = 'foo';
 		$query->direction = 'asc';
 		$query->signed = true;
 
-		$qb = Select::fromTable('entities', 'alias');
+		$qb = Select::fromTable(EntityTable::TABLE_NAME, 'alias');
+		$qb->select('*');
 		$qb->addClause($query);
 
 		$this->assertEquals($this->qb->getSQL(), $qb->getSQL());
@@ -84,15 +90,16 @@ class EntitySortByClauseUnitTest extends UnitTestCase {
 
 	public function testBuildAnnotationSortByClause() {
 
-		$alias = $this->qb->joinAnnotationTable('alias', 'guid', 'foo');
-		$this->qb->orderBy("$alias.value", 'asc');
+		$alias = $this->qb->joinAnnotationTable($this->qb->getTableAlias(), 'guid', 'foo');
+		$this->qb->orderBy("{$alias}.value", 'asc');
 
 		$query = new EntitySortByClause();
 		$query->property = 'foo';
 		$query->direction = 'asc';
 		$query->property_type = 'annotation';
 
-		$qb = Select::fromTable('entities', 'alias');
+		$qb = Select::fromTable(EntityTable::TABLE_NAME, 'alias');
+		$qb->select('*');
 		$qb->addClause($query);
 
 		$this->assertEquals($this->qb->getSQL(), $qb->getSQL());
@@ -101,8 +108,8 @@ class EntitySortByClauseUnitTest extends UnitTestCase {
 
 	public function testBuildSignedAnnotationSortByClause() {
 
-		$alias = $this->qb->joinAnnotationTable('alias', 'guid', 'foo');
-		$this->qb->orderBy("CAST($alias.value AS SIGNED)", 'asc');
+		$alias = $this->qb->joinAnnotationTable($this->qb->getTableAlias(), 'guid', 'foo');
+		$this->qb->orderBy("CAST({$alias}.value AS SIGNED)", 'asc');
 
 		$query = new EntitySortByClause();
 		$query->property = 'foo';
@@ -110,7 +117,8 @@ class EntitySortByClauseUnitTest extends UnitTestCase {
 		$query->signed = true;
 		$query->property_type = 'annotation';
 		
-		$qb = Select::fromTable('entities', 'alias');
+		$qb = Select::fromTable(EntityTable::TABLE_NAME, 'alias');
+		$qb->select('*');
 		$qb->addClause($query);
 
 		$this->assertEquals($this->qb->getSQL(), $qb->getSQL());
@@ -124,7 +132,8 @@ class EntitySortByClauseUnitTest extends UnitTestCase {
 		$query->direction = 'asc';
 		$query->property_type = 'attribute';
 
-		$qb = Select::fromTable('entities', 'alias');
+		$qb = Select::fromTable(EntityTable::TABLE_NAME, 'alias');
+		$qb->select('*');
 		
 		$this->expectException(DomainException::class);
 		$qb->addClause($query);
@@ -137,10 +146,11 @@ class EntitySortByClauseUnitTest extends UnitTestCase {
 		$query->direction = 'asc';
 		$query->property_type = 'invalid';
 
-		$qb = Select::fromTable('entities', 'alias');
+		$qb = Select::fromTable(EntityTable::TABLE_NAME, 'alias');
+		$qb->select('*');
 		
 		_elgg_services()->logger->disable();
-		$this->assertNull($query->prepare($qb, 'alias'));
+		$this->assertNull($query->prepare($qb, $qb->getTableAlias()));
 		$log = _elgg_services()->logger->enable();
 		$this->assertEquals("'invalid' is not a valid entity property type. Sorting ignored.", $log[0]['message']);
 	}

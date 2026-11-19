@@ -41,8 +41,28 @@
 
 .ck.ck-editor__editable .image .ck-progress-bar,
 .ck.ck-editor__editable .image-inline .ck-progress-bar {
-	background: $(state-notice-border-color);
+	background: var(--elgg-state-notice-border-color);
 	height: .5rem;
+}
+
+.elgg-field-longtext .elgg-field-input {
+	display: flex;
+	flex-direction: column;
+	
+	> textarea {
+		display: block !important;
+		
+		order: 1;
+		resize: none;
+		border: 0 !important;
+		height: 1px !important;
+		padding: 0 !important;
+		margin: -1px 0 0 0 !important;
+		
+		:invalid {
+			box-shadow: none;
+		}
+	}
 }
 
 :root {

@@ -8,16 +8,16 @@ use Elgg\UnitTestCase;
 class CoreViewStackUnitTest extends UnitTestCase {
 
 	public function up() {
-		_elgg_services()->views->registerPluginViews(Paths::elgg());
+		_elgg_services()->views->registerViewsFromPath(Paths::elgg());
 	}
 	
-	public function viewsProvider() {
+	public static function viewsProvider() {
 
 		self::createApplication();
 
 		$provides = [];
 
-		_elgg_services()->views->registerPluginViews(Paths::elgg());
+		_elgg_services()->views->registerViewsFromPath(Paths::elgg());
 		$data = _elgg_services()->views->getInspectorData();
 
 		foreach ($data['locations'] as $viewtype => $views) {
@@ -62,6 +62,6 @@ class CoreViewStackUnitTest extends UnitTestCase {
 		$this->assertNotEmpty($view_list);
 		$this->assertEquals(count($view_list) > 1, !empty(elgg_get_view_extensions($view)));
 
-		$this->assertEquals($is_simplecache_view, _elgg_services()->views->isCacheableView($view));
+		$this->assertEquals($is_simplecache_view, _elgg_services()->simpleCache->isCacheableView($view));
 	}
 }

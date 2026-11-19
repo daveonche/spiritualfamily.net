@@ -19,10 +19,7 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
  */
 abstract class RedirectableUrlMatcher extends UrlMatcher implements RedirectableUrlMatcherInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function match(string $pathinfo)
+    public function match(string $pathinfo): array
     {
         try {
             return parent::match($pathinfo);
@@ -39,7 +36,7 @@ abstract class RedirectableUrlMatcher extends UrlMatcher implements Redirectable
                     $ret = parent::match($pathinfo);
 
                     return $this->redirect($pathinfo, $ret['_route'] ?? null, $this->context->getScheme()) + $ret;
-                } catch (ExceptionInterface $e2) {
+                } catch (ExceptionInterface) {
                     throw $e;
                 } finally {
                     $this->context->setScheme($scheme);
@@ -47,13 +44,22 @@ abstract class RedirectableUrlMatcher extends UrlMatcher implements Redirectable
             } elseif ('' === $trimmedPathinfo = rtrim($pathinfo, '/')) {
                 throw $e;
             } else {
+                $fallbackSchemes = $this->trailingSlashSchemes;
+                $fallbackPathinfo = $pathinfo;
                 try {
                     $pathinfo = $trimmedPathinfo === $pathinfo ? $pathinfo.'/' : $trimmedPathinfo;
                     $ret = parent::match($pathinfo);
 
                     return $this->redirect($pathinfo, $ret['_route'] ?? null) + $ret;
-                } catch (ExceptionInterface $e2) {
+                } catch (ExceptionInterface) {
                     if ($this->allowSchemes) {
+                        goto redirect_scheme;
+                    }
+                    if ($this->allowSchemes = $this->trailingSlashSchemes) {
+                        goto redirect_scheme;
+                    }
+                    if ($this->allowSchemes = $fallbackSchemes) {
+                        $pathinfo = $fallbackPathinfo;
                         goto redirect_scheme;
                     }
                     throw $e;

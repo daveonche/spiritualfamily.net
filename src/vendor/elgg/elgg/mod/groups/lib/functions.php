@@ -6,12 +6,12 @@
 /**
  * Returns a menu item for leaving a group
  *
- * @param \ElggGroup $group Group to leave
- * @param \ElggUser  $user  User to check leave action for
+ * @param \ElggGroup     $group Group to leave
+ * @param null|\ElggUser $user  User to check leave action for
  *
  * @return \ElggMenuItem|false
  */
-function groups_get_group_leave_menu_item(\ElggGroup $group, \ElggUser $user = null) {
+function groups_get_group_leave_menu_item(\ElggGroup $group, ?\ElggUser $user = null) {
 	
 	if (!$user instanceof \ElggUser) {
 		$user = elgg_get_logged_in_user_entity();
@@ -21,7 +21,7 @@ function groups_get_group_leave_menu_item(\ElggGroup $group, \ElggUser $user = n
 		return false;
 	}
 	
-	if (!$group->isMember($user) || ($group->owner_guid === $user->guid)) {
+	if (!$group->isMember($user) || ($group->owner_guid === $user->guid) || $group->isDeleted()) {
 		// a member can leave a group if he/she doesn't own it
 		return false;
 	}
@@ -40,12 +40,12 @@ function groups_get_group_leave_menu_item(\ElggGroup $group, \ElggUser $user = n
 /**
  * Returns a menu item for joining a group
  *
- * @param \ElggGroup $group Group to leave
- * @param \ElggUser  $user  User to check leave action for
+ * @param \ElggGroup     $group Group to leave
+ * @param null|\ElggUser $user  User to check leave action for
  *
  * @return \ElggMenuItem|false
  */
-function groups_get_group_join_menu_item(\ElggGroup $group, \ElggUser $user = null) {
+function groups_get_group_join_menu_item(\ElggGroup $group, ?\ElggUser $user = null) {
 	
 	if (!$user instanceof \ElggUser) {
 		$user = elgg_get_logged_in_user_entity();
@@ -55,12 +55,25 @@ function groups_get_group_join_menu_item(\ElggGroup $group, \ElggUser $user = nu
 		return false;
 	}
 	
-	if ($group->isMember($user)) {
+	if ($group->isMember($user) || $group->isDeleted()) {
 		return false;
 	}
 	
+	if ($user->hasRelationship($group->guid, 'membership_request')) {
+		return \ElggMenuItem::factory([
+			'name' => 'groups:killrequest',
+			'icon' => 'sign-in-alt',
+			'text' => elgg_echo('groups:joinrequest:revoke'),
+			'href' => elgg_generate_action_url('groups/killrequest', [
+				'user_guid' => $user->guid,
+				'group_guid' => $group->guid,
+			]),
+			'confirm' => true,
+		]);
+	}
+	
 	$menu_name = 'groups:joinrequest';
-	if ($group->isPublicMembership() || $group->canEdit()) {
+	if ($group->isPublicMembership() || $group->canEdit() || $group->getRelationship($user->guid, 'invited')) {
 		// admins can always join
 		// non-admins can join if membership is public
 		$menu_name = 'groups:join';

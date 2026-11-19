@@ -1,3 +1,60 @@
+## 9.2.4
+##### 30 april 2025
+- __Core__
+  - PHP 8.4 compatibility (@khoaofgod, @CHANCENY) 
+- __Drivers__
+  - Redis: Refactor Redis driver to read all keys efficiently (@mapcentia)
+
+## 9.2.3
+##### 11 january 2024
+- __Drivers__
+  - **Added support of `Ravendb` as an extension with its own [sub-repository](https://github.com/PHPSocialNetwork/ravendb-extension).**
+  - Deprecated `\Phpfastcache\Entities\DriverStatistic::getData()`. Will be removed as of v10.
+  - Deprecated `\Phpfastcache\Entities\DriverStatistic::setData()`. Will be removed as of v10.
+  - Added `\Phpfastcache\Entities\DriverStatistic::getCount(): int|null`. If applicable will return the count of cache objects stored in driver database/collection. Null otherwise.
+  - Added `\Phpfastcache\Entities\DriverStatistic::setCount()`
+
+## 9.2.2
+##### 11 january 2024
+- __Core__
+  - Added optional prefix to `\Phpfastcache\Core\Pool\CacheItemPoolTrait::getKeys()`
+
+## 9.2.1
+##### 07 january 2024
+- __Misc__
+  - Added additional check in cache manager for extensions
+
+## 9.2.0
+##### 07 january 2024
+- __API__
+  - Upgraded Phpfastcache API to `4.3.0` ([see changes](CHANGELOG_API.md))
+- __Extensions__ (💡 New in 9.2)
+  - Created an extension mechanism to allow some drivers to be loaded independently, see [README.md](README.md)
+  - Added support of `Couchbasev4` as an extension with its own [sub-repository](https://github.com/PHPSocialNetwork/couchbasev4-extension).
+  - **IMPORTANT**: *AS OF v9.2* the following drivers has been **MOVED** to their own sub-repositories as a standalone extension: `Arangodb`, `Couchdb`, `Dynamodb`, `Firestore`, `Mongodb`, `Solr`. However `Couchbasev3` will stay in the core for compatibility reasons but will be deprecated. 
+  - **IMPORTANT**: *AS OF v10* extensions will have their namespaces permanently moved from `Phpfastcache\Drivers\EXT_NAME\{Config, Driver, Event, Item}` to `Phpfastcache\Extensions\Drivers\EXT_NAME\{Config, Driver, Event, Item}`. For now an alias is ensuring compatibility.
+- __Events__
+  - EventManager is now scoped to its own poll if retrieved through `ExtendedCacheItemPoolTrait::->getEventManager()`. Global EventManager `EventManager::getInstance()` remains unchanged, see [EVENTS.md](./docs/EVENTS.md).
+  - `EventManagerInterface::on()` now also accepts a single `string $events`.
+  - Alias `\Phpfastcache\PhpfastcacheEventManager` of `\Phpfastcache\EventManager` has been added to improve your code import readability.
+  - Deprecated `\Phpfastcache\Event\EventManagerDispatcherInterface::hasEventManager` to be removed for v10.
+- __Drivers__
+  - Implemented #906 // **Added `RedisCluster` driver support**
+  - Driver `Memstatic` has changed its name to `Memory` for more consistency.
+  - Driver `Wincache` is now deprecated and will be removed as of v10 due to the lack of updates to PHP 8 [as officially stated by PHP](https://www.php.net/manual/en/install.windows.recommended.php).
+- __Pool__
+  - Added `ExtendedCacheItemPoolTrait::getAllItems` to allow you to retrieve all items in the cache. This method have some limitations, ([see more in the Wiki](https://github.com/PHPSocialNetwork/phpfastcache/wiki/%5BV5%CB%96%5D-Fetching-all-keys)).
+- __Core__
+  - Configuration methods`ConfigurationOption::isPreventCacheSlams()`, `ConfigurationOption::setPreventCacheSlams()`, `ConfigurationOption::getCacheSlamsTimeout()`, `ConfigurationOption::setCacheSlamsTimeout()` are deprecated. ([See changes](CHANGELOG_API.md)).
+  - Fixed #907 // Internal "driver decode()" method will now throw an if the string data looks corrupted.
+  - Internal: Implemented multiple keys fetch (*if supported by the backend*) to improve the performances behind all `getItems()` calls. Currently only supported in some backends, but it may evolve in the future.
+  - Internal: Implemented multiple keys delete (*if supported by the backend*) to improve the performances behind all `deleteItems()` calls. Currently only supported in some backends, but it may evolve in the future.
+  - `\Phpfastcache\CacheContract::get()` now accepts a `\Stringable $cacheKey` argument.
+- __Tags__
+  - Added `\Phpfastcache\Core\Item\TaggableCacheItemInterface::isTagged(): bool`
+- __Misc__
+  - Fixed multiple code typo & updated README.md
+
 ## 9.1.3
 ##### 12 february 2023
 - __Core__

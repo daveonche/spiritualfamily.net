@@ -2,7 +2,9 @@
 
 namespace Elgg\Database;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Elgg\Database;
+use Elgg\Exceptions\DatabaseException;
 use Elgg\Traits\TimeUsing;
 
 /**
@@ -17,17 +19,14 @@ class SessionHandler implements \SessionHandlerInterface {
 	/**
 	 * @var string name of the users sessions database table
 	 */
-	const TABLE_NAME = 'users_sessions';
-
-	protected Database $db;
+	public const TABLE_NAME = 'users_sessions';
 
 	/**
 	 * Constructor
 	 *
 	 * @param Database $db The database
 	 */
-	public function __construct(Database $db) {
-		$this->db = $db;
+	public function __construct(protected Database $db) {
 	}
 
 	/**
@@ -76,10 +75,21 @@ class SessionHandler implements \SessionHandlerInterface {
 			'data' => $insert->param($data, ELGG_VALUE_STRING),
 			'ts' => $insert->param($this->getCurrentTime()->getTimestamp(), ELGG_VALUE_TIMESTAMP),
 		]);
-		
-		// not returning the result of the database call as the session table doesn't support an autoincrement column
-		// so the result of this call will always be 0
-		$this->db->insertData($insert);
+
+		try {
+			// not returning the result of the database call as the session table doesn't support an autoincrement column
+			// so the result of this call will always be 0
+			$this->db->insertData($insert);
+		} catch (DatabaseException $e) {
+			$prev = $e->getPrevious();
+			if ($prev instanceof UniqueConstraintViolationException) {
+				// ignoring issues with duplicate key insertions
+				return true;
+			}
+
+			throw $e;
+		}
+
 		return true;
 	}
 

@@ -19,9 +19,9 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 	/**
 	 * Create a test api method
 	 *
-	 * @return \Elgg\WebServices\ApiMethod
+	 * @return ApiMethod
 	 */
-	protected function getApiMethod() {
+	protected function getApiMethod(): ApiMethod {
 		return new ApiMethod('foo', [$this, 'callbackTest']);
 	}
 	
@@ -64,7 +64,7 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 		$api->$name = 'string';
 	}
 	
-	public function setterArrayNameProvider() {
+	public static function setterArrayNameProvider() {
 		return [
 			['params'],
 		];
@@ -80,7 +80,7 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 		$api->$name = [];
 	}
 	
-	public function setterStringNameProvider() {
+	public static function setterStringNameProvider() {
 		return [
 			['description'],
 			['call_method'],
@@ -97,7 +97,7 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 		$api->$name = 'foo';
 	}
 	
-	public function setterBooleanNameProvider() {
+	public static function setterBooleanNameProvider() {
 		return [
 			['require_api_auth'],
 			['require_user_auth'],
@@ -165,7 +165,7 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 		$this->assertEquals(strtoupper($value), $api->call_method);
 	}
 	
-	public function supportedCallMethods() {
+	public static function supportedCallMethods() {
 		return [
 			['get'],
 			['GET'],
@@ -180,16 +180,10 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 	public function testTypeCastParameter($key, $value, $type, $expected) {
 		$api = $this->getApiMethod();
 		
-		$reflector = new \ReflectionClass(ApiMethod::class);
-		$method = $reflector->getMethod('typeCastParameter');
-		$method->setAccessible(true);
-		
-		$result = $method->invoke($api, $key, $value, $type);
-		
-		$this->assertEquals($expected, $result);
+		$this->assertEquals($expected, $this->invokeInaccessableMethod($api, 'typeCastParameter', $key, $value, $type));
 	}
 	
-	public function typeCastParameterProvider() {
+	public static function typeCastParameterProvider() {
 		return [
 			['foo', null, 'string', null],
 			['foo', '1', 'int', 1],
@@ -217,23 +211,15 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 	public function testTypeCastInvalidArray() {
 		$api = $this->getApiMethod();
 		
-		$reflector = new \ReflectionClass(ApiMethod::class);
-		$method = $reflector->getMethod('typeCastParameter');
-		$method->setAccessible(true);
-		
 		$this->expectException(\APIException::class);
-		$method->invoke($api, 'foo', '', 'array');
+		$this->invokeInaccessableMethod($api, 'typeCastParameter', 'foo', '', 'array');
 	}
 	
 	public function testTypeCastInvalidType() {
 		$api = $this->getApiMethod();
 		
-		$reflector = new \ReflectionClass(ApiMethod::class);
-		$method = $reflector->getMethod('typeCastParameter');
-		$method->setAccessible(true);
-		
 		$this->expectException(\APIException::class);
-		$method->invoke($api, 'foo', '', 'bar');
+		$this->invokeInaccessableMethod($api, 'typeCastParameter', 'foo', '', 'bar');
 	}
 	
 	public function testGetParameters() {
@@ -251,7 +237,7 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 			'password' => [
 				'type' => 'string',
 				'default' => '1234',
-				'rquired' => false,
+				'required' => false,
 			],
 			'register' => [
 				'type' => 'bool',
@@ -259,18 +245,11 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 			],
 		];
 		
-		$reflector = new \ReflectionClass(ApiMethod::class);
-		$method = $reflector->getMethod('getParameters');
-		$method->setAccessible(true);
-		
-		$result = $method->invoke($api, $request);
-		
-		$expected = [
+		$this->assertEquals([
 			'username' => 'foo', // from input
 			'password' => '1234', // from default
 			'register' => true, // input casted
-		];
-		$this->assertEquals($expected, $result);
+		], $this->invokeInaccessableMethod($api, 'getParameters', $request));
 	}
 	
 	public function testGetParametersMissingRequiredInput() {
@@ -289,12 +268,8 @@ class ApiMethodIntegrationTest extends IntegrationTestCase {
 			],
 		];
 		
-		$reflector = new \ReflectionClass(ApiMethod::class);
-		$method = $reflector->getMethod('getParameters');
-		$method->setAccessible(true);
-		
 		$this->expectException(\APIException::class);
-		$method->invoke($api, $request);
+		$this->invokeInaccessableMethod($api, 'getParameters', $request);
 	}
 	
 	public function testExecute() {

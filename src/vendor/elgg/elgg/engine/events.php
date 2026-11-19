@@ -27,11 +27,6 @@ return [
 			'\Elgg\Input\ValidateInputHandler::sanitizeStyles' => [],
 		],
 	],
-	'ban' => [
-		'user' => [
-			\Elgg\Users\BanUserNotificationHandler::class => [],
-		],
-	],
 	'cache:clear' => [
 		'system' => [
 			'\Elgg\Cache\EventHandlers::clear' => [],
@@ -50,9 +45,6 @@ return [
 	'cache:generate' => [
 		'css' => [
 			\Elgg\Views\PreProcessCssHandler::class => [],
-		],
-		'js' => [
-			\Elgg\Views\AddAmdModuleNameHandler::class => [],
 		],
 	],
 	'cache:invalidate' => [
@@ -110,15 +102,16 @@ return [
 		'daily' => [
 			\Elgg\Email\DelayedQueue\CronHandler::class => [],
 			'Elgg\Users\Validation::removeUnvalidatedUsers' => [],
-			'Elgg\Users\Validation::notifyAdminsAboutPendingUsers' => [],
 			\Elgg\Users\CleanupPersistentLoginHandler::class => [],
+		],
+		'hourly' => [
+			\Elgg\Entity\RemoveDeletedEntitiesHandler::class => [],
 		],
 		'minute' => [
 			\Elgg\Notifications\ProcessQueueCronHandler::class => ['priority' => 100],
 		],
 		'weekly' => [
 			\Elgg\Email\DelayedQueue\CronHandler::class => [],
-			'Elgg\Users\Validation::notifyAdminsAboutPendingUsers' => [],
 		],
 	],
 	'delete' => [
@@ -136,9 +129,6 @@ return [
 	],
 	'elgg.data' => [
 		'page' => [
-			\Elgg\Javascript\AddSRIConfig::class => [],
-		],
-		'site' => [
 			\Elgg\Javascript\SetLightboxConfigHandler::class => [],
 		],
 	],
@@ -158,7 +148,7 @@ return [
 		],
 	],
 	'entity:url' => [
-		'object' => [
+		'object:widget' => [
 			\Elgg\Widgets\EntityUrlHandler::class => [],
 		],
 	],
@@ -254,7 +244,6 @@ return [
 			'Elgg\Menus\AdminControlPanel::register' => [],
 		],
 		'menu:admin_header' => [
-			'Elgg\Menus\AdminHeader::moveUtilities' => ['priority' => 9999],
 			'Elgg\Menus\AdminHeader::register' => [],
 			'Elgg\Menus\AdminHeader::registerMaintenance' => [],
 			'Elgg\Menus\AdminHeader::registerAdminAdminister' => [],
@@ -275,6 +264,7 @@ return [
 		'menu:entity' => [
 			'Elgg\Menus\Entity::registerDelete' => [],
 			'Elgg\Menus\Entity::registerEdit' => [],
+			'Elgg\Menus\Entity::registerTrash' => ['priority' => 501], // needs to be after registerDelete
 			'Elgg\Menus\Entity::registerUserHoverAdminSection' => [],
 			'Elgg\Menus\UserHover::registerLoginAs' => [],
 		],
@@ -286,6 +276,10 @@ return [
 		],
 		'menu:entity:object:plugin' => [
 			'Elgg\Menus\Entity::registerPlugin' => [],
+		],
+		'menu:entity:trash' => [
+			'Elgg\Menus\Entity::registerDelete' => [],
+			'Elgg\Menus\EntityTrash::registerRestore' => [],
 		],
 		'menu:entity_navigation' => [
 			'Elgg\Menus\EntityNavigation::registerPreviousNext' => [],
@@ -320,7 +314,6 @@ return [
 			'Elgg\Menus\Page::registerAdminPluginSettings' => [],
 			'Elgg\Menus\Page::registerUserSettings' => [],
 			'Elgg\Menus\Page::registerUserSettingsPlugins' => [],
-			'Elgg\Menus\Page::moveOldAdminSectionsToAdminHeader' => ['priority' => 9999],
 		],
 		'menu:river' => [
 			'Elgg\Menus\River::registerDelete' => [],
@@ -336,6 +329,7 @@ return [
 			'Elgg\Menus\Title::registerEntityToTitle' => [
 				'priority' => 600,
 			],
+			'Elgg\Menus\Title::registerSubscribable' => [],
 		],
 		'menu:topbar' => [
 			'Elgg\Menus\Topbar::registerUserLinks' => [],
@@ -412,7 +406,6 @@ return [
 			\Elgg\Views\MinifyHandler::class => [],
 		],
 		'js' => [
-			\Elgg\Views\AddAmdModuleNameHandler::class => [],
 			\Elgg\Views\CalculateSRI::class => ['priority' => 999],
 			\Elgg\Views\MinifyHandler::class => [],
 		],
@@ -435,7 +428,6 @@ return [
 	],
 	'usersettings:save' => [
 		'user' => [
-			'Elgg\Users\Settings::setAdminValidationNotification' => [],
 			'Elgg\Users\Settings::setDefaultAccess' => [],
 			'Elgg\Users\Settings::setEmail' => [],
 			'Elgg\Users\Settings::setLanguage' => [],
@@ -448,7 +440,6 @@ return [
 	],
 	'validate:after' => [
 		'user' => [
-			'Elgg\Users\Validation::notifyUserAfterValidation' => [],
 			'Elgg\Users\Validation::addRiverActivityAfterValidation' => [],
 		],
 	],

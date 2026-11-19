@@ -9,19 +9,22 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
-        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
         '72142d7b40a3a0b14e91825290b5ad82' => __DIR__ . '/..' . '/cakephp/core/functions.php',
         '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         'c9d07b32a2e02bc0fc582d4f0c1b56cc' => __DIR__ . '/..' . '/laminas/laminas-servicemanager/src/autoload.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
-        '0d59ee240a4cd96ddbb4ff164fccea4d' => __DIR__ . '/..' . '/symfony/polyfill-php73/bootstrap.php',
         'b6b991a57620e2fb6b2f66f03fe9ddc2' => __DIR__ . '/..' . '/symfony/string/Resources/functions.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
+        '0174385c3be07e86008907d06ee66531' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/Rule/Rule.php',
+        '98aea6e41b9cb79b379b10f37ba1f0b7' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/RuleSet/RuleContainer.php',
+        '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
         '948ad5488880985ff1c06721a4e447fe' => __DIR__ . '/..' . '/cakephp/utility/bootstrap.php',
         'bc8d758335d4e980187df1bfef1c8f49' => __DIR__ . '/..' . '/css-crush/css-crush/lib/functions.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
+        'ef836782e1b8d747e78815386b148139' => __DIR__ . '/..' . '/htmlawed/htmlawed/htmLawed.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         'b33e3d135e5d9e47d845c576147bda89' => __DIR__ . '/..' . '/php-di/php-di/src/functions.php',
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
@@ -36,8 +39,8 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         ),
         'S' =>
         array (
+            'Symfony\\Polyfill\\Php83\\' => 23,
             'Symfony\\Polyfill\\Php80\\' => 23,
-            'Symfony\\Polyfill\\Php73\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Intl\\Normalizer\\' => 33,
             'Symfony\\Polyfill\\Intl\\Idn\\' => 26,
@@ -66,11 +69,10 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Container\\' => 14,
+            'Psr\\Clock\\' => 10,
             'Psr\\Cache\\' => 10,
-            'Phpfastcache\\Tests\\' => 19,
             'Phpfastcache\\' => 13,
             'PhpParser\\' => 10,
-            'PhpDocReader\\' => 13,
             'Phinx\\' => 6,
             'Pelago\\Emogrifier\\' => 18,
         ),
@@ -84,9 +86,7 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         ),
         'L' =>
         array (
-            'League\\MimeTypeDetection\\' => 25,
-            'League\\Flysystem\\InMemory\\' => 26,
-            'League\\Flysystem\\' => 17,
+            'League\\Container\\' => 17,
             'Laravel\\SerializableClosure\\' => 28,
             'Laminas\\Validator\\' => 18,
             'Laminas\\Stdlib\\' => 15,
@@ -130,8 +130,6 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
             'Doctrine\\Instantiator\\' => 22,
             'Doctrine\\Deprecations\\' => 22,
             'Doctrine\\DBAL\\' => 14,
-            'Doctrine\\Common\\Cache\\' => 22,
-            'Doctrine\\Common\\' => 16,
             'DeepCopy\\' => 9,
             'DI\\' => 3,
         ),
@@ -145,6 +143,7 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
             'Cake\\Datasource\\' => 16,
             'Cake\\Database\\' => 14,
             'Cake\\Core\\' => 10,
+            'Cake\\Chronos\\' => 13,
         ),
     );
 
@@ -153,13 +152,13 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
         ),
+        'Symfony\\Polyfill\\Php83\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-php83',
+        ),
         'Symfony\\Polyfill\\Php80\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
-        ),
-        'Symfony\\Polyfill\\Php73\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-php73',
         ),
         'Symfony\\Polyfill\\Mbstring\\' =>
         array (
@@ -250,13 +249,13 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
+        'Psr\\Clock\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/psr/clock/src',
+        ),
         'Psr\\Cache\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
-        ),
-        'Phpfastcache\\Tests\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/phpfastcache/phpfastcache/tests/lib',
         ),
         'Phpfastcache\\' =>
         array (
@@ -265,10 +264,6 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'PhpParser\\' =>
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
-        ),
-        'PhpDocReader\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/php-di/phpdoc-reader/src/PhpDocReader',
         ),
         'Phinx\\' =>
         array (
@@ -298,17 +293,9 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         array (
             0 => __DIR__ . '/..' . '/matthiasmullie/minify/src',
         ),
-        'League\\MimeTypeDetection\\' =>
+        'League\\Container\\' =>
         array (
-            0 => __DIR__ . '/..' . '/league/mime-type-detection/src',
-        ),
-        'League\\Flysystem\\InMemory\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/league/flysystem-memory',
-        ),
-        'League\\Flysystem\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/league/flysystem/src',
+            0 => __DIR__ . '/..' . '/league/container/src',
         ),
         'Laravel\\SerializableClosure\\' =>
         array (
@@ -399,14 +386,6 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         array (
             0 => __DIR__ . '/..' . '/doctrine/dbal/src',
         ),
-        'Doctrine\\Common\\Cache\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/doctrine/cache/lib/Doctrine/Common/Cache',
-        ),
-        'Doctrine\\Common\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/doctrine/event-manager/src',
-        ),
         'DeepCopy\\' =>
         array (
             0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
@@ -447,6 +426,10 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         array (
             0 => __DIR__ . '/..' . '/cakephp/core',
         ),
+        'Cake\\Chronos\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/cakephp/chronos/src',
+        ),
     );
 
     public static $prefixesPsr0 = array (
@@ -462,6 +445,15 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
     public static $classMap = array (
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'DateError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateError.php',
+        'DateException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateException.php',
+        'DateInvalidOperationException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateInvalidOperationException.php',
+        'DateInvalidTimeZoneException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateInvalidTimeZoneException.php',
+        'DateMalformedIntervalStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedIntervalStringException.php',
+        'DateMalformedPeriodStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedPeriodStringException.php',
+        'DateMalformedStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedStringException.php',
+        'DateObjectError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateObjectError.php',
+        'DateRangeError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateRangeError.php',
         'ElggAccessCollection' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/ElggAccessCollection.php',
         'ElggAdminNotice' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/ElggAdminNotice.php',
         'ElggAnnotation' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/ElggAnnotation.php',
@@ -493,8 +485,6 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Ajax\\Controller' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Ajax/Controller.php',
         'Elgg\\Ajax\\Response' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Ajax/Response.php',
         'Elgg\\Ajax\\Service' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Ajax/Service.php',
-        'Elgg\\Amd\\Config' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Amd/Config.php',
-        'Elgg\\Amd\\ViewFilter' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Amd/ViewFilter.php',
         'Elgg\\Application' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Application.php',
         'Elgg\\Application\\BootHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Application/BootHandler.php',
         'Elgg\\Application\\CacheHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Application/CacheHandler.php',
@@ -512,23 +502,24 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\AutoloadManager' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/AutoloadManager.php',
         'Elgg\\BootData' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/BootData.php',
         'Elgg\\BootService' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/BootService.php',
+        'Elgg\\Cache\\AccessCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/AccessCache.php',
+        'Elgg\\Cache\\AutoloadCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/AutoloadCache.php',
         'Elgg\\Cache\\BaseCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/BaseCache.php',
-        'Elgg\\Cache\\CacheCollection' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/CacheCollection.php',
+        'Elgg\\Cache\\BootCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/BootCache.php',
+        'Elgg\\Cache\\CacheService' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/CacheService.php',
         'Elgg\\Cache\\CompositeCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/CompositeCache.php',
         'Elgg\\Cache\\Config\\Files' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/Config/Files.php',
         'Elgg\\Cache\\Config\\LocalFiles' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/Config/LocalFiles.php',
         'Elgg\\Cache\\Config\\Memcached' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/Config/Memcached.php',
         'Elgg\\Cache\\Config\\Redis' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/Config/Redis.php',
-        'Elgg\\Cache\\DataCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/DataCache.php',
         'Elgg\\Cache\\EntityCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/EntityCache.php',
         'Elgg\\Cache\\EventHandlers' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/EventHandlers.php',
-        'Elgg\\Cache\\LRUCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/LRUCache.php',
         'Elgg\\Cache\\MetadataCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/MetadataCache.php',
+        'Elgg\\Cache\\PluginsCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/PluginsCache.php',
         'Elgg\\Cache\\QueryCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/QueryCache.php',
-        'Elgg\\Cache\\SessionCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/SessionCache.php',
+        'Elgg\\Cache\\ServerCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/ServerCache.php',
         'Elgg\\Cache\\SimpleCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/SimpleCache.php',
         'Elgg\\Cache\\SystemCache' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/SystemCache.php',
-        'Elgg\\Cache\\ViewCacher' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cache/ViewCacher.php',
         'Elgg\\ClassLoader' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/ClassLoader.php',
         'Elgg\\ClassMap' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/ClassMap.php',
         'Elgg\\Cli' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cli.php',
@@ -539,6 +530,7 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Cli\\CachePurgeCommand' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cli/CachePurgeCommand.php',
         'Elgg\\Cli\\Command' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cli/Command.php',
         'Elgg\\Cli\\CronCommand' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cli/CronCommand.php',
+        'Elgg\\Cli\\CronLogHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cli/CronLogHandler.php',
         'Elgg\\Cli\\DatabaseSeedCommand' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cli/DatabaseSeedCommand.php',
         'Elgg\\Cli\\DatabaseSeedersCommand' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cli/DatabaseSeedersCommand.php',
         'Elgg\\Cli\\DatabaseUnseedCommand' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Cli/DatabaseUnseedCommand.php',
@@ -572,6 +564,9 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Context' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Context.php',
         'Elgg\\Controllers\\CommentEntityRedirector' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Controllers/CommentEntityRedirector.php',
         'Elgg\\Controllers\\Cron' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Controllers/Cron.php',
+        'Elgg\\Controllers\\EntityEditAction' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Controllers/EntityEditAction.php',
+        'Elgg\\Controllers\\GenericAction' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Controllers/GenericAction.php',
+        'Elgg\\Controllers\\OnlineUsersCount' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Controllers/OnlineUsersCount.php',
         'Elgg\\Controllers\\RefreshCsrfToken' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Controllers/RefreshCsrfToken.php',
         'Elgg\\Controllers\\SecurityTxt' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Controllers/SecurityTxt.php',
         'Elgg\\Controllers\\ServeIcon' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Controllers/ServeIcon.php',
@@ -652,10 +647,10 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Email\\ThreadHeadersHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Email/ThreadHeadersHandler.php',
         'Elgg\\EntityCapabilitiesService' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/EntityCapabilitiesService.php',
         'Elgg\\EntityDirLocator' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/EntityDirLocator.php',
-        'Elgg\\EntityIcon' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/EntityIcon.php',
         'Elgg\\EntityIconService' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/EntityIconService.php',
         'Elgg\\EntityPreloader' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/EntityPreloader.php',
         'Elgg\\Entity\\CropIcon' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Entity/CropIcon.php',
+        'Elgg\\Entity\\RemoveDeletedEntitiesHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Entity/RemoveDeletedEntitiesHandler.php',
         'Elgg\\Event' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Event.php',
         'Elgg\\EventsService' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/EventsService.php',
         'Elgg\\EventsService\\MethodMatcher' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/EventsService/MethodMatcher.php',
@@ -680,6 +675,7 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Exceptions\\Http\\CsrfException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/CsrfException.php',
         'Elgg\\Exceptions\\Http\\EntityNotFoundException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/EntityNotFoundException.php',
         'Elgg\\Exceptions\\Http\\EntityPermissionsException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/EntityPermissionsException.php',
+        'Elgg\\Exceptions\\Http\\ForbiddenException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/ForbiddenException.php',
         'Elgg\\Exceptions\\Http\\GatekeeperException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/GatekeeperException.php',
         'Elgg\\Exceptions\\Http\\Gatekeeper\\AdminGatekeeperException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/Gatekeeper/AdminGatekeeperException.php',
         'Elgg\\Exceptions\\Http\\Gatekeeper\\AjaxGatekeeperException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/Gatekeeper/AjaxGatekeeperException.php',
@@ -690,7 +686,14 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Exceptions\\Http\\Gatekeeper\\RegistrationAllowedGatekeeperException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/Gatekeeper/RegistrationAllowedGatekeeperException.php',
         'Elgg\\Exceptions\\Http\\Gatekeeper\\UpgradeGatekeeperException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/Gatekeeper/UpgradeGatekeeperException.php',
         'Elgg\\Exceptions\\Http\\Gatekeeper\\WalledGardenException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/Gatekeeper/WalledGardenException.php',
+        'Elgg\\Exceptions\\Http\\GoneException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/GoneException.php',
+        'Elgg\\Exceptions\\Http\\InternalServerErrorException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/InternalServerErrorException.php',
+        'Elgg\\Exceptions\\Http\\MethodNotAllowedException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/MethodNotAllowedException.php',
+        'Elgg\\Exceptions\\Http\\NotImplementedException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/NotImplementedException.php',
         'Elgg\\Exceptions\\Http\\PageNotFoundException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/PageNotFoundException.php',
+        'Elgg\\Exceptions\\Http\\ServiceUnavailableException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/ServiceUnavailableException.php',
+        'Elgg\\Exceptions\\Http\\TooManyRequestsException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/TooManyRequestsException.php',
+        'Elgg\\Exceptions\\Http\\UnauthorizedException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/UnauthorizedException.php',
         'Elgg\\Exceptions\\Http\\ValidationException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/Http/ValidationException.php',
         'Elgg\\Exceptions\\I18n\\InvalidLocaleException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/I18n/InvalidLocaleException.php',
         'Elgg\\Exceptions\\InvalidArgumentException' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Exceptions/InvalidArgumentException.php',
@@ -720,11 +723,6 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Export\\Extender' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Export/Extender.php',
         'Elgg\\Export\\Relationship' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Export/Relationship.php',
         'Elgg\\FileService\\File' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/FileService/File.php',
-        'Elgg\\Filesystem\\Directory' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Filesystem/Directory.php',
-        'Elgg\\Filesystem\\Directory\\Fly' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Filesystem/Directory/Fly.php',
-        'Elgg\\Filesystem\\Directory\\InMemory' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Filesystem/Directory/InMemory.php',
-        'Elgg\\Filesystem\\Directory\\Local' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Filesystem/Directory/Local.php',
-        'Elgg\\Filesystem\\File' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Filesystem/File.php',
         'Elgg\\Filesystem\\Filestore' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Filesystem/Filestore.php',
         'Elgg\\Filesystem\\Filestore\\DiskFilestore' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Filesystem/Filestore/DiskFilestore.php',
         'Elgg\\Filesystem\\Filestore\\TempDiskFilestore' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Filesystem/Filestore/TempDiskFilestore.php',
@@ -766,7 +764,6 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\I18n\\NullTranslator' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/I18n/NullTranslator.php',
         'Elgg\\I18n\\ReleaseCleaner' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/I18n/ReleaseCleaner.php',
         'Elgg\\I18n\\Translator' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/I18n/Translator.php',
-        'Elgg\\I18n\\TranslatorInterface' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/I18n/TranslatorInterface.php',
         'Elgg\\Icons\\AddFontAwesomeClassesHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Icons/AddFontAwesomeClassesHandler.php',
         'Elgg\\Icons\\GetSiteFaviconSizesHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Icons/GetSiteFaviconSizesHandler.php',
         'Elgg\\Icons\\HeaderSizesHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Icons/HeaderSizesHandler.php',
@@ -779,12 +776,11 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Input\\DisablePasswordAutocompleteHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Input/DisablePasswordAutocompleteHandler.php',
         'Elgg\\Input\\ValidateInputHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Input/ValidateInputHandler.php',
         'Elgg\\Invoker' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Invoker.php',
-        'Elgg\\Javascript\\AddSRIConfig' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Javascript/AddSRIConfig.php',
+        'Elgg\\Javascript\\ESMService' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Javascript/ESMService.php',
         'Elgg\\Javascript\\SetLightboxConfigHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Javascript/SetLightboxConfigHandler.php',
         'Elgg\\Logger' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Logger.php',
         'Elgg\\Logger\\BacktraceProcessor' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Logger/BacktraceProcessor.php',
         'Elgg\\Logger\\Cron' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Logger/Cron.php',
-        'Elgg\\Logger\\ElggLogFormatter' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Logger/ElggLogFormatter.php',
         'Elgg\\Menu\\Menu' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menu/Menu.php',
         'Elgg\\Menu\\MenuItems' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menu/MenuItems.php',
         'Elgg\\Menu\\MenuSection' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menu/MenuSection.php',
@@ -799,6 +795,7 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Menus\\Breadcrumbs' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menus/Breadcrumbs.php',
         'Elgg\\Menus\\Entity' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menus/Entity.php',
         'Elgg\\Menus\\EntityNavigation' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menus/EntityNavigation.php',
+        'Elgg\\Menus\\EntityTrash' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menus/EntityTrash.php',
         'Elgg\\Menus\\Filter' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menus/Filter.php',
         'Elgg\\Menus\\FilterSortItems' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menus/FilterSortItems.php',
         'Elgg\\Menus\\Footer' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Menus/Footer.php',
@@ -816,11 +813,21 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Notifications\\CreateCommentEventHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/CreateCommentEventHandler.php',
         'Elgg\\Notifications\\CreateContentEventHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/CreateContentEventHandler.php',
         'Elgg\\Notifications\\EnqueueEventHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/EnqueueEventHandler.php',
+        'Elgg\\Notifications\\Handlers\\AddUser' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Handlers/AddUser.php',
+        'Elgg\\Notifications\\Handlers\\AdminValidation' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Handlers/AdminValidation.php',
+        'Elgg\\Notifications\\Handlers\\BanUser' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Handlers/BanUser.php',
+        'Elgg\\Notifications\\Handlers\\ChangeUserPassword' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Handlers/ChangeUserPassword.php',
+        'Elgg\\Notifications\\Handlers\\ConfirmEmailChange' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Handlers/ConfirmEmailChange.php',
+        'Elgg\\Notifications\\Handlers\\ConfirmPasswordChange' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Handlers/ConfirmPasswordChange.php',
+        'Elgg\\Notifications\\Handlers\\RequestUserPassword' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Handlers/RequestUserPassword.php',
+        'Elgg\\Notifications\\Handlers\\ResetUserPassword' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Handlers/ResetUserPassword.php',
+        'Elgg\\Notifications\\Handlers\\ValidateUser' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Handlers/ValidateUser.php',
         'Elgg\\Notifications\\InstantNotificationEvent' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/InstantNotificationEvent.php',
         'Elgg\\Notifications\\InstantNotificationEventHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/InstantNotificationEventHandler.php',
         'Elgg\\Notifications\\MakeAdminUserEventHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/MakeAdminUserEventHandler.php',
         'Elgg\\Notifications\\MentionsEnqueueEventHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/MentionsEnqueueEventHandler.php',
         'Elgg\\Notifications\\MentionsEventHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/MentionsEventHandler.php',
+        'Elgg\\Notifications\\NonConfigurableNotificationEventHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/NonConfigurableNotificationEventHandler.php',
         'Elgg\\Notifications\\Notification' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/Notification.php',
         'Elgg\\Notifications\\NotificationEvent' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/NotificationEvent.php',
         'Elgg\\Notifications\\NotificationEventHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Notifications/NotificationEventHandler.php',
@@ -901,15 +908,19 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Structs\\Collection\\InMemory' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Structs/Collection/InMemory.php',
         'Elgg\\SystemMessagesService' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/SystemMessagesService.php',
         'Elgg\\Timer' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Timer.php',
-        'Elgg\\Traits\\Cacheable' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Cacheable.php',
         'Elgg\\Traits\\Cli\\PluginsHelper' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Cli/PluginsHelper.php',
         'Elgg\\Traits\\Cli\\Progressing' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Cli/Progressing.php',
         'Elgg\\Traits\\Database\\LegacyQueryOptionsAdapter' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Database/LegacyQueryOptionsAdapter.php',
         'Elgg\\Traits\\Debug\\Profilable' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Debug/Profilable.php',
         'Elgg\\Traits\\Di\\ServiceFacade' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Di/ServiceFacade.php',
+        'Elgg\\Traits\\Entity\\AccessCollections' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Entity/AccessCollections.php',
+        'Elgg\\Traits\\Entity\\Annotations' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Entity/Annotations.php',
         'Elgg\\Traits\\Entity\\Friends' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Entity/Friends.php',
+        'Elgg\\Traits\\Entity\\Icons' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Entity/Icons.php',
+        'Elgg\\Traits\\Entity\\Metadata' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Entity/Metadata.php',
         'Elgg\\Traits\\Entity\\PluginSettings' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Entity/PluginSettings.php',
         'Elgg\\Traits\\Entity\\ProfileData' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Entity/ProfileData.php',
+        'Elgg\\Traits\\Entity\\Relationships' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Entity/Relationships.php',
         'Elgg\\Traits\\Entity\\Subscriptions' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Entity/Subscriptions.php',
         'Elgg\\Traits\\Loggable' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Loggable.php',
         'Elgg\\Traits\\Notifications\\EventSerialization' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Traits/Notifications/EventSerialization.php',
@@ -924,6 +935,7 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Upgrade\\CreateAdminNoticeHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrade/CreateAdminNoticeHandler.php',
         'Elgg\\Upgrade\\Locator' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrade/Locator.php',
         'Elgg\\Upgrade\\Loop' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrade/Loop.php',
+        'Elgg\\Upgrade\\PhinxWrapper' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrade/PhinxWrapper.php',
         'Elgg\\Upgrade\\Result' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrade/Result.php',
         'Elgg\\Upgrade\\SystemUpgrade' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrade/SystemUpgrade.php',
         'Elgg\\Upgrade\\UpgradeCompletedAdminNoticeHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrade/UpgradeCompletedAdminNoticeHandler.php',
@@ -934,12 +946,16 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Upgrades\\DeleteDiagnosticsPlugin' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/DeleteDiagnosticsPlugin.php',
         'Elgg\\Upgrades\\DeleteNotificationsPlugin' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/DeleteNotificationsPlugin.php',
         'Elgg\\Upgrades\\MigrateACLNotificationPreferences' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/MigrateACLNotificationPreferences.php',
+        'Elgg\\Upgrades\\MigrateAdminValidationNotificationPreference' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/MigrateAdminValidationNotificationPreference.php',
+        'Elgg\\Upgrades\\MigrateDebugConfig' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/MigrateDebugConfig.php',
+        'Elgg\\Upgrades\\MigrateEntityIconCroppingCoordinates' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/MigrateEntityIconCroppingCoordinates.php',
         'Elgg\\Upgrades\\NotificationsPrefix' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/NotificationsPrefix.php',
+        'Elgg\\Upgrades\\RemoveIcontime' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/RemoveIcontime.php',
         'Elgg\\Upgrades\\RemoveOrphanedThreadedComments' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/RemoveOrphanedThreadedComments.php',
+        'Elgg\\Upgrades\\UpdateMetastringBoolDatabaseValue' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Upgrades/UpdateMetastringBoolDatabaseValue.php',
         'Elgg\\UploadService' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/UploadService.php',
         'Elgg\\UserCapabilities' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/UserCapabilities.php',
         'Elgg\\Users\\Accounts' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Users/Accounts.php',
-        'Elgg\\Users\\BanUserNotificationHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Users/BanUserNotificationHandler.php',
         'Elgg\\Users\\CleanupPersistentLoginHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Users/CleanupPersistentLoginHandler.php',
         'Elgg\\Users\\EmailChangeController' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Users/EmailChangeController.php',
         'Elgg\\Users\\Settings' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Users/Settings.php',
@@ -948,7 +964,6 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Validation\\ValidationResults' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Validation/ValidationResults.php',
         'Elgg\\Values' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Values.php',
         'Elgg\\ViewsService' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/ViewsService.php',
-        'Elgg\\Views\\AddAmdModuleNameHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Views/AddAmdModuleNameHandler.php',
         'Elgg\\Views\\AutoParagraph' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Views/AutoParagraph.php',
         'Elgg\\Views\\CalculateSRI' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Views/CalculateSRI.php',
         'Elgg\\Views\\HtmlFormatter' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Views/HtmlFormatter.php',
@@ -966,9 +981,8 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'Elgg\\Widgets\\CreateDefaultWidgetsHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Widgets/CreateDefaultWidgetsHandler.php',
         'Elgg\\Widgets\\DefaultWidgetsContainerPermissionsHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Widgets/DefaultWidgetsContainerPermissionsHandler.php',
         'Elgg\\Widgets\\EntityUrlHandler' => __DIR__ . '/..' . '/elgg/elgg/engine/classes/Elgg/Widgets/EntityUrlHandler.php',
-        'Htmlawed' => __DIR__ . '/..' . '/vanilla/htmlawed/src/Htmlawed.php',
-        'JsonException' => __DIR__ . '/..' . '/symfony/polyfill-php73/Resources/stubs/JsonException.php',
         'Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
+        'Override' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/Override.php',
         'PHPUnit\\Exception' => __DIR__ . '/..' . '/phpunit/phpunit/src/Exception.php',
         'PHPUnit\\Framework\\ActualValueIsNotAnObjectException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Exception/ActualValueIsNotAnObjectException.php',
         'PHPUnit\\Framework\\Assert' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert.php',
@@ -1391,6 +1405,7 @@ class ComposerStaticInitcbafba48efac99853cd7937b1163a173
         'PharIo\\Version\\VersionConstraintValue' => __DIR__ . '/..' . '/phar-io/version/src/VersionConstraintValue.php',
         'PharIo\\Version\\VersionNumber' => __DIR__ . '/..' . '/phar-io/version/src/VersionNumber.php',
         'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
+        'SQLite3Exception' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/SQLite3Exception.php',
         'SebastianBergmann\\CliParser\\AmbiguousOptionException' => __DIR__ . '/..' . '/sebastian/cli-parser/src/exceptions/AmbiguousOptionException.php',
         'SebastianBergmann\\CliParser\\Exception' => __DIR__ . '/..' . '/sebastian/cli-parser/src/exceptions/Exception.php',
         'SebastianBergmann\\CliParser\\OptionDoesNotAllowArgumentException' => __DIR__ . '/..' . '/sebastian/cli-parser/src/exceptions/OptionDoesNotAllowArgumentException.php',

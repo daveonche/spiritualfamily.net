@@ -54,6 +54,7 @@ return array(
 
 	'ElggEntity:Error:SetSubtype' => 'Use %s instead of the magic setter for "subtype"',
 	'ElggEntity:Error:SetEnabled' => 'Use %s instead of the magic setter for "enabled"',
+	'ElggEntity:Error:SetDeleted' => 'Use %s instead of the magic setter for "deleted"',
 	'ElggUser:Error:SetAdmin' => 'Use %s instead of the magic setter for "admin"',
 	'ElggUser:Error:SetBanned' => 'Use %s instead of the magic setter for "banned"',
 
@@ -96,22 +97,31 @@ return array(
 	'UserFetchFailureException' => 'Cannot check permission for user_guid [%s] as the user does not exist.',
 
 	'PageNotFoundException' => 'The page you are trying to view does not exist or you do not have permissions to view it',
-	'EntityNotFoundException' => 'The content you were trying to access has been removed or you do not have permissions to access it.',
-	'EntityPermissionsException' => 'You do not have sufficient permissions for this action.',
+	'EntityNotFoundException' => 'The content you were trying to access has been removed or you do not have permissions to access it',
+	'EntityPermissionsException' => 'You do not have sufficient permissions for this action',
 	'GatekeeperException' => 'You do not have permissions to view the page you are trying to access',
 	'RegistrationAllowedGatekeeperException:invalid_invitecode' => "The provided invite code is not valid",
 	'BadRequestException' => 'Bad request',
 	'BadRequestException:invalid_host_header' => 'The request contains an invalid HOST header',
 	'BadRequestException:livesearch:no_query' => 'Livesearch requires a query',
-	'ValidationException' => 'Submitted data did not meet the requirements, please check your input.',
+	'ValidationException' => 'Submitted data did not meet the requirements, please check your input',
+	'ValidationException:field:required' => 'Field %s is required, empty data provided',
+	'ValidationException:field:url' => 'Field %s does not meet the URL requirements, please check your input',
 	'LogicException:InterfaceNotImplemented' => '%s must implement %s',
+	'ForbiddenException' => 'You do not have sufficient permissions to view this page',
+	'GoneException' => 'The requested resource is no longer available',
+	'InternalServerErrorException' => 'An unknown error occurred while trying to process your request',
+	'MethodNotAllowedException' => 'The requested method is not allowed for this resource',
+	'NotImplementedException' => 'The requested method is not implemented for this resource',
+	'ServiceUnavailableException' => 'The server could not process your request, please try again later',
+	'TooManyRequestsException' => 'Too many requests, please slow down',
+	'UnauthorizedException' => 'You do not have the valid authentication credentials for the target resource',
 	
 	'Security:InvalidPasswordCharacterRequirementsException' => "The provided password is doesn't meet the character requirements",
 	'Security:InvalidPasswordLengthException' => "The provided password doesn't meet the minimal length requirement of %s characters",
 	
 	'Entity:Subscriptions:InvalidMethodsException' => '%s requires $methods to be a string or an array of strings',
 
-	'viewfailure' => 'There was an internal failure in the view %s',
 	'changebookmark' => 'Please change your bookmark for this page',
 	'error:missing_data' => 'There was some data missing in your request',
 	'save:fail' => 'There was a failure saving your data',
@@ -290,7 +300,7 @@ return array(
  */
 	'link:view' => 'view link',
 	'link:view:all' => 'View all',
-
+	'link:skip_to_main' => 'Skip to main content',
 
 /**
  * River
@@ -334,6 +344,7 @@ return array(
 	'usersettings:notifications:content_create:description' => 'Default notification settings for new content you created, this can cause notifications when others take action on you content like leaving a comment',
 	'usersettings:notifications:create_comment:description' => "Default notification setting when you comment on content in order to follow the rest of the conversation",
 	'usersettings:notifications:mentions:description' => "Receive a notification when you get @mentioned",
+	'usersettings:notifications:admin_validation_notification:description' => "Receive a notification when a newly registered user needs to be validated",
 
 	'usersettings:notifications:timed_muting' => "Temporarily disable notifications",
 	'usersettings:notifications:timed_muting:help' => "If you don't wish to receive any notifications during a certain period (for example a holiday) you can set a start and end date to temporarily disable all notifications",
@@ -881,8 +892,8 @@ See the full list of users here:
 	'plugins:settings:save:fail' => "There was a problem saving settings for the %s plugin.",
 	'plugins:settings:remove:ok' => "All settings for the %s plugin have been removed",
 	'plugins:settings:remove:fail' => "An error occured while removing all settings for the plugin %s",
-	'plugins:usersettings:save:ok' => "User settings for the %s plugin were saved successfully.",
-	'plugins:usersettings:save:fail' => "There was a problem saving  user settings for the %s plugin.",
+	'plugins:usersettings:save:ok' => "Your settings for %s were saved successfully.",
+	'plugins:usersettings:save:fail' => "There was a problem saving the settings for %s.",
 	
 	'item:object:plugin' => 'Plugin',
 	'collection:object:plugin' => 'Plugins',
@@ -950,7 +961,7 @@ See the full list of users here:
 	'admin:statistics:label:numusers' => "Number of users",
 	'admin:statistics:label:numonline' => "Number of users online",
 	'admin:statistics:label:onlineusers' => "Users online now",
-	'admin:statistics:label:admins'=>"Admins",
+	'admin:statistics:label:admins' => "Admins",
 	'admin:statistics:label:version' => "Elgg version",
 	'admin:statistics:label:version:release' => "Release",
 	'admin:statistics:label:version:version' => "Database Version",
@@ -993,7 +1004,6 @@ For improved performance, it is recommended that you enable and configure OPcach
 	'admin:server:requirements:rewrite:fail' => "Check your .htaccess for the correct rewrite rules",
 	
 	'admin:server:requirements:database:server' => "Database server",
-	'admin:server:requirements:database:server:required' => "Elgg requires MySQL v5.5.3 or higher for its database",
 	'admin:server:requirements:database:server:required_version' => "Elgg requires MySQL v%s or higher for its database",
 	'admin:server:requirements:database:client' => "Database client",
 	'admin:server:requirements:database:client:required' => "Elgg requires pdo_mysql to connect to the database server",
@@ -1130,6 +1140,7 @@ For improved performance, it is recommended that you enable and configure OPcach
 	'preview' => "Preview",
 	'edit' => "Edit",
 	'delete' => "Delete",
+	'trash' => "Trash",
 	'accept' => "Accept",
 	'reject' => "Reject",
 	'decline' => "Decline",
@@ -1257,6 +1268,8 @@ For improved performance, it is recommended that you enable and configure OPcach
 	'status:unavailable' => 'Unavailable',
 	'status:active' => 'Active',
 	'status:inactive' => 'Inactive',
+	'status:deleted' => 'Deleted',
+	'status:trashed' => 'Trashed',
 
 /**
  * Generic sorts
@@ -1305,6 +1318,9 @@ For improved performance, it is recommended that you enable and configure OPcach
 
 	'edit:this' => 'Edit this',
 	'delete:this' => 'Delete this',
+	'trash:this' => 'Trash this',
+	'restore:this' => 'Restore this',
+	'restore:this:move' => 'Restore and move this',
 	'comment:this' => 'Comment on this',
 
 /**
@@ -1312,6 +1328,9 @@ For improved performance, it is recommended that you enable and configure OPcach
  */
 
 	'deleteconfirm' => "Are you sure you want to delete this item?",
+	'trashconfirm' => "Are you sure you want to trash this item?",
+	'restoreconfirm' => "Are you sure you want to restore this item?",
+	'restoreandmoveconfirm' => "Are you sure you want to restore and move this item?",
 	'deleteconfirm:plural' => "Are you sure you want to delete these items?",
 	'fileexists' => "A file has already been uploaded. To replace it, select a new one below",
 	'input:file:upload_limit' => 'Maximum allowed file size is %s',
@@ -1481,6 +1500,7 @@ Once you have logged in, we highly recommend that you change your password.',
 	'admin:legend:system' => 'System',
 	'admin:legend:caching' => 'Caching',
 	'admin:legend:content' => 'Content',
+	'admin:legend:comments' => 'Comments',
 	'admin:legend:content_access' => 'Content Access',
 	'admin:legend:site_access' => 'Site Access',
 	'admin:legend:debug' => 'Debugging and Logging',
@@ -1522,6 +1542,10 @@ Once you have logged in, we highly recommend that you change your password.',
 	'config:content:mentions_display_format:help' => "This decides how a mentioned user will be visible in your content",
 	'config:content:mentions_display_format:username' => "Username",
 	'config:content:mentions_display_format:display_name' => "Display name",
+	'config:content:trash_enabled:label' => "Enable trash",
+	'config:content:trash_enabled:help' => "When deleting an item it can be moved to the trash before it's permanently deleted. Trashed items can be restored by a user.",
+	'config:content:trash_retention:label' => "Number of days content will remain in the trash once deleted",
+	'config:content:trash_retention:help' => "You can configure how many days deleted entities are stored in the trash. After the retention period the item in the trash will be permanently deleted. Use 0 to keep trashed items indefinitely.",
 	'config:email' => "Email",
 	'config:email_html_part:label' => "Enable HTML mail",
 	'config:email_html_part:help' => "Outgoing mail will be wrapped in a HTML template",
@@ -1635,12 +1659,6 @@ If you didn't request this change, please contact a site administrator.
 	
 	'account:validation:pending:title' => "Account validation pending",
 	'account:validation:pending:content' => "Your account has been registered successfully! However before you can use you account a site administrator needs to validate you account. You'll receive an e-mail when you account is validated.",
-	
-	'account:notification:validation:subject' => "Your account on %s has been validated!",
-	'account:notification:validation:body' => "Your account on '%s' has been validated. You can now use your account.
-
-To go the the website, click here:
-%s",
 
 /**
  * user default access
@@ -1664,8 +1682,6 @@ To go the the website, click here:
 
 	'generic_comments:add' => "Leave a comment",
 	'generic_comments:edit' => "Edit comment",
-	'generic_comments:post' => "Post comment",
-	'generic_comments:text' => "Comment",
 	'generic_comments:latest' => "Latest comments",
 	'generic_comment:login_required' => "Your need to be logged in to be able to comment.",
 	'generic_comment:posted' => "Your comment was successfully posted.",
@@ -1675,10 +1691,8 @@ To go the the website, click here:
 	'generic_comment:notfound' => "Sorry, we could not find the specified comment.",
 	'generic_comment:failure' => "An unexpected error occurred when saving the comment.",
 	'generic_comment:none' => 'No comments',
-	'generic_comment:title' => 'Comment by %s',
 	'generic_comment:on' => '%s on %s',
 	'generic_comment:by_owner' => 'Comment by owner',
-	'generic_comments:latest:posted' => 'posted a',
 
 	'generic_comment:notification:subject' => 'Re: %s',
 	'generic_comment:notification:owner:summary' => 'You have a new comment on: %s',
@@ -1715,6 +1729,18 @@ To see the full comment, click on the link below:
 	'entity:delete:permission_denied' => 'You do not have permissions to delete this item.',
 	'entity:delete:success' => '%s has been deleted.',
 	'entity:delete:fail' => '%s could not be deleted.',
+
+	'entity:edit:success' => 'The entity was saved successfully',
+	'entity:edit:group:success' => 'The group was saved successfully',
+	'entity:edit:object:success' => 'The object was saved successfully',
+	'entity:edit:user:success' => 'The user was saved successfully',
+	
+	'entity:restore:item' => 'Item',
+	'entity:restore:item_not_found' => 'Item not found',
+	'entity:restore:container_permission' => 'You do not have permissions to restore this item to %s',
+	'entity:restore:permission_denied' => 'You do not have permissions to restore this item',
+	'entity:restore:success' => '%s has been restored',
+	'entity:restore:fail' => '%s could not be restored',
 	
 	'entity:subscribe' => "Subscribe",
 	'entity:subscribe:disabled' => "Your default notification settings prevent you from subscribing to this content",
@@ -1732,6 +1758,7 @@ To see the full comment, click on the link below:
 	'entity:unmute' => "Unmute notifications",
 	'entity:unmute:success' => "You've successfully unmuted notifications of %s",
 	'entity:unmute:fail' => "An error occured while unmuting notifications of %s",
+
 
 /**
  * Annotations
@@ -1761,7 +1788,6 @@ To see the full comment, click on the link below:
  * Diagnostics
  */
 	'diagnostics:report' => 'Diagnostics Report',
-	'diagnostics:description' => 'The following diagnostic report can be useful for diagnosing problems with Elgg. The developers of Elgg may request that you attach it to a bug report.',
 	'diagnostics:header' => '========================================================================
 Elgg Diagnostic Report
 Generated %s by %s
@@ -1787,6 +1813,29 @@ Global variables:
 %s
 ------------------------------------------------------------------------',
 	
+/**
+ * Trash
+ */
+	'trash:menu:page' => "Trash",
+	
+	'trash:imprint:actor' => "Deleted by: %s",
+	'trash:imprint:type' => "Type: %s",
+	
+	'trash:owner:title' => "Trash",
+	'trash:owner:title_owner' => "%s's trash",
+	'trash:group:title' => "%s's trash",
+	
+	'trash:no_results' => "No items found in the trash",
+	
+	'trash:notice:retention' => "Trashed items will automatically be removed after %s days.",
+	
+	'trash:restore:container:owner' => "You can restore this trashed item to your personal section since the original group has also been removed.",
+	'trash:restore:container:choose' => "Since the original group for this item has been removed, you can choose where to restore the item.",
+	'trash:restore:container:group' => "Restore in a different group",
+	'trash:restore:group' => "Search for a group",
+	'trash:restore:group:help' => "Make sure the selected group has the feature active for the item or an error may occur.",
+	'trash:restore:owner' => "Restore to the owner (%s)",
+
 /**
  * Miscellaneous
  */
@@ -1826,7 +1875,6 @@ Global variables:
 /**
  * Cli commands
  */
-	'cli:login:error:unknown' => "Unable to login as %s",
 	'cli:login:success:log' => "Logged in as %s [guid: %s]",
 	'cli:response:output' => "Response:",
 	'cli:option:as' => "Execute the command on behalf of a user with the given username",
@@ -2072,4 +2120,19 @@ Global variables:
 	
 	'core:upgrade:2023011701:title' => "Remove orphaned threaded comments",
 	'core:upgrade:2023011701:description' => "Due to an error in how threaded comments were removed, there was a chance to create orphaned comments, this upgrade will remove those orphans.",
+	
+	'core:upgrade:2024020101:title' => "Migrate icon cropping coordinates",
+	'core:upgrade:2024020101:description' => "Cropping coordinates are stored in a uniform way, this upgrade migrates the old x1, x2, y1 and y2 metadata values",
+
+	'core:upgrade:2024020901:title' => "Remove icontime metadata",
+	'core:upgrade:2024020901:description' => "Remove the unreliable metadata icontime from the database",
+
+	'core:upgrade:2024070201:title' => "Migrate debug config",
+	'core:upgrade:2024070201:description' => "Changes the database config value for debug logging to a supported value",
+
+	'core:upgrade:2024071001:title' => "Migrate admin validation notification preference",
+	'core:upgrade:2024071001:description' => "Moves the storage of the admin notification preference to notifications settings",
+
+	'core:upgrade:2025060201:title' => "Store correct database value for boolean values",
+	'core:upgrade:2025060201:description' => "In the annotations and metadata table the value for a falsy boolean value was stored incorrect",
 );

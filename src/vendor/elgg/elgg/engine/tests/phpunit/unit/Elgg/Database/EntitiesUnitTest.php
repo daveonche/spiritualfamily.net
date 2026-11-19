@@ -8,14 +8,15 @@ use Elgg\Database\Clauses\JoinClause;
 use Elgg\Database\Clauses\MetadataWhereClause;
 use Elgg\Database\Clauses\OrderByClause;
 use Elgg\Database\Clauses\RelationshipWhereClause;
+use Elgg\Exceptions\DataFormatException;
 use Elgg\Exceptions\DomainException;
 use Elgg\UnitTestCase;
 
 class EntitiesUnitTest extends UnitTestCase {
 
 	public function testCanExecuteCount() {
-		$select = Select::fromTable('entities', 'e');
-		$select->select('COUNT(DISTINCT e.guid) AS total');
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("COUNT(DISTINCT {$select->getTableAlias()}.guid) AS total");
 
 		$select->addClause(new AccessWhereClause());
 
@@ -42,25 +43,23 @@ class EntitiesUnitTest extends UnitTestCase {
 		_elgg_services()->db->removeQuerySpec($spec);
 	}
 
-	public function testCanExecuteCountWithBadDataFormat() {
-		$options = [
+	public function testThrowsOnBadDataFormat() {
+		$this->expectException(DataFormatException::class);
+		Entities::find([
 			'count' => true,
 			'guids' => 'abc',
-		];
-
-		$find = Entities::find($options);
-		$this->assertEquals(0, $find);
+		]);
 	}
 
 	public function testCanExecuteGet() {
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
 
 		$select->addClause(new AccessWhereClause());
 
 		$select->setMaxResults(5);
 		$select->setFirstResult(5);
-		$select->addOrderBy('e.guid', 'asc');
+		$select->addOrderBy("{$select->getTableAlias()}.guid", 'asc');
 
 		$rows = $this->getRows(5);
 
@@ -87,21 +86,112 @@ class EntitiesUnitTest extends UnitTestCase {
 
 		_elgg_services()->db->removeQuerySpec($spec);
 	}
-
+	
+	/**
+	 * @dataProvider orderBys
+	 */
+	public function testCanExecuteGetWithCorrectDefaultOrderBy($additional_options, $query_orders) {
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
+		
+		$select->addClause(new AccessWhereClause());
+		
+		foreach ($query_orders as $order_part => $direction) {
+			$select->addOrderBy($order_part, $direction);
+		}
+		
+		$rows = $this->getRows(5);
+		
+		$spec = _elgg_services()->db->addQuerySpec([
+			'sql' => $select->getSQL(),
+			'params' => $select->getParameters(),
+			'results' => $rows,
+		]);
+		
+		$options = [
+			'limit' => false,
+			'callback' => false,
+		];
+		
+		$options = array_merge($options, $additional_options);
+		
+		$find = Entities::find($options);
+		
+		$this->assertEquals($rows, $find);
+		
+		_elgg_services()->db->removeQuerySpec($spec);
+	}
+	
+	public function testCanExecuteGetWithNoOrderByIfUsingSortBy() {
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
+		
+		$select->addClause(new AccessWhereClause());
+		
+		$select->addOrderBy('e.time_created', 'desc');
+		
+		$rows = $this->getRows(5);
+		
+		$spec = _elgg_services()->db->addQuerySpec([
+			'sql' => $select->getSQL(),
+			'params' => $select->getParameters(),
+			'results' => $rows,
+		]);
+		
+		$find = Entities::find([
+			'limit' => false,
+			'callback' => false,
+			'sort_by' => [
+				'property_type' => 'attribute',
+				'property' => 'time_created',
+				'direction' => 'desc',
+			],
+		]);
+		
+		// test default order by is not applied if sort_by is used
+		$this->assertEquals($rows, $find);
+		
+		_elgg_services()->db->removeQuerySpec($spec);
+	}
+	
+	public static function orderBys() {
+		return [
+			// test defaults are applied
+			[
+				[],
+				[
+					EntityTable::DEFAULT_JOIN_ALIAS . '.time_created' => 'desc',
+					EntityTable::DEFAULT_JOIN_ALIAS . '.guid' => 'desc',
+				],
+			],
+			
+			// test no default is applied if order by is disabled
+			[
+				['order_by' => false],
+				[],
+			],
+			// test default only is applied if there is no custom order_by
+			[
+				['order_by' => EntityTable::DEFAULT_JOIN_ALIAS . '.time_created asc'],
+				[EntityTable::DEFAULT_JOIN_ALIAS . '.time_created' => 'asc'],
+			],
+		];
+	}
+	
 	public function testCanExecuteGetWithClauses() {
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
-		$select->addSelect('max(e.time_created) AS newest');
-		$select->groupBy('e.time_created');
-		$select->join('e', 'metadata', 'n_table', 'e.guid = n_table.entity_guid');
-		$alias = $select->joinMetadataTable('e', 'guid', 'status');
-		$select->where($select->compare("$alias.value", 'IN', ['draft'], ELGG_VALUE_STRING));
-		$select->having($select->compare('e.time_updated', 'IS NOT NULL'));
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
+		$select->addSelect("max({$select->getTableAlias()}.time_created) AS newest");
+		$select->groupBy("{$select->getTableAlias()}.time_created");
+		$select->join($select->getTableAlias(), MetadataTable::TABLE_NAME, 'n_table', "{$select->getTableAlias()}.guid = n_table.entity_guid");
+		$alias = $select->joinMetadataTable($select->getTableAlias(), 'guid', 'status');
+		$select->where($select->compare("{$alias}.value", 'IN', ['draft'], ELGG_VALUE_STRING));
+		$select->having($select->compare("{$select->getTableAlias()}.time_updated", 'IS NOT NULL'));
 		$select->addClause(new AccessWhereClause());
 
 		$select->setMaxResults(5);
 		$select->setFirstResult(5);
-		$select->addOrderBy('e.guid', 'asc');
+		$select->addOrderBy("{$select->getTableAlias()}.guid", 'asc');
 
 		$rows = $this->getRows(5);
 
@@ -125,17 +215,17 @@ class EntitiesUnitTest extends UnitTestCase {
 				'e.time_created',
 			],
 			'having' => [
-				function(QueryBuilder $qb) {
-				return $qb->compare('e.time_updated', 'IS NOT NULL');
+				function(QueryBuilder $qb, $main_alias) {
+				return $qb->compare("{$main_alias}.time_updated", 'IS NOT NULL');
 			}
 			],
 			'joins' => [
-				new JoinClause('metadata', 'n_table', 'e.guid = n_table.entity_guid'),
+				new JoinClause(MetadataTable::TABLE_NAME, 'n_table', 'e.guid = n_table.entity_guid'),
 			],
 			'wheres' =>[
-				function(QueryBuilder $qb) {
-					$alias = $qb->joinMetadataTable('e', 'guid', 'status');
-					return $qb->compare("$alias.value", 'IN', ['draft'], ELGG_VALUE_STRING);
+				function(QueryBuilder $qb, $main_alias) {
+					$alias = $qb->joinMetadataTable($main_alias, 'guid', 'status');
+					return $qb->compare("{$alias}.value", 'IN', ['draft'], ELGG_VALUE_STRING);
 				}
 			]
 		];
@@ -149,21 +239,9 @@ class EntitiesUnitTest extends UnitTestCase {
 		_elgg_services()->db->removeQuerySpec($spec);
 	}
 
-	public function testCanExecuteGetWithBadDataFormat() {
-		$options = [
-			'limit' => 5,
-			'offset' => 5,
-			'callback' => false,
-			'guids' => 'abc',
-		];
-
-		$find = Entities::find($options);
-		$this->assertEquals(false, $find);
-	}
-
 	public function testCanExecuteBatchGet() {
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
 
 		$access = new AccessWhereClause();
 		$access_where = $access->prepare($select, 'e');
@@ -171,7 +249,7 @@ class EntitiesUnitTest extends UnitTestCase {
 
 		$select->setMaxResults(5);
 		$select->setFirstResult(5);
-		$select->addOrderBy('e.guid', 'asc');
+		$select->addOrderBy("{$select->getTableAlias()}.guid", 'asc');
 
 		$rows = $this->getRows(5);
 
@@ -209,19 +287,20 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteMetadataCalculation() {
-
 		$metadata_names = ['foo'];
-
-		$select = Select::fromTable('entities', 'e');
-		$select->joinMetadataTable('e', 'guid', $metadata_names, 'inner', 'n_table');
+		
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->joinMetadataTable($select->getTableAlias(), 'guid', $metadata_names, 'inner', 'n_table');
 		$select->select("min(n_table.value) AS calculation");
 
-		$select->addClause(new AccessWhereClause());
+		$wheres = [];
+		$wheres[] = (new AccessWhereClause())->prepare($select, EntityTable::DEFAULT_JOIN_ALIAS);
 
-		$metadata = new MetadataWhereClause();
-		$metadata->names = $metadata_names;
-		$select->addClause($metadata, 'n_table');
+		$metadata = MetadataWhereClause::factory(['names' => $metadata_names]);
+		$wheres[] = $metadata->prepare($select, 'n_table');
 
+		$select->andWhere($select->merge($wheres));
+		
 		$spec = _elgg_services()->db->addQuerySpec([
 			'sql' => $select->getSQL(),
 			'params' => $select->getParameters(),
@@ -247,11 +326,10 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteMetadataCalculationWithoutPropertyType() {
-
 		$metadata_name = 'foo';
-
-		$select = Select::fromTable('entities', 'e');
-		$select->joinMetadataTable('e', 'guid', $metadata_name, 'inner', 'n_table');
+		
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->joinMetadataTable($select->getTableAlias(), 'guid', $metadata_name, 'inner', 'n_table');
 		$select->select("min(n_table.value) AS calculation");
 
 		$select->addClause(new AccessWhereClause());
@@ -274,18 +352,20 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 	
 	public function testCanExecuteAnnotationCalculation() {
-
 		$annotation_names = ['foo'];
+		
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$alias = $select->joinAnnotationTable($select->getTableAlias(), 'guid', $annotation_names, 'inner', AnnotationsTable::DEFAULT_JOIN_ALIAS);
+		$select->select("avg({$alias}.value) AS calculation");
 
-		$select = Select::fromTable('entities', 'e');
-		$select->joinAnnotationTable('e', 'guid', $annotation_names, 'inner', 'n_table');
-		$select->select("avg(n_table.value) AS calculation");
-
-		$select->addClause(new AccessWhereClause());
-
+		$wheres = [];
+		$wheres[] = (new AccessWhereClause())->prepare($select, EntityTable::DEFAULT_JOIN_ALIAS);
+		
 		$annotation = new AnnotationWhereClause();
 		$annotation->names = $annotation_names;
-		$select->addClause($annotation, 'n_table');
+		$wheres[] =  $annotation->prepare($select, $alias);
+		
+		$select->andwhere($select->merge($wheres));
 
 		$spec = _elgg_services()->db->addQuerySpec([
 			'sql' => $select->getSQL(),
@@ -317,9 +397,8 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteAttributeCalculation() {
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select("max(e.guid) AS calculation");
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("max({$select->getTableAlias()}.guid) AS calculation");
 
 		$select->addClause(new AccessWhereClause());
 
@@ -341,9 +420,8 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteAttributeCalculationWithoutPropertyType() {
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select("max(e.guid) AS calculation");
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("max({$select->getTableAlias()}.guid) AS calculation");
 
 		$select->addClause(new AccessWhereClause());
 
@@ -370,7 +448,6 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testThrowsOnMetadataCalculationWithMultipleAndPairs() {
-
 		$options = [
 			'metadata_calculation' => 'min',
 			'metadata_name_value_pairs' => [
@@ -390,7 +467,6 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testThrowsOnAnnotationCalculationWithMultipleAndPairs() {
-
 		$options = [
 			'annotation_calculation' => 'min',
 			'annotation_name_value_pairs' => [
@@ -410,32 +486,37 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteQueryWithMetadataNameValuePairs() {
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
 
 		$wheres = [];
 		
-		$select->addClause(new AccessWhereClause());
+		$wheres[] = (new AccessWhereClause())->prepare($select, EntityTable::DEFAULT_JOIN_ALIAS);
+		
+		$md_wheres = [];
+		
+		$alias1 = $select->joinMetadataTable($select->getTableAlias(), 'guid', ['foo1']);
+		$metadata = MetadataWhereClause::factory([
+			'names' => ['foo1'],
+			'values' => ['bar1'],
+		]);
+		$md_wheres[] = $metadata->prepare($select, $alias1);
 
-		$alias1 = $select->joinMetadataTable('e', 'guid', ['foo1']);
-		$metadata = new MetadataWhereClause();
-		$metadata->names = ['foo1'];
-		$metadata->values = ['bar1'];
-		$wheres[] = $metadata->prepare($select, $alias1);
-
-		$alias2 = $select->joinMetadataTable('e', 'guid', ['foo2']);
-		$metadata = new MetadataWhereClause();
-		$metadata->names = ['foo2'];
-		$metadata->values = ['bar2'];
-		$wheres[] = $metadata->prepare($select, $alias2);
-
+		$alias2 = $select->joinMetadataTable($select->getTableAlias(), 'guid', ['foo2']);
+		$metadata = MetadataWhereClause::factory([
+			'names' => ['foo2'],
+			'values' => ['bar2'],
+		]);
+		$md_wheres[] = $metadata->prepare($select, $alias2);
+		
+		$wheres[] = $select->merge($md_wheres);
+		
 		$select->andWhere($select->merge($wheres));
 
 		$select->setMaxResults(10);
 		$select->setFirstResult(0);
 
-		$select->orderBy('e.guid', 'asc');
+		$select->orderBy("{$select->getTableAlias()}.guid", 'asc');
 
 		$rows = $this->getRows(5);
 		$spec = _elgg_services()->db->addQuerySpec([
@@ -463,32 +544,37 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteQueryWithMetadataNameValuePairsJoinedByOr() {
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
 		
 		$wheres = [];
 		
-		$select->addClause(new AccessWhereClause());
+		$wheres[] = (new AccessWhereClause())->prepare($select, EntityTable::DEFAULT_JOIN_ALIAS);
 
-		$select->joinMetadataTable('e', 'guid', null, 'inner','n_table');
+		$select->joinMetadataTable($select->getTableAlias(), 'guid', null, 'inner','n_table');
+		
+		$md_wheres = [];
+		
+		$metadata = MetadataWhereClause::factory([
+			'names' => ['foo1'],
+			'values' => ['bar1'],
+		]);
+		$md_wheres[] = $metadata->prepare($select, 'n_table');
 
-		$metadata = new MetadataWhereClause();
-		$metadata->names = ['foo1'];
-		$metadata->values = ['bar1'];
-		$wheres[] = $metadata->prepare($select, 'n_table');
+		$metadata = MetadataWhereClause::factory([
+			'names' => ['foo2'],
+			'values' => ['bar2'],
+		]);
+		$md_wheres[] = $metadata->prepare($select, 'n_table');
 
-		$metadata = new MetadataWhereClause();
-		$metadata->names = ['foo2'];
-		$metadata->values = ['bar2'];
-		$wheres[] = $metadata->prepare($select, 'n_table');
-
-		$select->andWhere($select->merge($wheres, 'OR'));
+		$wheres[] = $select->merge($md_wheres, 'OR');
+		
+		$select->andWhere($select->merge($wheres));
 
 		$select->setMaxResults(10);
 		$select->setFirstResult(0);
 
-		$select->orderBy('e.guid', 'asc');
+		$select->orderBy("{$select->getTableAlias()}.guid", 'asc');
 
 		$rows = $this->getRows(5);
 		$spec = _elgg_services()->db->addQuerySpec([
@@ -517,32 +603,35 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteQueryWithAnnotationNameValuePairs() {
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
 
 		$wheres = [];
 		
-		$select->addClause(new AccessWhereClause());
+		$wheres[] = (new AccessWhereClause())->prepare($select, EntityTable::DEFAULT_JOIN_ALIAS);
+		
+		$an_wheres = [];
 
-		$alias1 = $select->joinAnnotationTable('e', 'guid', ['foo1']);
+		$alias1 = $select->joinAnnotationTable($select->getTableAlias(), 'guid', ['foo1']);
 		$annotation = new AnnotationWhereClause();
 		$annotation->names = ['foo1'];
 		$annotation->values = ['bar1'];
-		$wheres[] = $annotation->prepare($select, $alias1);
+		$an_wheres[] = $annotation->prepare($select, $alias1);
 
-		$alias2 = $select->joinAnnotationTable('e', 'guid', ['foo2']);
+		$alias2 = $select->joinAnnotationTable($select->getTableAlias(), 'guid', ['foo2']);
 		$annotation = new AnnotationWhereClause();
 		$annotation->names = ['foo2'];
 		$annotation->values = ['bar2'];
-		$wheres[] = $annotation->prepare($select, $alias2);
+		$an_wheres[] = $annotation->prepare($select, $alias2);
 
+		$wheres[] = $select->merge($an_wheres);
+		
 		$select->andWhere($select->merge($wheres));
 
 		$select->setMaxResults(10);
 		$select->setFirstResult(0);
 
-		$select->orderBy('e.guid', 'asc');
+		$select->orderBy("{$select->getTableAlias()}.guid", 'asc');
 
 		$rows = $this->getRows(5);
 		$spec = _elgg_services()->db->addQuerySpec([
@@ -570,32 +659,35 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteQueryWithAnnotationNameValuePairsJoinedByOr() {
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
 		
 		$wheres = [];
 		
-		$select->addClause(new AccessWhereClause());
+		$wheres[] = (new AccessWhereClause())->prepare($select, EntityTable::DEFAULT_JOIN_ALIAS);
+		
+		$an_wheres = [];
 
-		$select->joinAnnotationTable('e', 'guid', null, 'inner','n_table');
+		$alias = $select->joinAnnotationTable($select->getTableAlias(), 'guid', null, 'inner', AnnotationsTable::DEFAULT_JOIN_ALIAS);
 
 		$annotation = new AnnotationWhereClause();
 		$annotation->names = ['foo1'];
 		$annotation->values = ['bar1'];
-		$wheres[] = $annotation->prepare($select, 'n_table');
+		$an_wheres[] = $annotation->prepare($select, $alias);
 
 		$annotation = new AnnotationWhereClause();
 		$annotation->names = ['foo2'];
 		$annotation->values = ['bar2'];
-		$wheres[] = $annotation->prepare($select, 'n_table');
+		$an_wheres[] = $annotation->prepare($select, $alias);
 
-		$select->andWhere($select->merge($wheres, 'OR'));
+		$wheres[] = $select->merge($an_wheres, 'OR');
+		
+		$select->andWhere($select->merge($wheres));
 
 		$select->setMaxResults(10);
 		$select->setFirstResult(0);
 
-		$select->orderBy('e.guid', 'asc');
+		$select->orderBy("{$select->getTableAlias()}.guid", 'asc');
 
 		$rows = $this->getRows(5);
 		$spec = _elgg_services()->db->addQuerySpec([
@@ -624,32 +716,37 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteQueryWithRelationshipPairs() {
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
 		
 		$wheres = [];
 		
-		$select->addClause(new AccessWhereClause());
+		$wheres[] = (new AccessWhereClause())->prepare($select, EntityTable::DEFAULT_JOIN_ALIAS);
+		
+		$r_wheres = [];
 
-		$alias1 = $select->joinRelationshipTable('e', 'guid', ['foo1']);
-		$rel1 = new RelationshipWhereClause();
-		$rel1->names = ['foo1'];
-		$rel1->subject_guids = [1, 2, 3];
-		$wheres[] = $rel1->prepare($select, $alias1);
+		$alias1 = $select->joinRelationshipTable($select->getTableAlias(), 'guid', ['foo1']);
+		$rel1 = RelationshipWhereClause::factory([
+			'names' => ['foo1'],
+			'guid_one' => [1, 2, 3],
+		]);
+		$r_wheres[] = $rel1->prepare($select, $alias1);
 
-		$alias2 = $select->joinRelationshipTable('e', 'guid', ['foo2'], true);
-		$rel2 = new RelationshipWhereClause();
-		$rel2->names = ['foo2'];
-		$rel2->object_guids = [4, 5, 6];
-		$wheres[] = $rel2->prepare($select, $alias2);
-
-		$select->andWhere($select->expr()->andX()->addMultiple($wheres));
+		$alias2 = $select->joinRelationshipTable($select->getTableAlias(), 'guid', ['foo2'], true);
+		$rel2 = RelationshipWhereClause::factory([
+			'names' => ['foo2'],
+			'guid_two' => [4, 5, 6],
+		]);
+		$r_wheres[] = $rel2->prepare($select, $alias2);
+		
+		$wheres[] = $select->merge($r_wheres);
+		
+		$select->andWhere($select->merge($wheres));
 
 		$select->setMaxResults(10);
 		$select->setFirstResult(0);
 
-		$select->orderBy('e.guid', 'asc');
+		$select->orderBy("{$select->getTableAlias()}.guid", 'asc');
 
 		$rows = $this->getRows(5);
 		$spec = _elgg_services()->db->addQuerySpec([
@@ -684,27 +781,27 @@ class EntitiesUnitTest extends UnitTestCase {
 	}
 
 	public function testCanExecuteQueryWithRelationship() {
-
-		$select = Select::fromTable('entities', 'e');
-		$select->select('DISTINCT e.*');
-
+		$select = Select::fromTable(EntityTable::TABLE_NAME, EntityTable::DEFAULT_JOIN_ALIAS);
+		$select->select("DISTINCT {$select->getTableAlias()}.*");
+		
 		$wheres = [];
 		
-		$select->addClause(new AccessWhereClause());
+		$wheres[] = (new AccessWhereClause())->prepare($select, EntityTable::DEFAULT_JOIN_ALIAS);
+		
+		$select->joinRelationshipTable($select->getTableAlias(), 'guid', null, false, 'inner','r');
 
-		$select->joinRelationshipTable('e', 'guid', null, false, 'inner','r');
-
-		$rel = new RelationshipWhereClause();
-		$rel->names = ['foo1'];
-		$rel->subject_guids = [1, 2, 3];
+		$rel = RelationshipWhereClause::factory([
+			'names' => ['foo1'],
+			'guid_one' => [1, 2, 3],
+		]);
 		$wheres[] = $rel->prepare($select, 'r');
 
-		$select->andWhere($select->merge($wheres, 'OR'));
+		$select->andWhere($select->merge($wheres));
 
 		$select->setMaxResults(10);
 		$select->setFirstResult(0);
 
-		$select->orderBy('e.guid', 'asc');
+		$select->orderBy("{$select->getTableAlias()}.guid", 'asc');
 
 		$rows = $this->getRows(5);
 		$spec = _elgg_services()->db->addQuerySpec([

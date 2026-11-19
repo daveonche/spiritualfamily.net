@@ -168,7 +168,7 @@ class HeaderUtils
     public static function makeDisposition(string $disposition, string $filename, string $filenameFallback = ''): string
     {
         if (!\in_array($disposition, [self::DISPOSITION_ATTACHMENT, self::DISPOSITION_INLINE])) {
-            throw new \InvalidArgumentException(sprintf('The disposition must be either "%s" or "%s".', self::DISPOSITION_ATTACHMENT, self::DISPOSITION_INLINE));
+            throw new \InvalidArgumentException(\sprintf('The disposition must be either "%s" or "%s".', self::DISPOSITION_ATTACHMENT, self::DISPOSITION_INLINE));
         }
 
         if ('' === $filenameFallback) {
@@ -176,7 +176,7 @@ class HeaderUtils
         }
 
         // filenameFallback is not ASCII.
-        if (!preg_match('/^[\x20-\x7e]*$/', $filenameFallback)) {
+        if (!preg_match('/^[\x20-\x7e]*$/D', $filenameFallback)) {
             throw new \InvalidArgumentException('The filename fallback must only contain ASCII characters.');
         }
 
@@ -241,7 +241,7 @@ class HeaderUtils
             return $q;
         }
 
-        parse_str(implode('&', $q), $q);
+        @parse_str(implode('&', $q), $q);
 
         $query = [];
 

@@ -2,6 +2,7 @@
 
 namespace Elgg\Upgrades;
 
+use Elgg\Database\EntityTable;
 use Elgg\Database\QueryBuilder;
 use Elgg\Notifications\SubscriptionsService;
 use Elgg\Upgrade\AsynchronousUpgrade;
@@ -75,8 +76,7 @@ class ContentOwnerSubscriptions extends AsynchronousUpgrade {
 			}
 			
 			// get user preferences
-			$content_preferences = $owner->getNotificationSettings('content_create');
-			$enabled_methods = array_keys(array_filter($content_preferences));
+			$enabled_methods = $owner->getNotificationSettings('content_create', true);
 			if (empty($enabled_methods)) {
 				$process_entity($entity);
 				continue;
@@ -117,7 +117,7 @@ class ContentOwnerSubscriptions extends AsynchronousUpgrade {
 			'preload_owners' => true,
 			'wheres' => [
 				function (QueryBuilder $qb, $main_alias) {
-					$owner_guids = $qb->subquery('entities');
+					$owner_guids = $qb->subquery(EntityTable::TABLE_NAME);
 					$owner_guids->select('guid')
 						->andWhere($qb->compare('type', '=', 'user', ELGG_VALUE_STRING));
 					

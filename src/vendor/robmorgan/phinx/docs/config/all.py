@@ -8,7 +8,7 @@
 from cakephpsphinx.config.all import *
 
 # The full version, including alpha/beta/rc tags.
-release = '0.12.x'
+release = '0.16.x'
 
 # The search index version.
 search_version = 'phinx-0'
@@ -21,7 +21,7 @@ project = 'Phinx'
 
 # Other versions that display in the version picker menu.
 version_list = [
-    {'name': '0.12', 'number': '/phinx/0', 'title': '0.12', 'current': True},
+    {'name': '0.16', 'number': '/phinx/0', 'title': '0.16', 'current': True},
 ]
 
 # Languages available.
@@ -29,10 +29,10 @@ languages = ['en']
 
 # The GitHub branch name for this version of the docs
 # for edit links to point at.
-branch = 'master'
+branch = '0.x'
 
 # Current version being built
-version = '0.12'
+version = '0.16'
 
 show_root_link = True
 

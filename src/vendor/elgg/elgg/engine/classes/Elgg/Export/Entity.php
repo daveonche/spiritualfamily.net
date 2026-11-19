@@ -20,7 +20,7 @@ use Elgg\Values;
 class Entity extends Data {
 
 	/**
-	 * Get updated tme
+	 * Get updated time
 	 *
 	 * @return DateTime|null
 	 */

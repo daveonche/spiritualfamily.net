@@ -26,21 +26,16 @@ function elgg_push_breadcrumb(string $text, string|false $href = false): void {
 /**
  * Resolves and pushes entity breadcrumbs based on named routes
  *
- * @param \ElggEntity $entity    Entity
- * @param bool        $link_self (deprecated) Add a link to the entity
+ * @param \ElggEntity $entity Entity
  *
  * @return void
  */
-function elgg_push_entity_breadcrumbs(\ElggEntity $entity, bool $link_self = null): void {
+function elgg_push_entity_breadcrumbs(\ElggEntity $entity): void {
 
 	elgg_push_collection_breadcrumbs($entity->type, $entity->subtype, $entity->getContainerEntity());
 
-	if (isset($link_self)) {
-		elgg_deprecated_notice('Using link_self argument is deprecated. A link to self will always be added if not on the "view" route of the entity.', '5.1');
-	} else {
-		$link_self = elgg_get_current_route_name() !== "view:{$entity->type}:{$entity->subtype}";
-	}
-	
+	$link_self = elgg_get_current_route_name() !== "view:{$entity->type}:{$entity->subtype}";
+	$link_self = $link_self && !elgg_http_url_is_identical(elgg_get_current_url(), $entity->getURL());
 	if ($link_self) {
 		elgg_register_menu_item('breadcrumbs', [
 			'name' => 'entity',
@@ -60,7 +55,7 @@ function elgg_push_entity_breadcrumbs(\ElggEntity $entity, bool $link_self = nul
  *
  * @return void
  */
-function elgg_push_collection_breadcrumbs(string $entity_type, string $entity_subtype, \ElggEntity $container = null, bool $friends = false): void {
+function elgg_push_collection_breadcrumbs(string $entity_type, string $entity_subtype, ?\ElggEntity $container = null, bool $friends = false): void {
 	
 	if ($container) {
 		if (!$container instanceof \ElggSite && $entity_type !== 'group') {

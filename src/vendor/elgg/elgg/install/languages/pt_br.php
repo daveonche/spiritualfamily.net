@@ -15,15 +15,15 @@ return array(
 	'install:complete' => 'Finalizado',
 
 	'install:next' => 'Proximo',
-	'install:refresh' => 'Atualiza',
-	'install:change_language' => 'Mudar idioma',
+	'install:refresh' => 'Atualizar',
+	'install:change_language' => 'Alterar Idioma',
 
 	'install:welcome:instructions' => "A Instalação do Elgg tem 6 etapas simples. Esta é a primeira delas!
 Se você ainda não fez, leia as instruções de instalação inclusas no Elgg (ou clique no botão de link para instruções na parte inferior da página)
 Se você já está pronto para iniciar, clique no botão Próximo.",
 	
 	'install:footer:instructions' => "Instruções de instalação",
-	'install:footer:troubleshooting' => "Solução de problemas de instalação",
+	'install:footer:troubleshooting' => "Solução de problemas da instalação",
 	'install:footer:community' => "Fóruns da Comunidade Elgg",
 	
 	'install:requirements:instructions:success' => "Seu servidor passou na verificacao de requisitos.",
@@ -122,7 +122,6 @@ Se você já está pronto para iniciar, clique no botão Próximo.",
 	'install:error:settings' => 'Não foi possivel criar o arquivo de configurações <i>(settings file)</i>',
 	'install:error:databasesettings' => 'Não foi possivel conectar ao banco de dados com estas configurações.',
 	'install:error:database_prefix' => 'Caracteres invalidos no prefixo da base de dados (database prefix)',
-	'install:error:oldmysql2' => 'MySQL deve ser da versao 5.5.3 ou superior. Seu servidor está usando %s.',
 	'install:error:mysql_version' => 'A versão do MySQL deve ser %s ou superior. Seu servidor usa a versão %s.',
 	'install:error:database_version' => 'A versão do do banco de dados deve ser a %s ou superior. Seu servidor está usando a versão %s.',
 	'install:error:nodatabase' => 'Não foi possivel usar o banco de dados %s. Ele pode não existir.',

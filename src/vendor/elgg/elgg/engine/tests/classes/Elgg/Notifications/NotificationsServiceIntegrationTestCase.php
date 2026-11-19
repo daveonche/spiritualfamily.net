@@ -113,12 +113,17 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 			case \ElggRelationship::class :
 				$object = $this->createObject();
 				$user = $this->actor;
-				$rel_id = _elgg_services()->relationshipsTable->add($object->guid, 'test_relationship', $user->guid, true);
-				if (empty($rel_id)) {
+				
+				$rel = new \ElggRelationship();
+				$rel->guid_one = $object->guid;
+				$rel->relationship = 'test_relationship';
+				$rel->guid_two = $user->guid;
+				
+				if (!$rel->save()) {
 					break;
 				}
 
-				return elgg_get_relationship($rel_id);
+				return $rel;
 		}
 
 		throw new Exception("Test object not found for {$this->test_object_class} class");
@@ -279,7 +284,7 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(EventsService::class, ['trigger']);
 		$mock->expects($this->once())
 			->method('triggerResults')
-			->will($this->returnValue(false));
+			->willReturn(false);
 
 		$this->events = $mock;
 
@@ -305,7 +310,7 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(SubscriptionsService::class, ['getNotificationEventSubscriptions'], [], '', false);
 		$mock->expects($this->exactly(3))
 			->method('getNotificationEventSubscriptions')
-			->will($this->returnValue([]));
+			->willReturn([]);
 
 		_elgg_services()->subscriptions = $mock;
 
@@ -336,8 +341,8 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(SubscriptionsService::class, ['getNotificationEventSubscriptions'], [], '', false);
 		$mock->expects($this->exactly(0))
 			->method('getNotificationEventSubscriptions')
-			->will($this->returnValue([]));
-
+			->willReturn([]);
+		
 		_elgg_services()->subscriptions = $mock;
 
 		$this->setupServices();
@@ -376,12 +381,12 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(SubscriptionsService::class, ['getNotificationEventSubscriptions'], [], '', false);
 		$mock->expects($this->exactly(0))
 			->method('getNotificationEventSubscriptions')
-			->will($this->returnValue([
+			->willReturn([
 				$recipient->guid => [
 					'test_method',
 					'bad_method'
 				],
-			]));
+			]);
 
 		_elgg_services()->subscriptions = $mock;
 
@@ -430,10 +435,10 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(SubscriptionsService::class, ['getNotificationEventSubscriptions'], [], '', false);
 		$mock->expects($this->exactly(1))
 			->method('getNotificationEventSubscriptions')
-			->will($this->returnValue($subscribers));
+			->willReturn($subscribers);
 		$mock->expects($this->exactly(1))
 			->method('filterSubscriptions')
-			->will($this->returnValue($subscribers));
+			->willReturn($subscribers);
 
 		_elgg_services()->subscriptions = $mock;
 
@@ -487,20 +492,20 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(SubscriptionsService::class, ['getNotificationEventSubscriptions'], [], '', false);
 		$mock->expects($this->exactly(1))
 			->method('getNotificationEventSubscriptions')
-			->will($this->returnValue([
+			->willReturn([
 				$recipient->guid => [
 					'test_method',
 					'bad_method'
 				],
-			]));
+			]);
 		$mock->expects($this->exactly(1))
 			->method('filterSubscriptions')
-			->will($this->returnValue([
+			->willReturn([
 				$recipient->guid => [
 					'test_method',
 					'bad_method'
 				],
-			]));
+			]);
 
 		_elgg_services()->subscriptions = $mock;
 
@@ -535,7 +540,7 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$event = $this->queue->dequeue();
 		$this->assertInstanceOf(SubscriptionNotificationEvent::class, $event);
 		$this->assertEquals(elgg_get_logged_in_user_entity(), $event->getActor());
-		$this->assertEquals($object, $event->getObject());
+		$this->assertElggDataEquals($object, $event->getObject());
 		$this->assertEquals("test_event:{$object->getType()}:{$object->getSubtype()}", $event->getDescription());
 
 		$this->notifications->enqueueEvent('test_event', $object);
@@ -572,20 +577,20 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(SubscriptionsService::class, ['getNotificationEventSubscriptions'], [], '', false);
 		$mock->expects($this->exactly(1))
 			->method('getNotificationEventSubscriptions')
-			->will($this->returnValue([
+			->willReturn([
 				$recipient->guid => [
 					'test_method',
 					'bad_method'
 				],
-			]));
+			]);
 		$mock->expects($this->exactly(1))
 			->method('filterSubscriptions')
-			->will($this->returnValue([
+			->willReturn([
 				$recipient->guid => [
 					'test_method',
 					'bad_method'
 				],
-			]));
+			]);
 			
 		_elgg_services()->subscriptions = $mock;
 
@@ -657,13 +662,12 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(SubscriptionsService::class, ['getNotificationEventSubscriptions'], [], '', false);
 		$mock->expects($this->exactly(1))
 			->method('getNotificationEventSubscriptions')
-			->will($this->returnValue([
-					$recipient->guid => [
-						'test_method',
-						'bad_method'
-					],
-				]
-			));
+			->willReturn([
+				$recipient->guid => [
+					'test_method',
+					'bad_method'
+				],
+			]);
 
 		_elgg_services()->subscriptions = $mock;
 
@@ -725,7 +729,7 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(SubscriptionsService::class, ['getNotificationEventSubscriptions'], [], '', false);
 		$mock->expects($this->exactly(0))
 			->method('getNotificationEventSubscriptions')
-			->will($this->returnValue([]));
+			->willReturn([]);
 
 		_elgg_services()->subscriptions = $mock;
 
@@ -757,7 +761,7 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 		$mock = $this->createMock(SubscriptionsService::class, ['getNotificationEventSubscriptions'], [], '', false);
 		$mock->expects($this->exactly(0))
 			->method('getNotificationEventSubscriptions')
-			->will($this->returnValue([]));
+			->willReturn([]);
 
 		_elgg_services()->subscriptions = $mock;
 
@@ -778,6 +782,7 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 	}
 
 	public function testCanNotifyUser() {
+		_elgg_services()->logger->disable();
 
 		$object = $this->getTestObject();
 
@@ -869,6 +874,7 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 	}
 
 	public function testCanNotifyUserWithoutAnObject() {
+		_elgg_services()->logger->disable();
 
 		$from = $this->createUser();
 		$to1 = $this->createUser();
@@ -952,6 +958,7 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 	}
 
 	public function testCanUseEventsBeforeAndAfterInstantNotificationsQueue() {
+		_elgg_services()->logger->disable();
 
 		$object = $this->getTestObject();
 
@@ -1008,6 +1015,7 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 	}
 
 	public function testCanNotifyUserViaCustomMethods() {
+		_elgg_services()->logger->disable();
 		
 		$from = $this->createUser();
 		$to1 = $this->createUser();
@@ -1046,5 +1054,86 @@ abstract class NotificationsServiceIntegrationTestCase extends IntegrationTestCa
 			$to2->guid,
 			0
 		], $from->guid, $subject, $body, [], 'test_method2'));
+	}
+	
+	public function testCanElggNotifyUser() {
+		$object = $this->getTestObject();
+		
+		$from = $this->createUser();
+		$to1 = $this->createUser();
+		$to1->setNotificationSetting('test_method', true);
+		
+		$subject = 'Test message';
+		$body = 'Lorem ipsum';
+		
+		$event = new InstantNotificationEvent($object, 'elgg_notify_user', $from);
+		
+		$this->events->registerHandler('prepare', 'notification', function (\Elgg\Event $event) {
+			$notification = $event->getValue();
+			$notification->prepare_hook = true;
+			
+			return $notification;
+		});
+		
+		$this->events->registerHandler('prepare', "notification:{$event->getDescription()}", function (\Elgg\Event $event) {
+			$notification = $event->getValue();
+			$notification->granular_prepare_hook = true;
+			
+			return $notification;
+		});
+		
+		$this->events->registerHandler('format', 'notification:test_method', function (\Elgg\Event $event) {
+			$notification = $event->getValue();
+			$notification->format_hook = true;
+			
+			return $notification;
+		});
+		
+		$sent = 0;
+		$this->events->registerHandler('send', 'notification:test_method', function (\Elgg\Event $elgg_event) use (&$sent, $subject, $body, $event) {
+			$sent++;
+			$notification = $elgg_event->getParam('notification');
+			
+			$this->assertInstanceOf(Notification::class, $notification);
+			$this->assertEquals($notification->subject, $subject);
+			$this->assertStringContainsString($body, $notification->body);
+			$this->assertEquals($notification->summary, $subject);
+			$this->assertEquals($event->toObject(), $elgg_event->getParam('event')->toObject());
+			
+			$this->assertTrue($notification->prepare_hook);
+			$this->assertTrue($notification->granular_prepare_hook);
+			$this->assertTrue($notification->format_hook);
+			
+			return true;
+		});
+		
+		$this->setupServices();
+		
+		$this->notifications->registerMethod('test_method');
+		$this->notifications->registerEvent($object->getType(), $object->getSubtype(), ['elgg_notify_user'], InstantNotificationEventHandler::class);
+		
+		$expected = [
+			$to1->guid => [
+				'test_method' => true,
+			]
+		];
+		
+		$this->assertEquals($expected, elgg_notify_user($to1, 'elgg_notify_user', $object, [
+			'subject' => $subject,
+			'summary' => $subject,
+			'body' => $body,
+		], $from));
+		
+		$this->assertEquals(1, $sent);
+		
+		$sent = 0;
+		
+		$this->assertEquals($expected, $to1->notify('elgg_notify_user', $object, [
+			'subject' => $subject,
+			'summary' => $subject,
+			'body' => $body,
+		], $from));
+		
+		$this->assertEquals(1, $sent);
 	}
 }

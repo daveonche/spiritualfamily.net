@@ -1,31 +1,25 @@
 <?php
 
+use Elgg\Application;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LogLevel;
+use Symfony\Component\Console\Output\OutputInterface;
 
 return [
-	'autoloadManager' => DI\autowire(\Elgg\AutoloadManager::class)->constructorParameter('cache', DI\get('localFileCache')),
-	'accessCache' => DI\factory(function (ContainerInterface $c) {
-		return $c->sessionCache->access;
-    }),
-	'accessCollections' => DI\autowire(\Elgg\Database\AccessCollections::class)->constructorParameter('cache', DI\get('accessCache')),
+	'autoloadCache' => DI\autowire(\Elgg\Cache\AutoloadCache::class),
+	'autoloadManager' => DI\autowire(\Elgg\AutoloadManager::class),
+	'accessCache' => DI\autowire(\Elgg\Cache\AccessCache::class),
+	'accessCollections' => DI\autowire(\Elgg\Database\AccessCollections::class),
 	'actions' => DI\autowire(\Elgg\ActionsService::class),
 	'accounts' => DI\autowire(\Elgg\Users\Accounts::class),
 	'adminNotices' => DI\autowire(\Elgg\Database\AdminNotices::class),
 	'ajax' => DI\autowire(\Elgg\Ajax\Service::class),
-	'amdConfig' => DI\factory(function (ContainerInterface $c) {
-		$obj = new \Elgg\Amd\Config($c->events);
-		$obj->setBaseUrl($c->simpleCache->getRoot());
-		return $obj;
-	}),
 	'annotationsTable' => DI\autowire(\Elgg\Database\AnnotationsTable::class),
 	'apiUsersTable' => DI\autowire(\Elgg\Database\ApiUsersTable::class),
 	'authentication' => DI\autowire(\Elgg\AuthenticationService::class),
 	'autoParagraph' => DI\autowire(\Elgg\Views\AutoParagraph::class),
-	'boot' => DI\autowire(\Elgg\BootService::class)->constructorParameter('cache', DI\get('bootCache')),
-	'bootCache' => DI\factory(function (ContainerInterface $c) {
-		$flags = ELGG_CACHE_PERSISTENT | ELGG_CACHE_FILESYSTEM | ELGG_CACHE_RUNTIME;
-		return new \Elgg\Cache\CompositeCache('elgg_boot', $c->config, $flags);
-    }),
+	'boot' => DI\autowire(\Elgg\BootService::class),
+	'bootCache' => DI\autowire(\Elgg\Cache\BootCache::class),
 	'cacheHandler' => DI\autowire(\Elgg\Application\CacheHandler::class),
 	'cssCompiler' => DI\autowire(\Elgg\Assets\CssCompiler::class),
 	'csrf' => DI\autowire(\Elgg\Security\Csrf::class),
@@ -33,38 +27,32 @@ return [
 	'cli' => DI\autowire(\Elgg\Cli::class)->constructorParameter('input', DI\get('cli_input'))->constructorParameter('output', DI\get('cli_output')),
 	'cli_input' => DI\factory(function (ContainerInterface $c) {
 		return \Elgg\Application::getStdIn();
-    }),
+	}),
 	'cli_output' => DI\factory(function (ContainerInterface $c) {
 		return \Elgg\Application::getStdOut();
-    }),
+	}),
 	'cli_progress' => DI\autowire(\Elgg\Cli\Progress::class)->constructorParameter('output', DI\get('cli_output')),
 	// the 'config' service is available but is set as part of the construction of the application
 	'configTable' => DI\autowire(\Elgg\Database\ConfigTable::class),
 	'cron' => DI\autowire(\Elgg\Cron::class),
 	'crypto' => DI\autowire(\Elgg\Security\Crypto::class),
-	'dataCache' => DI\autowire(\Elgg\Cache\DataCache::class),
 	'db' => DI\autowire(\Elgg\Database::class),
 	// the 'dbConfig' service is available but is set as part of the construction of the application
 	'delayedEmailQueueTable' => DI\autowire(\Elgg\Database\DelayedEmailQueueTable::class),
 	'delayedEmailService' => DI\autowire(\Elgg\Email\DelayedEmailService::class),
 	'emails' => DI\autowire(\Elgg\EmailService::class)->constructorParameter('mailer', DI\get('mailer')),
-	'entityCache' => DI\factory(function (ContainerInterface $c) {
-		return new \Elgg\Cache\EntityCache($c->sessionCache->entities);
-    }),
+	'entityCache' => DI\autowire(\Elgg\Cache\EntityCache::class),
 	'entity_capabilities' => DI\autowire(\Elgg\EntityCapabilitiesService::class),
 	'entityPreloader' => DI\autowire(\Elgg\EntityPreloader::class),
 	'entityTable' => DI\autowire(\Elgg\Database\EntityTable::class),
+	'esm' => DI\autowire(\Elgg\Javascript\ESMService::class),
 	'events' => DI\autowire(\Elgg\EventsService::class),
-	'externalFiles' => DI\autowire(\Elgg\Assets\ExternalFiles::class)->constructorParameter('serverCache', DI\get('serverCache')),
+	'externalFiles' => DI\autowire(\Elgg\Assets\ExternalFiles::class),
 	'fields' => DI\autowire(\Elgg\Forms\FieldsService::class),
 	'forms' => DI\autowire(\Elgg\FormsService::class),
-	'fileCache' => DI\factory(function (ContainerInterface $c) {
-		$flags = ELGG_CACHE_PERSISTENT | ELGG_CACHE_FILESYSTEM | ELGG_CACHE_RUNTIME;
-		return new \Elgg\Cache\CompositeCache('elgg_system_cache', $c->config, $flags);
-    }),
 	'filestore' => DI\factory(function (ContainerInterface $c) {
 		return new \Elgg\Filesystem\Filestore\DiskFilestore($c->config->dataroot);
-    }),
+	}),
 	'gatekeeper' => DI\autowire(\Elgg\Gatekeeper::class),
 	'group_tools' => DI\autowire(\Elgg\Groups\Tools::class),
 	'handlers' => DI\autowire(\Elgg\HandlersService::class),
@@ -74,19 +62,36 @@ return [
 	'iconService' => DI\autowire(\Elgg\EntityIconService::class),
 	'imageFetcher' => DI\autowire(\Elgg\Assets\ImageFetcherService::class),
 	'imageService' => DI\autowire(\Elgg\ImageService::class),
-	'invoker' => DI\autowire(\Elgg\Invoker::class)->constructorParameter('dic', function() { return elgg(); }),
+	'invoker' => DI\autowire(\Elgg\Invoker::class)->constructorParameter('dic', function() {
+		return elgg();
+	}),
 	'locale' => DI\autowire(\Elgg\I18n\LocaleService::class),
-	'localFileCache' => DI\factory(function (ContainerInterface $c) {
-		$flags = ELGG_CACHE_LOCALFILESYSTEM | ELGG_CACHE_RUNTIME;
-		return new \Elgg\Cache\CompositeCache('elgg_local_system_cache', $c->config, $flags);
-    }),
 	'logger' => DI\factory(function (ContainerInterface $c) {
 		$logger = \Elgg\Logger::factory($c->cli_input, $c->cli_output);
 
-		$logger->setLevel($c->config->debug);
+		if (Application::isCli()) {
+			switch ($c->cli_output->getVerbosity()) {
+				case OutputInterface::VERBOSITY_VERBOSE:
+					$logger->setLevel(LogLevel::WARNING);
+					break;
+				case OutputInterface::VERBOSITY_VERY_VERBOSE:
+					$logger->setLevel(LogLevel::NOTICE);
+					break;
+				case OutputInterface::VERBOSITY_DEBUG:
+					$logger->setLevel(LogLevel::DEBUG);
+					break;
+				case OutputInterface::VERBOSITY_QUIET:
+				case OutputInterface::VERBOSITY_NORMAL:
+				default:
+					$logger->setLevel(LogLevel::ERROR);
+					break;
+			}
+		} else {
+			$logger->setLevel($c->config->debug);
+		}
 
 		return $logger;
-    }),
+	}),
 	'mailer' => DI\factory(function (ContainerInterface $c) {
 		switch ($c->config->emailer_transport) {
 			case 'smtp':
@@ -99,12 +104,9 @@ return [
 			default:
 				return new \Laminas\Mail\Transport\Sendmail($c->config->emailer_sendmail_settings);
 		}
-    }),
+	}),
 	'menus' => DI\autowire(\Elgg\Menu\Service::class),
-	'metadataCache' => DI\factory(function (ContainerInterface $c) {
-		$cache = $c->dataCache->metadata;
-		return new \Elgg\Cache\MetadataCache($cache);
-    }),
+	'metadataCache' => DI\autowire(\Elgg\Cache\MetadataCache::class),
 	'metadataTable' => DI\autowire(\Elgg\Database\MetadataTable::class),
 	'mimetype' => DI\autowire(\Elgg\Filesystem\MimeTypeService::class),
 	'mutex' => DI\autowire(\Elgg\Database\Mutex::class),
@@ -114,15 +116,10 @@ return [
 	'passwords' => DI\autowire(\Elgg\PasswordService::class),
 	'passwordGenerator' => DI\autowire(\Elgg\Security\PasswordGeneratorService::class),
 	'persistentLogin' => DI\autowire(\Elgg\PersistentLoginService::class),
-	'plugins' => DI\autowire(\Elgg\Database\Plugins::class)->constructorParameter('cache', DI\get('pluginsCache')),
-	'pluginsCache' => DI\factory(function (ContainerInterface $c) {
-		return new \Elgg\Cache\CompositeCache('plugins', $c->config, ELGG_CACHE_RUNTIME);
-    }),
+	'plugins' => DI\autowire(\Elgg\Database\Plugins::class),
+	'pluginsCache' => DI\autowire(\Elgg\Cache\PluginsCache::class),
 	'publicDb' => DI\autowire(\Elgg\Application\Database::class),
-	'queryCache' => DI\factory(function (ContainerInterface $c) {
-		$config_disabled = $c->config->db_disable_query_cache === true;
-		return new \Elgg\Cache\QueryCache($c->config->db_query_cache_limit, $config_disabled);
-    }),
+	'queryCache' => DI\autowire(\Elgg\Cache\QueryCache::class),
 	'redirects' => DI\autowire(\Elgg\RedirectService::class),
 	'relationshipsTable' => DI\autowire(\Elgg\Database\RelationshipsTable::class),
 	'request' => DI\factory(function (ContainerInterface $c) {
@@ -137,11 +134,11 @@ return [
 		}
 		
 		return $request;
-    }),
+	}),
 	'requestContext' => DI\factory(function (ContainerInterface $c) {
 		$context = new \Elgg\Router\RequestContext();
 		return $context->fromRequest($c->request);
-    }),
+	}),
 	'responseFactory' => DI\autowire(\Elgg\Http\ResponseFactory::class),
 	'riverTable' => DI\autowire(\Elgg\Database\RiverTable::class),
 	'routeCollection' => DI\autowire(\Elgg\Router\RouteCollection::class),
@@ -150,16 +147,15 @@ return [
 	'search' => DI\autowire(\Elgg\Search\SearchService::class),
 	'seeder' => DI\autowire(\Elgg\Database\Seeder::class),
 	'serveFileHandler' => DI\autowire(\Elgg\Application\ServeFileHandler::class),
+	'serverCache' => DI\autowire(\Elgg\Cache\ServerCache::class),
 	'session' => DI\factory(function (ContainerInterface $c) {
-        return \ElggSession::fromDatabase($c->config, $c->db);
-    }),
-	'sessionCache' => DI\autowire(\Elgg\Cache\SessionCache::class),
+		return \ElggSession::fromDatabase($c->config, $c->db);
+	}),
 	'session_manager' => DI\autowire(\Elgg\SessionManagerService::class),
 	'simpleCache' => DI\autowire(\Elgg\Cache\SimpleCache::class),
 	'siteSecret' => DI\autowire(\Elgg\Security\SiteSecret::class),
 	'stickyForms' => DI\autowire(\Elgg\Forms\StickyForms::class),
-	'systemCache' => DI\autowire(\Elgg\Cache\SystemCache::class)->constructorParameter('cache', DI\get('fileCache')),
-	'serverCache' => DI\autowire(\Elgg\Cache\SystemCache::class)->constructorParameter('cache', DI\get('localFileCache')),
+	'systemCache' => DI\autowire(\Elgg\Cache\SystemCache::class),
 	'subscriptions' => DI\autowire(\Elgg\Notifications\SubscriptionsService::class),
 	'system_messages' => DI\autowire(\Elgg\SystemMessagesService::class),
 	'table_columns' => DI\autowire(\Elgg\Views\TableColumn\ColumnFactory::class),
@@ -168,12 +164,8 @@ return [
 	'translator' => DI\autowire(\Elgg\I18n\Translator::class),
 	'uploads' => DI\autowire(\Elgg\UploadService::class),
 	'upgrades' => DI\autowire(\Elgg\UpgradeService::class),
-	'urlGenerator' => DI\factory(function (ContainerInterface $c) {
-        return new \Elgg\Router\UrlGenerator($c->routeCollection, $c->requestContext);
-    }),
-	'urlMatcher' => DI\factory(function (ContainerInterface $c) {
-        return new \Elgg\Router\UrlMatcher($c->routeCollection, $c->requestContext);
-    }),
+	'urlGenerator' => DI\autowire(\Elgg\Router\UrlGenerator::class),
+	'urlMatcher' => DI\autowire(\Elgg\Router\UrlMatcher::class),
 	'urlSigner' => DI\autowire(\Elgg\Security\UrlSigner::class),
 	'urls' => DI\autowire(\Elgg\Http\Urls::class),
 	'userCapabilities' => DI\autowire(\Elgg\UserCapabilities::class),
@@ -181,14 +173,12 @@ return [
 	'users_remember_me_cookies_table' => DI\autowire(\Elgg\Database\UsersRememberMeCookiesTable::class),
 	'upgradeLocator' => DI\autowire(\Elgg\Upgrade\Locator::class),
 	'views' => DI\autowire(\Elgg\ViewsService::class),
-	'viewCacher' => DI\autowire(\Elgg\Cache\ViewCacher::class),
 	'widgets' => DI\autowire(\Elgg\WidgetsService::class),
 	
 	// map classes to alias to allow autowiring
 	\ElggSession::class => DI\get('session'),
 	\Elgg\ActionsService::class => DI\get('actions'),
 	\Elgg\Ajax\Service::class => DI\get('ajax'),
-	\Elgg\Amd\Config::class => DI\get('amdConfig'),
 	\Elgg\Application\CacheHandler::class => DI\get('cacheHandler'),
 	\Elgg\Application\Database::class => DI\get('publicDb'),
 	\Elgg\Application\ServeFileHandler::class => DI\get('serveFileHandler'),
@@ -198,14 +188,16 @@ return [
 	\Elgg\AuthenticationService::class => DI\get('authentication'),
 	\Elgg\AutoloadManager::class => DI\get('autoloadManager'),
 	\Elgg\BootService::class => DI\get('boot'),
-	\Elgg\Cache\DataCache::class => DI\get('dataCache'),
+	\Elgg\Cache\AccessCache::class => DI\get('accessCache'),
+	\Elgg\Cache\AutoloadCache::class => DI\get('autoloadCache'),
+	\Elgg\Cache\BootCache::class => DI\get('bootCache'),
 	\Elgg\Cache\EntityCache::class => DI\get('entityCache'),
 	\Elgg\Cache\MetadataCache::class => DI\get('metadataCache'),
+	\Elgg\Cache\PluginsCache::class => DI\get('pluginsCache'),
 	\Elgg\Cache\QueryCache::class => DI\get('queryCache'),
-	\Elgg\Cache\SessionCache::class => DI\get('sessionCache'),
+	\Elgg\Cache\ServerCache::class => DI\get('serverCache'),
 	\Elgg\Cache\SimpleCache::class => DI\get('simpleCache'),
 	\Elgg\Cache\SystemCache::class => DI\get('systemCache'),
-	\Elgg\Cache\ViewCacher::class => DI\get('viewCacher'),
 	\Elgg\ClassLoader::class => DI\get('classLoader'),
 	\Elgg\Cli::class => DI\get('cli'),
 	\Elgg\Cli\Progress::class => DI\get('cli_progress'),
@@ -249,6 +241,7 @@ return [
 	\Elgg\I18n\LocaleService::class => DI\get('locale'),
 	\Elgg\I18n\Translator::class => DI\get('translator'),
 	\Elgg\ImageService::class => DI\get('imageService'),
+	\Elgg\Javascript\ESMService::class => DI\get('esm'),
 	\Elgg\Invoker::class => DI\get('invoker'),
 	\Elgg\Logger::class => DI\get('logger'),
 	\Elgg\Menu\Service::class => DI\get('menus'),

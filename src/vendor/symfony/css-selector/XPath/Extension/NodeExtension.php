@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\CssSelector\XPath\Extension;
 
+use Symfony\Component\CssSelector\Exception\ExpressionErrorException;
 use Symfony\Component\CssSelector\Node;
 use Symfony\Component\CssSelector\XPath\Translator;
 use Symfony\Component\CssSelector\XPath\XPathExpr;
@@ -31,11 +32,9 @@ class NodeExtension extends AbstractExtension
     public const ATTRIBUTE_NAME_IN_LOWER_CASE = 2;
     public const ATTRIBUTE_VALUE_IN_LOWER_CASE = 4;
 
-    private int $flags;
-
-    public function __construct(int $flags = 0)
-    {
-        $this->flags = $flags;
+    public function __construct(
+        private int $flags = 0,
+    ) {
     }
 
     /**
@@ -65,6 +64,8 @@ class NodeExtension extends AbstractExtension
             'Selector' => $this->translateSelector(...),
             'CombinedSelector' => $this->translateCombinedSelector(...),
             'Negation' => $this->translateNegation(...),
+            'Matching' => $this->translateMatching(...),
+            'SpecificityAdjustment' => $this->translateSpecificityAdjustment(...),
             'Function' => $this->translateFunction(...),
             'Pseudo' => $this->translatePseudo(...),
             'Attribute' => $this->translateAttribute(...),
@@ -114,6 +115,40 @@ class NodeExtension extends AbstractExtension
         }
 
         return $xpath->addCondition('0');
+    }
+
+    public function translateMatching(Node\MatchingNode $node, Translator $translator): XPathExpr
+    {
+        return $this->translateMatchingOrSpecificityAdjustment($node->selector, $node->arguments, $translator);
+    }
+
+    public function translateSpecificityAdjustment(Node\SpecificityAdjustmentNode $node, Translator $translator): XPathExpr
+    {
+        return $this->translateMatchingOrSpecificityAdjustment($node->selector, $node->arguments, $translator);
+    }
+
+    /**
+     * @param array<Node\NodeInterface> $arguments
+     */
+    private function translateMatchingOrSpecificityAdjustment(Node\NodeInterface $selector, array $arguments, Translator $translator): XPathExpr
+    {
+        $xpath = $translator->nodeToXPath($selector);
+        $type = $this->getElementType($selector);
+
+        $conditions = [];
+        foreach ($arguments as $argument) {
+            if ('' === $condition = $this->selectorCondition($argument, $translator, $type)) {
+                return $xpath;
+            }
+
+            $conditions[] = $condition;
+        }
+
+        if ($conditions) {
+            $xpath->addCondition(1 === \count($conditions) ? $conditions[0] : '('.implode(') or (', $conditions).')');
+        }
+
+        return $xpath;
     }
 
     public function translateFunction(Node\FunctionNode $node, Translator $translator): XPathExpr
@@ -201,6 +236,28 @@ class NodeExtension extends AbstractExtension
         return 'node';
     }
 
+    private function hasNthOfType(Node\NodeInterface $node): bool
+    {
+        while ($node instanceof Node\FunctionNode || $node instanceof Node\PseudoNode || $node instanceof Node\ClassNode || $node instanceof Node\HashNode || $node instanceof Node\AttributeNode || $node instanceof Node\NegationNode || $node instanceof Node\MatchingNode || $node instanceof Node\SpecificityAdjustmentNode) {
+            if ($node instanceof Node\FunctionNode && 'nth-of-type' === $node->getName()) {
+                return true;
+            }
+
+            $node = $node instanceof Node\MatchingNode || $node instanceof Node\SpecificityAdjustmentNode ? $node->selector : $node->getSelector();
+        }
+
+        return false;
+    }
+
+    private function getElementType(Node\NodeInterface $node): string
+    {
+        while ($node instanceof Node\NegationNode || $node instanceof Node\FunctionNode || $node instanceof Node\PseudoNode || $node instanceof Node\ClassNode || $node instanceof Node\HashNode || $node instanceof Node\AttributeNode || $node instanceof Node\MatchingNode || $node instanceof Node\SpecificityAdjustmentNode) {
+            $node = $node instanceof Node\MatchingNode || $node instanceof Node\SpecificityAdjustmentNode ? $node->selector : $node->getSelector();
+        }
+
+        return $node instanceof Node\ElementNode ? $this->translateElement($node)->getElement() : '*';
+    }
+
     private function hasUntypedOfType(Node\NodeInterface $node): bool
     {
         $ofType = false;
@@ -240,5 +297,50 @@ class NodeExtension extends AbstractExtension
     private function isSafeName(string $name): bool
     {
         return 0 < preg_match('~^[a-zA-Z_][a-zA-Z0-9_.-]*$~', $name);
+    }
+
+    /**
+     * Returns the condition for the context node to match the selector, using reverse axes for its combinators.
+     */
+    private function selectorCondition(Node\NodeInterface $node, Translator $translator, string $type = '*'): string
+    {
+        if ($node instanceof Node\SelectorNode) {
+            $node = $node->getTree();
+        }
+
+        if ($node instanceof Node\CombinedSelectorNode) {
+            if ('' !== $condition = $this->selectorCondition($node->getSelector(), $translator)) {
+                $condition = '['.$condition.']';
+            }
+
+            // a predicate on a sibling axis is evaluated on every sibling unless [1] is the last one
+            $axis = match ($node->getCombinator()) {
+                '>' => 'parent::*'.$condition,
+                ' ' => 'ancestor::*'.$condition,
+                '+' => 'preceding-sibling::*[1]'.('' !== $condition ? '/self::*'.$condition : ''),
+                '~' => 'preceding-sibling::*'.$condition.'[1]',
+                default => throw new ExpressionErrorException(\sprintf('Combiner "%s" not supported.', $node->getCombinator())),
+            };
+
+            if ('' === $condition = $this->selectorCondition($node->getSubSelector(), $translator, $type)) {
+                return $axis;
+            }
+
+            return \sprintf('(%s) and (%s)', $condition, $axis);
+        }
+
+        $xpath = $translator->nodeToXPath($node);
+
+        if (str_starts_with($xpath, '*/')) {
+            $siblings = $xpath->getElement();
+
+            if ('*' === $siblings && $this->hasNthOfType($node)) {
+                $siblings = $type;
+            }
+
+            $xpath = new XPathExpr('', $xpath->getElement(), XPathExpr::positionsToSiblings($xpath->getCondition(), $siblings));
+        }
+
+        return $xpath->addNameTest()->getCondition();
     }
 }

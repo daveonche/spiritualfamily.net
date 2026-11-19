@@ -77,55 +77,43 @@ $ipsum = elgg_view('theme_sandbox/demo/ipsum');
 		]);
 
 		echo elgg_view_field([
-			'#type' => 'checkbox',
+			'#type' => 'switch',
 			'name' => 'f4s',
 			'id' => 'f4s',
-			'value' => 1,
-			'default' => false,
 			'required' => true,
-			'label' => 'a (.elgg-input-checkbox)',
-			'#help' => 'Single checkbox .elgg-input-checkbox wrapped in .elgg-input-single-checkbox (only label)',
+			'label' => 'a (.elgg-input-switch)',
+			'#help' => 'Single checkbox .elgg-input-switch wrapped in .elgg-input-single-checkbox (only label)',
 		]);
 
 		echo elgg_view_field([
-			'#type' => 'checkbox',
+			'#type' => 'switch',
 			'name' => 'f4sa',
 			'id' => 'f4sa',
-			'value' => 1,
-			'default' => false,
 			'required' => true,
-			'#label' => 'a (.elgg-input-checkbox)',
-			'#help' => 'Single checkbox .elgg-input-checkbox wrapped in .elgg-input-single-checkbox (only #label)',
+			'#label' => 'a (.elgg-input-switch)',
+			'#help' => 'Single checkbox .elgg-input-switch wrapped in .elgg-input-single-checkbox (only #label)',
 		]);
 
 		echo elgg_view_field([
-			'#type' => 'checkbox',
+			'#type' => 'switch',
 			'name' => 'f4sb',
 			'id' => 'f4sb',
-			'value' => 1,
-			'default' => false,
 			'required' => true,
-			'#help' => 'Single checkbox .elgg-input-checkbox wrapped in .elgg-input-single-checkbox (no label)',
+			'#help' => 'Single checkbox .elgg-input-switch wrapped in .elgg-input-single-checkbox (no label)',
 		]);
 
 		echo elgg_view_field([
-			'#type' => 'checkbox',
+			'#type' => 'switch',
 			'name' => 'f4s1',
 			'id' => 'f4s1',
-			'value' => 1,
-			'switch' => true,
-			'default' => false,
 			'required' => true,
-			'#label' => 'a (.elgg-input-checkbox) with switch style',
-			'#help' => 'Single checkbox .elgg-input-checkbox ',
+			'#label' => 'a (.elgg-input-switch) with switch style',
+			'#help' => 'Single checkbox .elgg-input-switch',
 		]);
 		echo elgg_view_field([
-			'#type' => 'checkbox',
+			'#type' => 'switch',
 			'name' => 'f4s1a',
 			'id' => 'f4s1a',
-			'value' => 1,
-			'switch' => true,
-			'default' => false,
 			'required' => true,
 			'#help' => 'Switch styled checkbox without a label',
 		]);
@@ -133,25 +121,20 @@ $ipsum = elgg_view('theme_sandbox/demo/ipsum');
 			'#type' => 'checkbox',
 			'name' => 'f4s1b',
 			'id' => 'f4s1b',
-			'value' => 1,
-			'switch' => true,
 			'disabled' => true,
-			'default' => false,
 			'required' => true,
 			'#label' => 'a (.elgg-input-checkbox) with disabled switch style',
 			'#help' => 'Single checkbox .elgg-input-checkbox ',
 		]);
 
 		echo elgg_view_field([
-			'#type' => 'checkbox',
+			'#type' => 'switch',
 			'name' => 'f4s2',
 			'id' => 'f4s2',
-			'value' => 1,
-			'default' => false,
 			'required' => true,
-			'#label' => 'a (.elgg-input-checkbox) - Field label',
-			'label' => 'a (.elgg-input-checkbox) - Input label',
-			'#help' => 'Single checkbox .elgg-input-checkbox wrapped in .elgg-input-single-checkbox (label and #label)',
+			'#label' => 'a (.elgg-input-switch) - Field label',
+			'label' => 'a (.elgg-input-switch) - Input label',
+			'#help' => 'Single checkbox .elgg-input-switch wrapped in .elgg-input-single-checkbox (label and #label)',
 		]);
 
 		echo elgg_view_field([
@@ -563,15 +546,6 @@ $ipsum = elgg_view('theme_sandbox/demo/ipsum');
 
 		echo elgg_view_field([
 			'#type' => 'longtext',
-			'name' => 'f14b',
-			'id' => 'f14b',
-			'value' => $ipsum,
-			'visual' => false,
-			'#label' => 'Long textarea input (.elgg-input-longtext) without a visual editor activated by default:',
-		]);
-
-		echo elgg_view_field([
-			'#type' => 'longtext',
 			'name' => 'f14c',
 			'id' => 'f14c',
 			'value' => $ipsum,
@@ -676,6 +650,22 @@ $ipsum = elgg_view('theme_sandbox/demo/ipsum');
 				],
 				[
 					'#type' => 'fieldset',
+					'#label' => 'Input and button field - stretched first field',
+					'align' => 'horizontal',
+					'fields' => [
+						[
+							'#type' => 'text',
+							'#class' => ['elgg-field-stretch'],
+						],
+						[
+							'#type' => 'button',
+							'class' => 'elgg-button-submit',
+							'text' => 'Do nothing',
+						],
+					],
+				],
+				[
+					'#type' => 'fieldset',
 					'#label' => 'Nested fieldset',
 					'#help' => 'Fieldset with horizontal alignment of fields',
 					'align' => 'horizontal',
@@ -708,6 +698,25 @@ $ipsum = elgg_view('theme_sandbox/demo/ipsum');
 					],
 				],
 			]
+		]);
+		
+		echo elgg_view_field([
+			'#type' => 'fieldset',
+			'name' => 'f18',
+			'legend' => 'Vertical Fieldset with fields that have horizontal labels',
+			'fields' => [
+				[
+					'#type' => 'text',
+					'#label' => 'Text field 1',
+					'#class' => 'elgg-field-horizontal',
+					'required' => true,
+				],
+				[
+					'#type' => 'text',
+					'#label' => 'Text field 2 stretched',
+					'#class' => ['elgg-field-horizontal', 'elgg-field-stretch'],
+				],
+			],
 		]);
 
 		echo elgg_view('theme_sandbox/forms/extend');

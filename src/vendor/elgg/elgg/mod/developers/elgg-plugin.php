@@ -2,12 +2,11 @@
 
 return [
 	'plugin' => [
-		'name' => 'Elgg Developer Tools',
+		'name' => 'Developer Tools',
 	],
 	'settings' => [
 		'screen_log' => 0,
 		'show_strings' => 0,
-		'show_modules' => 0,
 		'wrap_views' => 0,
 		'log_events' => 0,
 		'enable_error_log' => 0,
@@ -31,8 +30,12 @@ return [
 			'menu:entity' => [
 				'Elgg\Developers\Menus\Entity::registerEntityExplorer' => [],
 			],
+			'menu:entity:trash' => [
+				'Elgg\Developers\Menus\Entity::registerEntityExplorer' => [],
+			],
 			'menu:entity_explorer' => [
 				'Elgg\Developers\Menus\EntityExplorer::register' => [],
+				'Elgg\Menus\EntityTrash::registerRestore' => ['priority' => 400],
 			],
 		],
 	],

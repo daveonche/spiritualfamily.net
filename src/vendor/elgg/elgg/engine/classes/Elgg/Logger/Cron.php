@@ -2,10 +2,10 @@
 
 namespace Elgg\Logger;
 
-use Elgg\EntityDirLocator;
+use Elgg\Application;
+use Elgg\Cli\CronLogHandler;
 use Elgg\Exceptions\InvalidArgumentException;
-use Elgg\Project\Paths;
-use Monolog\Handler\RotatingFileHandler;
+use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Processor\MemoryPeakUsageProcessor;
 use Monolog\Processor\MemoryUsageProcessor;
@@ -44,9 +44,10 @@ class Cron extends \Monolog\Logger {
 		
 		$logger = new static(self::CHANNEL);
 		
+		// default file output handler
 		$handler = new StreamHandler($filename);
 		
-		$formatter = new ElggLogFormatter();
+		$formatter = new LineFormatter();
 		$formatter->allowInlineLineBreaks();
 		$formatter->ignoreEmptyContextAndExtra();
 		
@@ -59,6 +60,19 @@ class Cron extends \Monolog\Logger {
 		$handler->pushProcessor(new PsrLogMessageProcessor());
 		
 		$logger->pushHandler($handler);
+		
+		// in cli add handler to log to stdout
+		if (Application::isCli() && !_elgg_services()->config->testing_mode) {
+			$cli_output = new CronLogHandler();
+
+			$cli_output->pushProcessor(new MemoryUsageProcessor());
+			$cli_output->pushProcessor(new MemoryPeakUsageProcessor());
+			$cli_output->pushProcessor(new ProcessIdProcessor());
+			$cli_output->pushProcessor(new TagProcessor([$interval]));
+			$cli_output->pushProcessor(new PsrLogMessageProcessor());
+
+			$logger->pushHandler($cli_output);
+		}
 		
 		return $logger;
 	}

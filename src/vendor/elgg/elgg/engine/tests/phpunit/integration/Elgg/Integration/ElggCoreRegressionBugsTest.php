@@ -84,7 +84,7 @@ class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 		$this->assertEquals($expected, $actual);
 	}
 	
-	public function friendlyTitleProvider() {
+	public static function friendlyTitleProvider() {
 		$cases = [
 			// acid test
 			["B&N > Amazon, OK? <bold> 'hey!' $34", "bn-amazon-ok-bold-hey-34"],
@@ -124,7 +124,7 @@ class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 		$this->assertEquals($expected, elgg_parse_urls($input));
 	}
 	
-	public function parseUrlsProvider() {
+	public static function parseUrlsProvider() {
 		return [
 			['no.link.here', 'no.link.here'],
 			['simple link http://example.org test', 'simple link <a href="http://example.org" rel="nofollow">http://example.org</a> test'],
@@ -169,7 +169,7 @@ class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 		$this->assertEquals($expected, elgg_parse_emails($input));
 	}
 	
-	public function elggParseEmailsProvider() {
+	public static function elggParseEmailsProvider() {
 		return [
 			['no.email.here', 'no.email.here'],
 			['simple email mail@test.com test', 'simple email <a href="mailto:mail@test.com" rel="nofollow">mail@test.com</a> test'],
@@ -212,46 +212,13 @@ class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 		$this->assertNull($entity->_nonexistent_test_column, "Additional select columns are leaking to attributes for '$type'");
 	}
 	
-	public function extraColumnsDontAppearInAttributesProvider() {
+	public static function extraColumnsDontAppearInAttributesProvider() {
 		return [
 			['site'],
 			['user'],
 			['group'],
 			['object'],
 		];
-	}
-
-	/**
-	 * Ensure that \ElggBatch doesn't go into infinite loop when disabling annotations recursively when show hidden is
-	 * enabled.
-	 *
-	 * @see https://github.com/Elgg/Elgg/issues/5952
-	 */
-	public function testDisablingAnnotationsInfiniteLoop() {
-		// let's have some entity
-		$group = $this->createGroup();
-
-		$total = 51;
-		// add some annotations
-		for ($cnt = 0; $cnt < $total; $cnt++) {
-			$group->annotate('test_annotation', 'value_' . $total);
-		}
-
-		// disable them
-		elgg_call(ELGG_SHOW_DISABLED_ENTITIES, function() use ($group, $total) {
-			elgg_disable_annotations([
-				'guid' => $group->guid,
-				'limit' => $total, //using strict limit to avoid real infinite loop and just see \ElggBatch limiting on it before finishing the work
-			]);
-		});
-		
-		// confirm all being disabled
-		$annotations = $group->getAnnotations([
-			'limit' => $total,
-		]);
-		foreach ($annotations as $annotation) {
-			$this->assertEquals('no', $annotation->enabled);
-		}
 	}
 
 	/**
@@ -321,8 +288,42 @@ class ElggCoreRegressionBugsTest extends \Elgg\IntegrationTestCase {
 			'owner_guid' => $user->guid,
 		]);
 
-		$stats = elgg_get_entity_statistics($user->guid);
+		$stats = elgg_get_entity_statistics([
+			'owner_guid' => $user->guid,
+		]);
 
 		$this->assertEquals(1, $stats['object'][$subtype]);
+	}
+	
+	/**
+	 * Test that entities can be found with both metadata and annotation limitations
+	 *
+	 * @see https://github.com/Elgg/Elgg/issues/14405
+	 */
+	function testGetEntitiesWithMetadataAndAnnotations() {
+		$entity = $this->createObject();
+		
+		// make sure likes is supported
+		elgg_entity_enable_capability($entity->type, $entity->subtype, 'likable');
+		$this->createLikes($entity, 5);
+		
+		$this->assertNotEmpty($entity->__faker); // metadata
+		$this->assertNotEmpty($entity->countAnnotations('likes')); // annotations
+		
+		$entities = elgg_get_entities([
+			'type' => $entity->type,
+			'subtype' => $entity->subtype,
+			'metadata_names' => '__faker',
+			'annotation_name_value_pairs' => [
+				[
+					'name' => 'likes',
+					'value' => 'likes',
+					'case_sensitive' => false,
+					'type' => ELGG_VALUE_STRING,
+				],
+			],
+		]);
+		
+		$this->assertNotEmpty($entities);
 	}
 }

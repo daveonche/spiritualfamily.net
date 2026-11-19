@@ -9,15 +9,14 @@ use Elgg\Views\HtmlFormatter;
  *
  * @since 5.0
  */
-class MentionsEventHandler extends NotificationEventHandler {
+class MentionsEventHandler extends NonConfigurableNotificationEventHandler {
 	
 	/**
 	 * {@inheritdoc}
 	 */
 	public function getSubscriptions(): array {
-		/* @var $entity \ElggEntity */
-		$entity = $this->event->getObject();
-		if ($entity->access_id === ACCESS_PRIVATE) {
+		$entity = $this->getEventEntity();
+		if (!$entity instanceof \ElggEntity || $entity->access_id === ACCESS_PRIVATE) {
 			// no actions taken on private content
 			return [];
 		}
@@ -46,8 +45,7 @@ class MentionsEventHandler extends NotificationEventHandler {
 		]);
 		/* @var $user \ElggUser */
 		foreach ($users as $user) {
-			$preference = $user->getNotificationSettings('mentions');
-			$preference = array_keys(array_filter($preference));
+			$preference = $user->getNotificationSettings('mentions', true);
 			if (empty($preference)) {
 				continue;
 			}
@@ -65,24 +63,19 @@ class MentionsEventHandler extends NotificationEventHandler {
 	 * {@inheritdoc}
 	 */
 	protected function getNotificationSubject(\ElggUser $recipient, string $method): string {
-		$language = $recipient->getLanguage();
-		$actor = $this->event->getActor();
-		
 		$lan_key = 'notification:mentions:subject';
 		if (elgg_language_key_exists("notification:{$this->event->getDescription()}:subject")) {
 			$lan_key = "notification:{$this->event->getDescription()}:subject";
 		}
 		
-		return elgg_echo($lan_key, [$actor->getDisplayName()], $language);
+		return elgg_echo($lan_key, [$this->getEventActor()?->getDisplayName()]);
 	}
 	
 	/**
 	 * {@inheritdoc}
 	 */
 	protected function getNotificationBody(\ElggUser $recipient, string $method): string {
-		$language = $recipient->getLanguage();
-		$actor = $this->event->getActor();
-		$entity = $this->event->getObject();
+		$entity = $this->getEventEntity();
 		
 		$lan_key = 'notification:mentions:body';
 		if (elgg_language_key_exists("notification:{$this->event->getDescription()}:body")) {
@@ -90,24 +83,10 @@ class MentionsEventHandler extends NotificationEventHandler {
 		}
 		
 		return elgg_echo($lan_key, [
-			$actor->getDisplayName(),
-			$entity->getDisplayName(),
-			$entity->getURL(),
-		], $language);
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	protected static function isConfigurableForUser(\ElggUser $user): bool {
-		return false;
-	}
-	
-	/**
-	 * {@inheritdoc}
-	 */
-	protected static function isConfigurableForGroup(\ElggGroup $group): bool {
-		return false;
+			$this->getEventActor()?->getDisplayName(),
+			$entity?->getDisplayName(),
+			$entity?->getURL(),
+		]);
 	}
 	
 	/**
@@ -132,9 +111,12 @@ class MentionsEventHandler extends NotificationEventHandler {
 	 * @return string[]
 	 */
 	protected function getMentions(): array {
+		$entity = $this->getEventEntity();
+		if (!$entity instanceof \ElggEntity) {
+			return [];
+		}
+		
 		$result = [];
-		/* @var $entity \ElggEntity */
-		$entity = $this->event->getObject();
 		$metadata_fields = $this->getMetadataFields();
 		
 		foreach ($metadata_fields as $field) {
@@ -189,8 +171,10 @@ class MentionsEventHandler extends NotificationEventHandler {
 	 * @return array
 	 */
 	protected function filterMentions(array $mentions): array {
-		/* @var $entity \ElggEntity */
-		$entity = $this->event->getObject();
+		$entity = $this->getEventEntity();
+		if (!$entity instanceof \ElggEntity) {
+			return $mentions;
+		}
 		
 		$already_notified = (array) $entity->_mentioned_usernames;
 		

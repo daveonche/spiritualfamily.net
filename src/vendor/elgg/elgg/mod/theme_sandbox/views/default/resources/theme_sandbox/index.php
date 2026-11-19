@@ -4,6 +4,7 @@ use Elgg\Exceptions\Http\EntityNotFoundException;
 
 $page = elgg_extract('page', $vars);
 if (!elgg_view_exists("theme_sandbox/{$page}")) {
+	// @todo replace this with a PageNotFoundException in 7.0
 	throw new EntityNotFoundException();
 }
 
@@ -12,7 +13,6 @@ $pages = [
 	'components',
 	'email',
 	'forms',
-	'grid',
 	'icons',
 	'javascript',
 	'layouts',
@@ -29,7 +29,7 @@ foreach ($pages as $page_name) {
 	]);
 }
 
-elgg_require_js('theme_sandbox/theme_sandbox');
+elgg_import_esm('theme_sandbox/theme_sandbox');
 
 $title = elgg_echo("theme_sandbox:{$page}");
 

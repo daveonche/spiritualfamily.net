@@ -55,16 +55,12 @@ class WalledGardenIntegrationTest extends IntegrationTestCase {
 	 * @dataProvider publicPagesProvider
 	 */
 	public function testCanDetectPublicPage($path, $expected) {
-		$class = new \ReflectionClass(WalledGarden::class);
-		$method = $class->getMethod('isPublicPage');
-		$method->setAccessible(true);
-		
 		$instance = new WalledGarden();
 		
-		$this->assertEquals($expected, $method->invokeArgs($instance, [elgg_normalize_url($path)]));
+		$this->assertEquals($expected, $this->invokeInaccessableMethod($instance, 'isPublicPage', elgg_normalize_url($path)));
 	}
 	
-	public function publicPagesProvider() {
+	public static function publicPagesProvider() {
 		return [
 			['ajax/view/languages.js', true],
 			['css/stylesheet.css', true],
@@ -85,17 +81,12 @@ class WalledGardenIntegrationTest extends IntegrationTestCase {
 			return $return;
 		});
 		
-		$class = new \ReflectionClass(WalledGarden::class);
-		$method = $class->getMethod('isPublicPage');
-		$method->setAccessible(true);
-		
 		$instance = new WalledGarden();
 		
-		$this->assertTrue($method->invokeArgs($instance, [elgg_normalize_url('allowed/foo/bar')]));
+		$this->assertTrue($this->invokeInaccessableMethod($instance, 'isPublicPage', elgg_normalize_url('allowed/foo/bar')));
 	}
 	
 	public function testCanRoutePublicPageInWalledGardenMode() {
-		
 		$request = $this->prepareHttpRequest('foo/bar');
 		$this->createService($request);
 		
@@ -116,7 +107,7 @@ class WalledGardenIntegrationTest extends IntegrationTestCase {
 		
 		elgg_set_config('walled_garden', true);
 		
-		$this->assertTrue($this->route($request));
+		$this->route($request);
 		
 		$response = _elgg_services()->responseFactory->getSentResponse();
 		$this->assertInstanceOf(Response::class, $response);
@@ -156,7 +147,7 @@ class WalledGardenIntegrationTest extends IntegrationTestCase {
 		
 		elgg_set_config('walled_garden', true);
 		
-		$this->assertTrue($this->route($request));
+		$this->route($request);
 		
 		$response = _elgg_services()->responseFactory->getSentResponse();
 		$this->assertInstanceOf(Response::class, $response);

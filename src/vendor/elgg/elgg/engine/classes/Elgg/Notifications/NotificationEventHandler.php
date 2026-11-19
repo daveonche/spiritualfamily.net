@@ -3,6 +3,7 @@
 namespace Elgg\Notifications;
 
 use Elgg\Exceptions\RuntimeException;
+use Elgg\Traits\Loggable;
 use Psr\Log\LogLevel;
 
 /**
@@ -12,15 +13,18 @@ use Psr\Log\LogLevel;
  */
 class NotificationEventHandler {
 
-	/** @var NotificationEvent */
-	protected $event;
-
-	/** @var NotificationsService */
-	protected $service;
-
-	/** @var array */
-	protected $params = [];
-
+	use Loggable;
+	
+	/**
+	 * @var array additional params
+	 */
+	protected array $params = [];
+	
+	/**
+	 * @var string[] delivery methods override
+	 */
+	protected array $methods_override = [];
+	
 	/**
 	 * Constructor
 	 *
@@ -29,13 +33,49 @@ class NotificationEventHandler {
 	 * @param array                $params  additional params for event handling
 	 */
 	public function __construct(
-			NotificationEvent $event,
-			NotificationsService $service,
+			protected NotificationEvent $event,
+			protected NotificationsService $service,
 			array $params = []
 	) {
-		$this->event = $event;
-		$this->service = $service;
+		$methods_override = elgg_extract('methods_override', $params);
+		unset($params['methods_override']);
+		if (!empty($methods_override) && is_array($methods_override)) {
+			$this->setMethodsOverride($methods_override);
+		}
+		
 		$this->params = $params;
+	}
+	
+	/**
+	 * Override the default user preferred delivery methods with the given methods
+	 *
+	 * @param string[] $methods delivery methods
+	 *
+	 * @return void
+	 * @since 6.3
+	 */
+	final protected function setMethodsOverride(array $methods): void {
+		$this->methods_override = $methods;
+	}
+	
+	/**
+	 * Get the delivery methods override
+	 *
+	 * @return string[]
+	 * @since 6.3
+	 */
+	final protected function getMethodsOverride(): array {
+		return $this->methods_override;
+	}
+	
+	/**
+	 * Get the notification methods to use
+	 *
+	 * @return array
+	 * @since 6.3
+	 */
+	protected function getNotificationMethods(): array {
+		return [];
 	}
 	
 	/**
@@ -73,7 +113,7 @@ class NotificationEventHandler {
 		$params = [
 			'event' => $this->event,
 			'methods' => $this->getMethods(),
-			'methods_override' => (array) elgg_extract('methods_override', $this->params, []),
+			'methods_override' => $this->getMethodsOverride(),
 		];
 		$subscriptions = _elgg_services()->events->triggerResults('get', 'subscriptions', $params, $subscriptions);
 		
@@ -87,7 +127,7 @@ class NotificationEventHandler {
 	 * @since 4.1
 	 */
 	protected function filterMutedSubscriptions(): bool {
-		return (bool) elgg_extract('apply_muting', $this->params, true);
+		return (bool) $this->getParam('apply_muting', true);
 	}
 	
 	/**
@@ -184,36 +224,55 @@ class NotificationEventHandler {
 	 *
 	 * @return array
 	 */
-	final protected function sendNotifications($subscriptions, array $params = []) {
+	final protected function sendNotifications(array $subscriptions, array $params = []): array {
 		if (empty($this->getMethods())) {
 			return [];
 		}
-
+		
+		$translator = _elgg_services()->translator;
+		$current_language = $translator->getCurrentLanguage();
+		
 		$result = [];
 		foreach ($subscriptions as $guid => $methods) {
-			foreach ($methods as $method) {
-				$result[$guid][$method] = false;
-				
-				if ($this->service->isRegisteredMethod($method)) {
-					$result[$guid][$method] = $this->sendNotification($guid, $method, $params);
-				}
+			$recipient = _elgg_services()->entityTable->get($guid);
+			if (!$recipient instanceof \ElggEntity) {
+				continue;
 			}
+			
+			if ($recipient instanceof \ElggUser) {
+				$translator->setCurrentLanguage($recipient->getLanguage());
+			}
+			
+			try {
+				foreach ($methods as $method) {
+					$result[$guid][$method] = false;
+					
+					if ($this->service->isRegisteredMethod($method)) {
+						$result[$guid][$method] = $this->sendNotification($recipient, $method, $params);
+					}
+				}
+			} catch (\Throwable $t) {
+				$translator->setCurrentLanguage($current_language);
+				throw $t;
+			}
+			
+			$translator->setCurrentLanguage($current_language);
 		}
-
-		_elgg_services()->logger->info("Results for the notification event {$this->event->getDescription()}: " . print_r($result, true));
+		
+		$this->getLogger()->info("Results for the notification event {$this->event->getDescription()}: " . print_r($result, true));
 		return $result;
 	}
 	
 	/**
 	 * Send a notification to a subscriber
 	 *
-	 * @param int    $guid   The guid of the subscriber
-	 * @param string $method The notification method
-	 * @param array  $params Default notification params
+	 * @param \ElggEntity $recipient The recipient entity
+	 * @param string      $method    The notification method
+	 * @param array       $params    Default notification params
 	 *
 	 * @return bool
 	 */
-	final protected function sendNotification(int $guid, string $method, array $params = []): bool {
+	final protected function sendNotification(\ElggEntity $recipient, string $method, array $params = []): bool {
 		if (!_elgg_services()->events->hasHandler('send', "notification:{$method}")) {
 			// no way to deliver given the current method, so quitting early
 			return false;
@@ -222,14 +281,7 @@ class NotificationEventHandler {
 		$actor = $this->event->getActor();
 		$object = $this->event->getObject();
 
-		if ($this->event instanceof InstantNotificationEvent) {
-			$recipient = _elgg_services()->entityTable->get($guid);
-			/* @var \ElggEntity $recipient */
-			$subject = elgg_extract('subject', $params, '');
-			$body = elgg_extract('body', $params, '');
-			$summary = elgg_extract('summary', $params, '');
-		} else {
-			$recipient = _elgg_services()->entityTable->get($guid, 'user');
+		if (!$this->event instanceof InstantNotificationEvent) {
 			if (!$recipient instanceof \ElggUser || $recipient->isBanned()) {
 				return false;
 			}
@@ -243,24 +295,24 @@ class NotificationEventHandler {
 				// The access level may have changed since the event was enqueued
 				return false;
 			}
-
-			$subject = $this->getNotificationSubject($recipient, $method);
-			$body = $this->getNotificationBody($recipient, $method);
-			$summary = $this->getNotificationSummary($recipient, $method);
-			
-			if (!isset($params['url'])) {
-				$params['url'] = $this->getNotificationURL($recipient, $method) ?: null;
-			}
 		}
 		
-		$params['subject'] = $subject;
-		$params['body'] = $body;
-		$params['summary'] = $summary;
+		$subject = ($recipient instanceof \ElggUser) ? $this->getNotificationSubject($recipient, $method) : '';
+		$body = ($recipient instanceof \ElggUser) ? $this->getNotificationBody($recipient, $method) : '';
+		$summary = ($recipient instanceof \ElggUser) ? $this->getNotificationSummary($recipient, $method) : '';
+		$url = ($recipient instanceof \ElggUser) ? $this->getNotificationURL($recipient, $method) : null;
+		$attachments = ($recipient instanceof \ElggUser) ? $this->getNotificationAttachments($recipient, $method) : null;
+		
+		$params['subject'] = $params['subject'] ?? $subject;
+		$params['body'] = $params['body'] ?? $body;
+		$params['summary'] = $params['summary'] ?? $summary;
+		$params['url'] = $params['url'] ?? $url;
+		$params['attachments'] = $params['attachments'] ?? $attachments;
 		$params['event'] = $this->event;
 		$params['method'] = $method;
 		$params['sender'] = $actor;
 		$params['recipient'] = $recipient;
-		$params['language'] = $recipient->getLanguage();
+		$params['language'] = $recipient instanceof \ElggUser ? $recipient->getLanguage() : _elgg_services()->translator->getCurrentLanguage();
 		$params['object'] = $object;
 		$params['action'] = $this->event->getAction();
 		$params['add_salutation'] = elgg_extract('add_salutation', $params, true);
@@ -287,12 +339,12 @@ class NotificationEventHandler {
 
 		$result = _elgg_services()->events->triggerResults('send', "notification:{$method}", $params, false);
 		
-		if (_elgg_services()->logger->isLoggable(LogLevel::INFO)) {
+		if ($this->getLogger()->isLoggable(LogLevel::INFO)) {
 			$logger_data = print_r((array) $notification->toObject(), true);
 			if ($result) {
-				_elgg_services()->logger->info('Notification sent: ' . $logger_data);
+				$this->getLogger()->info('Notification sent: ' . $logger_data);
 			} else {
-				_elgg_services()->logger->info('Notification was not sent: ' . $logger_data);
+				$this->getLogger()->info('Notification was not sent: ' . $logger_data);
 			}
 		}
 		
@@ -346,27 +398,20 @@ class NotificationEventHandler {
 	 * @return string Notification subject in the recipient's language
 	 */
 	protected function getNotificationSubject(\ElggUser $recipient, string $method): string {
-		$actor = $this->event->getActor();
+		$actor = $this->event->getActor() ?: null;
 		$object = $this->event->getObject();
 		
-		$language = $recipient->getLanguage();
-
 		// Check custom notification subject for the action/type/subtype combination
 		$subject_key = "notification:{$this->event->getDescription()}:subject";
-		if (_elgg_services()->translator->languageKeyExists($subject_key, $language)) {
-			$display_name = '';
-			if ($object instanceof \ElggEntity) {
-				$display_name = $object->getDisplayName();
-			}
-			
+		if (_elgg_services()->translator->languageKeyExists($subject_key)) {
 			return _elgg_services()->translator->translate($subject_key, [
-				$actor->getDisplayName(),
-				$display_name,
-			], $language);
+				$actor?->getDisplayName(),
+				$object instanceof \ElggEntity ? $object->getDisplayName() : '',
+			]);
 		}
 
 		// Fall back to default subject
-		return _elgg_services()->translator->translate('notification:subject', [$actor->getDisplayName()], $language);
+		return _elgg_services()->translator->translate('notification:subject', [$actor?->getDisplayName()]);
 	}
 
 	/**
@@ -392,37 +437,30 @@ class NotificationEventHandler {
 	 * @return string Notification body in the recipient's language
 	 */
 	protected function getNotificationBody(\ElggUser $recipient, string $method): string {
-		$actor = $this->event->getActor();
-		$object = $this->event->getObject();
-		/* @var \ElggObject $object */
-		$language = $recipient->getLanguage();
-
+		$actor = $this->event->getActor() ?: null;
+		$object = $this->event->getObject() ?: null;
+		
 		// Check custom notification body for the action/type/subtype combination
 		$body_key = "notification:{$this->event->getDescription()}:body";
-		if (_elgg_services()->translator->languageKeyExists($body_key, $language)) {
+		if (_elgg_services()->translator->languageKeyExists($body_key)) {
+			$display_name = '';
+			$container_name = '';
 			if ($object instanceof \ElggEntity) {
 				$display_name = $object->getDisplayName();
-				$container_name = '';
-				$container = $object->getContainerEntity();
-				if ($container) {
-					$container_name = $container->getDisplayName();
-				}
-			} else {
-				$display_name = '';
-				$container_name = '';
+				$container_name = $object->getContainerEntity()?->getDisplayName();
 			}
 
 			return _elgg_services()->translator->translate($body_key, [
-				$actor->getDisplayName(),
+				$actor?->getDisplayName(),
 				$display_name,
 				$container_name,
-				$object->description,
-				$object->getURL(),
-			], $language);
+				$object?->description,
+				$object?->getURL(),
+			]);
 		}
 
 		// Fall back to default body
-		return _elgg_services()->translator->translate('notification:body', [$object->getURL()], $language);
+		return _elgg_services()->translator->translate('notification:body', [$object?->getURL()]);
 	}
 	
 	/**
@@ -446,9 +484,45 @@ class NotificationEventHandler {
 	 * @return string
 	 */
 	protected function getNotificationURL(\ElggUser $recipient, string $method): string {
+		$object = $this->event->getObject() ?: null;
+		
+		return (string) $object?->getURL();
+	}
+	
+	/**
+	 * Get the attachments for this notification
+	 *
+	 * @param \ElggUser $recipient Notification recipient
+	 * @param string    $method    Method
+	 *
+	 * @return array
+	 */
+	protected function getNotificationAttachments(\ElggUser $recipient, string $method): array {
+		return [];
+	}
+	
+	/**
+	 * Get the acting user from the notification event
+	 *
+	 * @return null|\ElggUser
+	 * @since 6.1
+	 */
+	protected function getEventActor(): ?\ElggUser {
+		$actor = $this->event->getActor();
+		
+		return $actor instanceof \ElggUser ? $actor : null;
+	}
+	
+	/**
+	 * Get the entity from the notification event
+	 *
+	 * @return null|\ElggEntity
+	 * @since 6.1
+	 */
+	protected function getEventEntity(): ?\ElggEntity {
 		$object = $this->event->getObject();
 		
-		return $object instanceof \ElggData ? $object->getURL() : '';
+		return $object instanceof \ElggEntity ? $object : null;
 	}
 	
 	/**
@@ -471,14 +545,13 @@ class NotificationEventHandler {
 	 * @since 4.1
 	 */
 	final public static function isConfigurableForEntity(\ElggEntity $entity): bool {
-		
 		if ($entity instanceof \ElggUser) {
 			return static::isConfigurableForUser($entity);
 		} elseif ($entity instanceof \ElggGroup) {
 			return static::isConfigurableForGroup($entity);
 		}
 		
-		return true;
+		return false;
 	}
 	
 	/**
@@ -514,5 +587,17 @@ class NotificationEventHandler {
 	 */
 	protected function addMuteLink(): bool {
 		return true;
+	}
+	
+	/**
+	 * Get a parameter from the notification parameters
+	 *
+	 * @param string $param   name of the parameter
+	 * @param mixed  $default default value is not found
+	 *
+	 * @return mixed
+	 */
+	final protected function getParam(string $param, mixed $default = null): mixed {
+		return elgg_extract($param, $this->params, $default);
 	}
 }

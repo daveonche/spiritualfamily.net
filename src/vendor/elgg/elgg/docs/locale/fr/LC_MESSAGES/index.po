@@ -4,17 +4,18 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 # Translators:
-# Jerôme Bakker, 2023
-# Florian DANIEL aka Facyla <i.daniel.florian@gmail.com>, 2023
+# Jerôme Bakker, 2024
+# Emmanuel Simond, 2025
+# Florian DANIEL aka Facyla <i.daniel.florian@gmail.com>, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Elgg master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-21 10:41+0100\n"
-"PO-Revision-Date: 2023-04-05 07:42+0000\n"
-"Last-Translator: Florian DANIEL aka Facyla <i.daniel.florian@gmail.com>, 2023\n"
+"POT-Creation-Date: 2026-01-16 10:07+0100\n"
+"PO-Revision-Date: 2024-04-15 12:07+0000\n"
+"Last-Translator: Florian DANIEL aka Facyla <i.daniel.florian@gmail.com>, 2025\n"
 "Language-Team: French (https://app.transifex.com/elgg/teams/11337/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -106,12 +107,11 @@ msgstr ""
 
 #: ../../index.rst:17
 msgid ""
-"**Client-side API** powered by asynchronous JavaScript modules via RequireJS"
-" and a build-in Ajax service for easy communication with the server"
+"**Client-side API** powered by asynchronous ES modules and a built-in Ajax "
+"service for easy communication with the server"
 msgstr ""
-"**Une API côté client** motorisée par des modules JavaScript asynchrones "
-"chargés via RequireJS et un service Ajax natif pour une communication aisée "
-"avec le serveur"
+"Une **API côté client** qui fonctionne avec des modules ES asynchrones et un"
+" service Ajax intégré afin de faciliter la communication avec le serveur"
 
 #: ../../index.rst:18
 msgid ""
@@ -159,7 +159,7 @@ msgid ""
 msgstr ""
 "Un **Service de Notifications** qui permet aux applications d'abonner des "
 "utilisateurs à des notifications sur le site ou par e-mail, et d'implémenter"
-" l'intégration avec d'autres services tierce-partie"
+" l'intégration avec d'autres services tiers"
 
 #: ../../index.rst:24
 msgid ""
@@ -175,8 +175,7 @@ msgid ""
 " can be integrated with third-party services such as Transifex"
 msgstr ""
 "L'**Internationalisation** et la localisation des applications Elgg est "
-"simple et peut être intégrée avec des services tierce-partie tels que "
-"Transifex"
+"simple et peut être intégrée avec des services tiers tels que Transifex"
 
 #: ../../index.rst:26
 msgid ""
@@ -184,7 +183,7 @@ msgid ""
 "repository of **1000+ open source plugins**"
 msgstr ""
 "La **Communauté Elgg** peut aider sur n'importe quelle problématique, et "
-"héberge un répertoire de **plusieurs milliersde plugins open source**"
+"héberge un répertoire de **de 1000+ plugins open source**"
 
 #: ../../index.rst:28
 msgid "Under the hood:"
@@ -194,7 +193,7 @@ msgstr "Sous le capot :"
 msgid "Elgg is a modular OOP framework that is driven by DI services"
 msgstr ""
 "Elgg est un framework modulaire orienté objet (OOP) qui est dirigé par des "
-"services DI"
+"services d'injection de dépendances (DI)"
 
 #: ../../index.rst:31
 msgid "NGINX or Apache compatible"
@@ -205,8 +204,8 @@ msgid "Symfony2 HTTP Foundation handles requests and responses"
 msgstr "Symfony2 HTTP Foundation gère les requêtes et réponses"
 
 #: ../../index.rst:33
-msgid "RequireJS handles AMD"
-msgstr "RequireJS gère les modules AMD"
+msgid "modular javascript with ECMAScript modules"
+msgstr "JavaScript modulaire avec des modules ECMAScript"
 
 #: ../../index.rst:34
 msgid "Laminas Mail handles outgoing email"
