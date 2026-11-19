@@ -102,6 +102,27 @@ or remove" — the platform check re-proving ext-intl loaded (elgg 6.3.10
 requires it) and the vendor tree lock-consistent; the five
 abandoned-package notices match the dependency record (no action taken).
 
+Step 4 record (2026-11-19): the official upgrade routine ran in the browser
+against the verified local copy (reused since S1.11; pre-upgrade state
+verified against the recorded 4 → 5 end state — 31 tables,
+`elggjr_migrations` 54 — before the run; cache cleared and cron paused
+across the window, window start 2026-11-19T13:15:44Z). The routine completed
+with no fatal error and no remaining pending upgrades; no remediation was
+required. Post-run verification: the upgrade-window app-log capture shows
+0 PHP Fatal/Parse, 0 ELGG.CRITICAL, 0 ELGG.ERROR, and 0 deprecation notices
+— the S1.11 carry-forward expectations (a possible Locator-path storm
+re-fire for the disabled dropped-plugin entities; the 4.1 commentable
+deprecation warnings `hjwall`/`campaign`/`album`) were not observed on this
+copy; the schema delta at the 5 → 6 boundary is none (pre/post table diff
+0 lines — 31 tables before and after); `elggjr_migrations` advanced
+54 → 57, exactly matching the 57 shipped migration files in the installed
+6.3.10 core (three applied, none skipped or failed); entity counts object
+86923 → 86928 (+5, growth from the run), user 1146 / group 287 / site 1
+unchanged (zero loss); the vendored core `composer.json` version field reads
+6.3.10 and the administration area reports 6.3.10 with an empty
+pending-upgrades list. Recorded expectation for S1.13: no schema delta at
+the 5 → 6 boundary.
+
 ## Upgrade-Stage Pin (Story S1.11 Step 1)
 
 The third sequential upgrade step (Elgg 4 → Elgg 5) resolved the sprint
