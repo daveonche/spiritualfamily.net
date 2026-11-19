@@ -87,6 +87,21 @@ are untouched by this step. Dependency-change record:
 `docs/dependencies/S1.12-dependencies.md` (ext-intl platform requirement,
 transitive tree replacement).
 
+Step 3 record (2026-11-19): the runtime pin does not move at this hop —
+elgg/elgg 6.3.10 declares `"php": ">=8.2"` and the pinned 8.2.21 runtime
+satisfies it, so the step's rebuild-on-new-base clause does not fire; the
+hop's only image rebuild already happened as the Step 2 ext-intl
+remediation (commit `41ffabc`, explicit `PHP_VERSION=8.2`) and the vendor
+tree was synced in the Step 2 `composer update` run. Step 3 therefore
+verified both outcomes inside the remediated environment: the app container
+reports PHP 8.2.21 (`php -r 'echo PHP_VERSION;'`), and
+`composer install --no-interaction` completed without errors — "Installing
+dependencies from lock file (including require-dev)", "Verifying lock file
+contents can be installed on current platform", "Nothing to install, update
+or remove" — the platform check re-proving ext-intl loaded (elgg 6.3.10
+requires it) and the vendor tree lock-consistent; the five
+abandoned-package notices match the dependency record (no action taken).
+
 ## Upgrade-Stage Pin (Story S1.11 Step 1)
 
 The third sequential upgrade step (Elgg 4 → Elgg 5) resolved the sprint
