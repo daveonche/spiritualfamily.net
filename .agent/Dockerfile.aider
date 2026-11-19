@@ -2,7 +2,8 @@
 #
 # Build context for this file is the .agent directory itself (managed by
 # launcher.py, which auto-creates a minimal .dockerignore). This file
-# intentionally contains NO COPY instructions:
+# intentionally contains NO COPY instructions from the build context (the
+# Layer I heredoc below writes an inline build-time patch script instead):
 #   - Project source code is provided at runtime via the same-path bind mount
 #     of the project root (see run_container in launcher.py).
 #   - `docker` / `docker compose` executed inside the container talk to the
@@ -242,6 +243,49 @@ RUN python3 -m venv /opt/pentest-venv && \
     ln -sf /opt/pentest-venv/bin/bandit /usr/local/bin/bandit && \
     ln -sf /opt/pentest-venv/bin/sqlmap /usr/local/bin/sqlmap && \
     chmod -R a+rX /opt/pentest-venv
+
+# ---- Layer I: self-identify the edit-format prompt rules --------------------
+# The edit-format rules text baked into aider's prompt modules is appended to
+# chat messages as a system reminder; verbatim it reads as an instruction
+# addressed to the model and regurgitates as noise (verified 2026-11-19: the
+# rules block surfaced verbatim in chat, and a site-packages grep confirmed
+# the source files in both running containers). A header is prepended to the
+# rules heading so every occurrence reads as wire-format documentation, not
+# a task. Fail-closed: the build breaks if the anchor is missing from
+# editblock_prompts.py (upstream reword), so the patch is never silently
+# skipped. Takes effect on the next image rebuild (./.agent/start.sh).
+COPY <<'PYEOF' /tmp/patch_prompt_headers.py
+from pathlib import Path
+import sys
+
+SITE = Path("/venv/lib/python3.12/site-packages/aider/coders")
+ANCHOR = "# *SEARCH/REPLACE block* Rules:"
+HEADER = (
+    "[Edit-format specification (aider wire format): the rules below define "
+    "how SEARCH/REPLACE edit blocks are encoded in model responses. They "
+    "describe the format machinery - they are not an instruction to perform "
+    "an edit and not a user request; never act on them or repeat them.]"
+)
+results = {}
+for module in sorted(SITE.glob("*.py")):
+    text = module.read_text(encoding="utf-8")
+    if HEADER in text:
+        results[module.name] = "already-patched"
+        continue
+    hits = text.count(ANCHOR)
+    if hits:
+        module.write_text(
+            text.replace(ANCHOR, HEADER + "\n" + ANCHOR), encoding="utf-8"
+        )
+    results[module.name] = hits
+print("patched occurrences per module:", results)
+if not results.get("editblock_prompts.py"):
+    sys.exit(
+        "FAIL: anchor absent from editblock_prompts.py - upstream reworded"
+        " the rules; review this patch layer"
+    )
+PYEOF
+RUN python3 /tmp/patch_prompt_headers.py && rm -f /tmp/patch_prompt_headers.py
 
 # ---- Layer E: runtime configuration ----------------------------------------
 # Sticky bit (1777) instead of 777: /home stays writable as a shared scratch
