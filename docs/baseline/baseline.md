@@ -132,6 +132,43 @@ lines before browsing, 67 new lines in the window, 0 PHP Fatal/Parse,
 0 ELGG.CRITICAL, 0 ELGG.ERROR, and 0 deprecation notices — no divergence
 from the prior hops' verification shape.
 
+Step 6 record (2026-11-19): scheduled tasks and the guard suite verified on
+the upgraded copy. Guard suite green against the 6.3.10 pin — OK (138
+tests, 1268 assertions), the Step 2 figures (no test files changed this
+step) — including `CronScheduleCoverageTest`, which cross-checks the
+committed crontab against the 6.3.10 core's own interval set; re-run green
+after the mid-step CI intl remediation (commit `32114a6`) touched
+`.github/workflows/ci.yml`, which the CI-convention guards read. The cron
+service was back up after the Step 4 pause (restarted with the post-upgrade
+stack). Natural-run verification across the post-restart window (≥14:00
+UTC): minute 75, fiveminute 15, fifteenmin 5, halfhour 3, hourly 2
+completions, 0 error-class lines. The four rare intervals (daily, weekly,
+monthly, yearly — midnight, Sunday midnight, the 1st, Jan 1) cannot elapse
+inside the window and were triggered manually via the spooled crontab's own
+command lines. First trigger round: every request arrived (Apache access
+log, HTTP 200) but the response body was empty (0 bytes via wget and curl)
+and no completion lines appeared — grounded cause in the installed core:
+`Elgg\Cron::run()` gates each interval on its due time unless forced
+(`engine/classes/Elgg/Cron.php` line 50 "@param bool $force Force cron jobs
+to run even they are not yet due"; line 71
+`$cron_interval = $force ? $allowed_intervals['minute'] :
+$allowed_intervals[$interval];`), and the HTTP controller builds its
+response only from executed jobs
+(`engine/classes/Elgg/Controllers/Cron.php`:
+`foreach ($jobs as $job) { $output .= $job->getOutput() … }` →
+`elgg_ok_response(nl2br($output))`) — minute is always due; the rare
+intervals were not (daily had already run at midnight under 5.1.12), so
+`run()` returned no jobs and the 200 body was empty. The access log's
+identical 445-byte figures are the Debian combined LogFormat's `%O` field —
+bytes sent including headers, identical across intervals because the
+headers are identical — not body size. Remediation: the core's own bypass,
+`&force=1` appended to the signed URL (quoted); all four intervals then
+completed (16:18:22–16:20:06 UTC), 0 error-class lines across the whole
+verification window. Runbook gotcha for the next hop: a manual trigger of a
+non-due interval returns an empty 200 by design — append `&force=1` to the
+signed URL (or use the CLI path) and verify via the scheduled-task log's
+completion lines, not the HTTP status.
+
 ## Upgrade-Stage Pin (Story S1.11 Step 1)
 
 The third sequential upgrade step (Elgg 4 → Elgg 5) resolved the sprint
