@@ -64,19 +64,28 @@ the Packagist version metadata for elgg/elgg, queried via
 | Elgg core (upgrade target) | 6.3.10 | Newest stable 6.x release in the Packagist version list — the 6.x line ends at 6.3.10 (`6.3.x-dev` above it is a branch, not a release; the 7.x line above that belongs to the S1.13 final hop) |
 | PHP runtime | 8.2.21 (unchanged) | elgg/elgg 6.3.10 declares `"php": ">=8.2"` (`composer show -a elgg/elgg 6.3.10`); the pinned 8.2.21 runtime satisfies it, so the runtime pin does not move |
 
-Step 2 record (2026-11-18, remediation in progress): the pair is declared in
-`src/composer.json` (`"elgg/elgg": "6.3.10"`) and the pin-consistency guard
-tests were updated to expect the new pair; the Pinned Versions table above
-carries the pair as the active pin, with the 5.1.12 third-hop value preserved
-as the resolution record in the S1.11 section below. The first
-`composer update` (38m8s wall) aborted in the resolution phase, before any
-lock or vendor write: elgg/elgg 6.3.10 requires `ext-intl *` and the app
-container's PHP 8.2.21 does not provide it — a platform requirement the
-5.1.12 tree never carried, so the S1.11-era image had passed every platform
-check until this hop. Remediation: the runtime image gains the intl
-extension (image rebuild), then the update re-runs; the runtime version pin
-itself does not move. The MariaDB, cron, and phpMyAdmin pins are untouched
-by this step.
+Step 2 record (2026-11-19): the pair is declared across the version
+surfaces — `src/composer.json` pins `"elgg/elgg": "6.3.10"` and the
+regenerated `src/composer.lock` (tracked — the baked-image pin) resolves the
+6.3.10 tree against `platform.php 8.2.21`, with the vendor tree synced in
+the same run; the Pinned Versions table above carries the pair as the active
+pin, with the 5.1.12 third-hop value preserved as the resolution record in
+the S1.11 section below, and the pin-consistency guard tests expect the new
+pair. The first `composer update` (38m8s wall) aborted in the resolution
+phase, before any lock or vendor write: elgg/elgg 6.3.10 requires
+`ext-intl *` and the app container's PHP 8.2.21 did not load it — intl.so
+sat present in extension_dir but unloaded, the same overwriting-ini cause as
+pdo_mysql/gd/zip before it (the 5.1.12 tree never required intl, so the
+S1.11-era image had passed every platform check until this hop). Remediation
+(commit `41ffabc`): one `extension=intl` line in
+`docker/app/php/extensions.ini`, app image rebuilt with an explicit
+`PHP_VERSION=8.2` (the S1.11 stale-env gotcha) — the recreated container
+reports PHP 8.2.21 with intl loaded; the runtime version pin itself does not
+move. The re-run completed: lock regenerated, vendor synced, guard suite
+green (138 tests, 1268 assertions). The MariaDB, cron, and phpMyAdmin pins
+are untouched by this step. Dependency-change record:
+`docs/dependencies/S1.12-dependencies.md` (ext-intl platform requirement,
+transitive tree replacement).
 
 ## Upgrade-Stage Pin (Story S1.11 Step 1)
 
